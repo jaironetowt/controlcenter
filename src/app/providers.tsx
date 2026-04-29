@@ -5,6 +5,7 @@ import { MantineProvider } from '@mantine/core';
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <MantineProvider
+      defaultColorScheme="light"
       theme={{
         fontFamily: 'var(--font-geist-sans), sans-serif',
         primaryColor: 'blue',

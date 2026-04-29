@@ -6,7 +6,7 @@ export default function DashboardPage() {
     <div className="flex h-screen overflow-hidden bg-[#F4F4F5]">
       <Sidebar />
 
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-y-auto pl-10 pr-6 py-6">
         {/* Main content area — gadget grid comes here */}
         <div className="mb-1">
           <h1 className="text-xl font-bold text-zinc-900">Mosaic</h1>

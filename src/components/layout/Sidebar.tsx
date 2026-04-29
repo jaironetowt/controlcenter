@@ -15,24 +15,18 @@ import {
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
 } from '@tabler/icons-react';
+import { useState, useEffect } from 'react';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-
 // ─── Zustand store ────────────────────────────────────────────────────────────
 interface SidebarStore {
   collapsed: boolean;
   toggle: () => void;
 }
 
-const useSidebarStore = create<SidebarStore>()(
-  persist(
-    (set) => ({
-      collapsed: false,
-      toggle: () => set((s) => ({ collapsed: !s.collapsed })),
-    }),
-    { name: 'cc-sidebar-collapsed' }
-  )
-);
+const useSidebarStore = create<SidebarStore>()((set) => ({
+  collapsed: false,
+  toggle: () => set((s) => ({ collapsed: !s.collapsed })),
+}));
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const projects = [
@@ -63,38 +57,60 @@ const activeModule = 'Dashboard';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export function Sidebar() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const { collapsed, toggle } = useSidebarStore();
 
+  // Before hydration, always render expanded (matches SSR default)
+  const isCollapsed = mounted ? collapsed : false;
+
+  // Only apply transition after mount to avoid flash
+  const transitionClass = mounted ? 'transition-[width] duration-200 ease-in-out' : '';
+
+  // Shared class for text labels that fade/shrink when collapsed
+  const labelCls = `overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-150 ease-in-out ${
+    isCollapsed ? 'opacity-0 max-w-0' : 'opacity-100 max-w-full'
+  }`;
+
   return (
-    <aside
-      className="h-full bg-[#1F1F24] flex flex-col flex-shrink-0 transition-[width] duration-200 ease-in-out overflow-hidden"
-      style={{ width: collapsed ? 56 : 240 }}
-    >
+    <div className={`relative h-full flex-shrink-0 ${transitionClass}`} style={{ width: isCollapsed ? 56 : 240 }}>
+      {/* Protruding expand tab — only visible when collapsed */}
+      {isCollapsed && (
+        <button
+          onClick={toggle}
+          className="absolute z-10 flex items-center justify-center bg-zinc-100 border border-zinc-300 rounded-r-md shadow-sm text-zinc-500 hover:text-zinc-900 hover:bg-white transition-colors"
+          style={{ right: -20, top: 16, width: 20, height: 24 }}
+          aria-label="Expand sidebar"
+        >
+          <IconLayoutSidebarLeftExpand size={14} />
+        </button>
+      )}
+
+      <aside
+        className="w-full h-full bg-[#1F1F24] flex flex-col overflow-hidden"
+      >
       {/* Logo + toggle */}
-      <div className={`flex items-center py-4 flex-shrink-0 ${collapsed ? 'flex-col gap-3 px-0' : 'px-4 gap-0'}`}>
+      <div className={`flex items-center py-4 flex-shrink-0 ${isCollapsed ? 'justify-center px-0' : 'px-4 gap-0'}`}>
         {/* Logo */}
-        <div className={`flex items-center gap-2.5 ${collapsed ? 'justify-center w-full' : 'flex-1 min-w-0'}`}>
+        <div className={`flex items-center gap-2.5 ${isCollapsed ? 'justify-center' : 'flex-1 min-w-0'}`}>
           <div className="w-7 h-7 rounded-md bg-blue-500 flex items-center justify-center flex-shrink-0">
             <IconStack2 size={16} color="white" />
           </div>
-          {!collapsed && (
-            <span className="text-white text-[13px] font-semibold tracking-tight truncate">Control Center</span>
-          )}
+          <span className={`text-white text-[13px] font-semibold tracking-tight truncate ${labelCls}`}>
+            Control Center
+          </span>
         </div>
 
-        {/* Toggle button */}
-        <button
-          onClick={toggle}
-          className={`text-[#C7C7CC] hover:text-white transition-colors flex-shrink-0 ${
-            collapsed ? 'flex items-center justify-center w-full py-0.5' : ''
-          }`}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {collapsed
-            ? <IconLayoutSidebarLeftExpand size={18} />
-            : <IconLayoutSidebarLeftCollapse size={18} />
-          }
-        </button>
+        {/* Collapse button — only visible when expanded */}
+        {!isCollapsed && (
+          <button
+            onClick={toggle}
+            className="text-[#C7C7CC] hover:text-white transition-colors flex-shrink-0"
+            aria-label="Collapse sidebar"
+          >
+            <IconLayoutSidebarLeftCollapse size={18} />
+          </button>
+        )}
       </div>
 
       <div className="mx-3 h-px bg-white/8 flex-shrink-0" />
@@ -106,15 +122,15 @@ export function Sidebar() {
             <button
               key={label}
               className={`flex items-center rounded-md text-[13px] text-[#C7C7CC] hover:bg-white/8 hover:text-white transition-colors text-left w-full ${
-                collapsed ? 'justify-center p-2' : 'gap-2.5 px-2 py-1.5'
+                isCollapsed ? 'justify-center p-2' : 'gap-2.5 px-2 py-1.5'
               }`}
             >
-              <Icon size={15} />
-              {!collapsed && label}
+              <Icon size={15} className="flex-shrink-0" />
+              <span className={labelCls}>{label}</span>
             </button>
           );
 
-          if (collapsed) {
+          if (isCollapsed) {
             return (
               <Tooltip key={label} label={label} position="right" withArrow>
                 {btn}
@@ -125,15 +141,14 @@ export function Sidebar() {
         })}
       </nav>
 
-      {!collapsed && <div className="mx-3 my-2 h-px bg-white/8 flex-shrink-0" />}
-      {collapsed && <div className="mx-3 my-2 h-px bg-white/8 flex-shrink-0" />}
+      <div className="mx-3 my-2 h-px bg-white/8 flex-shrink-0" />
 
       {/* Projects section label */}
-      {!collapsed && (
-        <div className="px-4 mb-1 flex-shrink-0">
-          <span className="text-[10px] font-semibold text-[#C7C7CC]/60 tracking-wider uppercase">Projects</span>
-        </div>
-      )}
+      <div className="px-4 mb-1 flex-shrink-0">
+        <span className={`text-[10px] font-semibold text-[#C7C7CC]/60 tracking-wider uppercase ${labelCls}`}>
+          Projects
+        </span>
+      </div>
 
       {/* Project list */}
       <div className="px-2 flex flex-col gap-0.5 overflow-y-auto">
@@ -144,16 +159,16 @@ export function Sidebar() {
             <button
               className={`flex items-center w-full rounded-md text-[13px] transition-colors text-left ${
                 isActive ? 'bg-white/10 text-white font-medium' : 'text-[#C7C7CC] hover:bg-white/8 hover:text-white'
-              } ${collapsed ? 'justify-center p-2' : 'gap-2.5 px-2 py-1.5'}`}
+              } ${isCollapsed ? 'justify-center p-2' : 'gap-2.5 px-2 py-1.5'}`}
             >
               <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: project.color }} />
-              {!collapsed && project.name}
+              <span className={labelCls}>{project.name}</span>
             </button>
           );
 
           return (
             <div key={project.id}>
-              {collapsed ? (
+              {isCollapsed ? (
                 <Tooltip label={project.name} position="right" withArrow>
                   {projectBtn}
                 </Tooltip>
@@ -162,8 +177,12 @@ export function Sidebar() {
               )}
 
               {/* Module sub-menu — only in expanded mode */}
-              {isActive && !collapsed && (
-                <div className="ml-4 mt-0.5 mb-1 flex flex-col gap-0.5 border-l border-white/10 pl-3">
+              {isActive && (
+                <div
+                  className={`ml-4 mt-0.5 mb-1 flex flex-col gap-0.5 border-l border-white/10 pl-3 overflow-hidden transition-[opacity,max-height] duration-150 ease-in-out ${
+                    isCollapsed ? 'opacity-0 max-h-0' : 'opacity-100 max-h-96'
+                  }`}
+                >
                   {moduleItems.map(({ label, icon: Icon }) => (
                     <button
                       key={label}
@@ -173,8 +192,8 @@ export function Sidebar() {
                           : 'text-[#C7C7CC]/70 hover:text-white hover:bg-white/5'
                       }`}
                     >
-                      <Icon size={13} />
-                      {label}
+                      <Icon size={13} className="flex-shrink-0" />
+                      <span className="whitespace-nowrap">{label}</span>
                     </button>
                   ))}
                 </div>
@@ -185,20 +204,22 @@ export function Sidebar() {
       </div>
 
       {/* Footer */}
-      {!collapsed ? (
-        <div className="mt-auto mx-4 mb-4 pt-3 border-t border-white/8 flex-shrink-0">
-          <p className="text-[13px] text-white font-medium">Jairo Neto</p>
-          <p className="text-[11px] text-[#C7C7CC]/60">jairo.neto@poatek.com</p>
+      <div className="mt-auto flex-shrink-0">
+        {/* Expanded footer — always mounted, fades out when collapsed */}
+        <div className={`mx-4 mb-4 pt-3 border-t border-white/8 overflow-hidden transition-[opacity,max-height] duration-150 ${isCollapsed ? 'opacity-0 max-h-0 pointer-events-none' : 'opacity-100 max-h-20'}`}>
+          <p className="text-[13px] text-white font-medium whitespace-nowrap">Jairo Neto</p>
+          <p className="text-[11px] text-[#C7C7CC]/60 whitespace-nowrap">jairo.neto@poatek.com</p>
         </div>
-      ) : (
-        <div className="mt-auto mb-4 flex justify-center flex-shrink-0">
+        {/* Collapsed avatar — always mounted, fades in when collapsed */}
+        <div className={`mb-4 flex justify-center transition-opacity duration-150 ${isCollapsed ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
           <Tooltip label="Jairo Neto" position="right" withArrow>
             <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center cursor-default">
               <span className="text-white text-[10px] font-bold">JN</span>
             </div>
           </Tooltip>
         </div>
-      )}
-    </aside>
+      </div>
+      </aside>
+    </div>
   );
 }

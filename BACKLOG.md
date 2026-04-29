@@ -10,12 +10,13 @@ Objetivo: app rodando com navegação, layout completo e os dois primeiros gadge
 
 | ID | Ticket | Spec | Status |
 |----|--------|------|--------|
-| CC-F01 | App Shell — estrutura base (sidebar + main + right panel) | [spec](docs/specs/CC-F01-app-shell.md) | **Pronto para dev** |
-| CC-F02 | Sidebar — navegação com sub-menu colapsável | [spec](docs/specs/CC-F01-app-shell.md#sidebar-cc-f02) | **Pronto para dev** |
-| CC-F03 | Right Panel — barra de gadgets (Quick Notes + Upcoming + placeholder) | [spec](docs/specs/CC-F01-app-shell.md#right-panel-cc-f03) | **Pronto para dev** |
-| CC-F04 | Project View — header do projeto com External/Internal health | A especificar | Pendente |
-| CC-F05 | Global View — cards de projetos com health badge | A especificar | Pendente |
-| CC-F06 | Criar / editar / arquivar projeto | A especificar | Pendente |
+| CC-F01 | App Shell — estrutura base (sidebar + main + right panel) | [spec](docs/specs/CC-F01-app-shell.md) | ✅ Feito |
+| CC-F02 | Sidebar — navegação com sub-menu colapsável | [spec](docs/specs/CC-F01-app-shell.md#sidebar-cc-f02) | ✅ Feito |
+| CC-F03 | Right Panel — barra de gadgets (Quick Notes + Upcoming + placeholder) | [spec](docs/specs/CC-F01-app-shell.md#right-panel-cc-f03) | ✅ Feito |
+| CC-F04 | Painéis colapsáveis (sidebar 56px + right panel 28px) | [spec](docs/specs/CC-F04-collapsible-panels.md) | ✅ Feito — refinamento de botões pendente |
+| CC-F05 | Project View — header do projeto com External/Internal health | [spec](docs/specs/CC-F05-project-view-header.md) | **Pronto para dev** |
+| CC-F06 | Global View — cards de projetos com health badge | [spec](docs/specs/CC-F06-global-view.md) | **Pronto para dev** |
+| CC-F07 | Criar / editar / arquivar projeto | A especificar | Pendente |
 
 ---
 
