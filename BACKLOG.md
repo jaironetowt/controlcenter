@@ -6,44 +6,31 @@ _Status: Em descoberta. Última atualização: 2026-04-29_
 
 ## Convenção de IDs
 
-| Prefixo | Significado | Exemplos |
-|---------|-------------|---------|
-| `CC-F##` | **Feature** — funcionalidades novas, parte das fases planejadas | CC-F01, CC-F05 |
-| `CC-P##` | **Polish** — bugs, ajustes visuais, melhorias cross-cutting sem spec formal | CC-P01, CC-P02 |
-| `PI-###` | **Project Intelligence** — módulos de risco, decisão, action items | PI-001 |
-| `KN-###` | **Knowledge** — repositório de links, atas, IA | KN-001 |
-| `CF-###` | **Config / Integrations** — OAuth, API tokens, webhooks | CF-001 |
-| `ME-###` | **Metrics** — widgets de métricas, integrações Jira | ME-002 |
-| `RP-###` | **Reporting** — geração de reports, exportações | RP-001 |
+Todos os tickets usam `CC-##` sequencial. O tipo vai como tag na descrição:
+
+`[FEATURE]` `[POLISH]` `[BUG]` `[INTEGRATION]` `[AI]`
 
 ---
 
-## Polimento & Bugs (cross-cutting)
-
-| ID | Ticket | Status |
-|----|--------|--------|
-| CC-P01 | Tipografia — padronização da escala de fontes (size, weight, hierarchy) | ✅ Feito |
-| CC-P02 | Animação painéis — hydration guard + overflow-hidden clipping + botões sem pulo | ✅ Feito |
-| CC-P03 | QuickNotes — trocar Mantine Textarea por textarea nativo (eliminar expansion no reload) | ✅ Feito |
-| CC-P04 | Mantine hydration — suppressHydrationWarning + defaultColorScheme alinhado | ✅ Feito |
-| CC-P05 | Right panel — sempre aberta por padrão (remover persist), borda de cards oculta no strip | ✅ Feito |
-| CC-P06 | Sidebar — sempre aberta por padrão (remover persist), espaçamento com conteúdo principal | ✅ Feito |
-
----
-
-## Fase 1 — Foundation (App Shell + Gadgets Iniciais)
+## Fase 1 — Foundation
 
 Objetivo: app rodando com navegação, layout completo e os dois primeiros gadgets funcionais.
 
-| ID | Ticket | Spec | Status |
-|----|--------|------|--------|
-| CC-F01 | App Shell — estrutura base (sidebar + main + right panel) | [spec](docs/specs/CC-F01-app-shell.md) | ✅ Feito |
-| CC-F02 | Sidebar — navegação com sub-menu colapsável | [spec](docs/specs/CC-F01-app-shell.md#sidebar-cc-f02) | ✅ Feito |
-| CC-F03 | Right Panel — barra de gadgets (Quick Notes + Upcoming + placeholder) | [spec](docs/specs/CC-F01-app-shell.md#right-panel-cc-f03) | ✅ Feito |
-| CC-F04 | Painéis colapsáveis (sidebar 56px + right panel 28px) | [spec](docs/specs/CC-F04-collapsible-panels.md) | ✅ Feito |
-| CC-F05 | Project View — header do projeto com External/Internal health | [spec](docs/specs/CC-F05-project-view-header.md) | ✅ Feito |
-| CC-F06 | Global View — cards de projetos com health badge | [spec](docs/specs/CC-F06-global-view.md) | **Pronto para dev** |
-| CC-F07 | Criar / editar / arquivar projeto | A especificar | Pendente |
+| ID | Tipo | Ticket | Spec | Status |
+|----|------|--------|------|--------|
+| CC-01 | [FEATURE] | App Shell — estrutura base (sidebar + main + right panel) | [spec](docs/specs/CC-F01-app-shell.md) | ✅ Feito |
+| CC-02 | [FEATURE] | Sidebar — navegação com sub-menu colapsável | [spec](docs/specs/CC-F01-app-shell.md) | ✅ Feito |
+| CC-03 | [FEATURE] | Right Panel — Quick Notes, Upcoming, placeholder | [spec](docs/specs/CC-F01-app-shell.md) | ✅ Feito |
+| CC-04 | [FEATURE] | Painéis colapsáveis (sidebar 56px + right panel 28px) | [spec](docs/specs/CC-F04-collapsible-panels.md) | ✅ Feito |
+| CC-05 | [FEATURE] | Project View — header com External/Internal health | [spec](docs/specs/CC-F05-project-view-header.md) | ✅ Feito |
+| CC-06 | [FEATURE] | Global View — cards de projetos com health badge | [spec](docs/specs/CC-F06-global-view.md) | **Pronto para dev** |
+| CC-07 | [FEATURE] | Criar / editar / arquivar projeto | A especificar | Pendente |
+| CC-08 | [POLISH] | Tipografia — padronização da escala de fontes | — | ✅ Feito |
+| CC-09 | [POLISH] | Animação painéis — hydration guard + transições suaves | — | ✅ Feito |
+| CC-10 | [BUG] | QuickNotes — expansion no reload (Mantine autosize) | — | ✅ Feito |
+| CC-11 | [BUG] | Mantine hydration — suppressHydrationWarning + defaultColorScheme | — | ✅ Feito |
+| CC-12 | [POLISH] | Right panel — sempre aberta, borda invisível no strip colapsado | — | ✅ Feito |
+| CC-13 | [POLISH] | Sidebar — sempre aberta, espaçamento com conteúdo principal | — | ✅ Feito |
 
 ---
 
@@ -51,35 +38,35 @@ Objetivo: app rodando com navegação, layout completo e os dois primeiros gadge
 
 Objetivo: Risk log, decision log, action items e stakeholder map funcionando.
 
-| ID | Feature | Pilar | Status |
-|----|---------|-------|--------|
-| PI-001 | CRUD Risk Log | Inteligência | Pendente |
-| PI-002 | Matriz de risco | Inteligência | Pendente |
-| PI-003 | CRUD Decision Log | Inteligência | Pendente |
-| PI-004 | CRUD Action Items | Inteligência | Pendente |
-| PI-005 | CRUD Stakeholder Map | Inteligência | Pendente |
-| PI-006 | Grid influence × interest | Inteligência | Pendente |
-| KN-001 | Repositório de links por projeto | Conhecimento | Pendente |
-| KN-002 | CRUD Atas de reunião | Conhecimento | Pendente |
+| ID | Tipo | Ticket | Status |
+|----|------|--------|--------|
+| CC-14 | [FEATURE] | CRUD Risk Log | Pendente |
+| CC-15 | [FEATURE] | Matriz de risco (severity × probability) | Pendente |
+| CC-16 | [FEATURE] | CRUD Decision Log | Pendente |
+| CC-17 | [FEATURE] | CRUD Action Items | Pendente |
+| CC-18 | [FEATURE] | CRUD Stakeholder Map | Pendente |
+| CC-19 | [FEATURE] | Grid influence × interest | Pendente |
+| CC-20 | [FEATURE] | Repositório de links por projeto | Pendente |
+| CC-21 | [FEATURE] | CRUD Atas de reunião | Pendente |
 
 ---
 
 ## Fase 3 — Integrações
 
-Objetivo: dados reais de Jira e Google Suite.
+Objetivo: dados reais de Jira, Salesforce e Google Suite.
 
-| ID | Feature | Pilar | Status |
-|----|---------|-------|--------|
-| CF-001 | CRUD de projetos com config de stack | Integrações | Pendente |
-| CF-002 | Configuração da API Anthropic | Integrações | Pendente |
-| CF-003 | Google OAuth | Integrações | Pendente |
-| CF-004 | Jira API token | Integrações | Pendente |
-| CF-005 | Configuração de gadgets por projeto | Integrações | Pendente |
-| CF-006 | Integração Salesforce (API token) | Integrações | Pendente |
-| CF-007 | Webhook n8n (entrada e saída) | Integrações | Pendente |
-| ME-002 | Integração Jira — issues e sprints | Métricas | Pendente |
-| ME-003 | Widget velocity | Métricas | Pendente |
-| ME-004 | Widget burn-down | Métricas | Pendente |
+| ID | Tipo | Ticket | Status |
+|----|------|--------|--------|
+| CC-22 | [FEATURE] | CRUD de projetos com config de stack | Pendente |
+| CC-23 | [FEATURE] | Configuração da API Anthropic | Pendente |
+| CC-24 | [INTEGRATION] | Google OAuth | Pendente |
+| CC-25 | [INTEGRATION] | Jira API token | Pendente |
+| CC-26 | [FEATURE] | Configuração de gadgets por projeto | Pendente |
+| CC-27 | [INTEGRATION] | Salesforce API token | Pendente |
+| CC-28 | [INTEGRATION] | Webhook n8n (entrada e saída) | Pendente |
+| CC-29 | [INTEGRATION] | Jira — issues e sprints | Pendente |
+| CC-30 | [FEATURE] | Widget velocity | Pendente |
+| CC-31 | [FEATURE] | Widget burn-down | Pendente |
 
 ---
 
@@ -87,14 +74,14 @@ Objetivo: dados reais de Jira e Google Suite.
 
 Objetivo: geração automática de reports e extração de insights.
 
-| ID | Feature | Pilar | Status |
-|----|---------|-------|--------|
-| RP-001 | Geração de status report com IA | Relatórios | Pendente |
-| RP-002 | Configurar período do relatório | Relatórios | Pendente |
-| RP-003 | Preview do relatório | Relatórios | Pendente |
-| RP-004 | Exportar para Google Docs | Relatórios | Pendente |
-| KN-003 | Extração de action items de ata com IA | Conhecimento | Pendente |
-| KN-007 | Sumarização de transcrição com IA | Conhecimento | Pendente |
+| ID | Tipo | Ticket | Status |
+|----|------|--------|--------|
+| CC-32 | [AI] | Geração de status report com IA | Pendente |
+| CC-33 | [FEATURE] | Configurar período do relatório | Pendente |
+| CC-34 | [FEATURE] | Preview do relatório | Pendente |
+| CC-35 | [INTEGRATION] | Exportar para Google Docs | Pendente |
+| CC-36 | [AI] | Extração de action items de ata com IA | Pendente |
+| CC-37 | [AI] | Sumarização de transcrição com IA | Pendente |
 
 ---
 
@@ -102,17 +89,17 @@ Objetivo: geração automática de reports e extração de insights.
 
 Objetivo: dashboards exportáveis e compartilhamento.
 
-| ID | Feature | Pilar | Status |
-|----|---------|-------|--------|
-| RP-008 | Exportar para Google Slides | Relatórios | Pendente |
-| RP-009 | Draft de e-mail no Gmail | Relatórios | Pendente |
-| CF-009 | Multi-usuário | Integrações | Pendente |
+| ID | Tipo | Ticket | Status |
+|----|------|--------|--------|
+| CC-38 | [INTEGRATION] | Exportar para Google Slides | Pendente |
+| CC-39 | [INTEGRATION] | Draft de e-mail no Gmail | Pendente |
+| CC-40 | [FEATURE] | Multi-usuário | Pendente |
 
 ---
 
 ## Descartado / Muito Baixa Prioridade
 
-| ID | Feature | Motivo |
-|----|---------|--------|
-| PI-011 | Stakeholder Pulse — alerta se não contactado há X dias | Interessante, mas fora do foco no momento |
-| WS-014 | Quick Capture via menubar app (atalho global Mac) | Futuro distante |
+| ID | Tipo | Ticket | Motivo |
+|----|------|--------|--------|
+| CC-41 | [FEATURE] | Stakeholder Pulse — alerta se não contactado há X dias | Interessante, mas fora do foco no momento |
+| CC-42 | [FEATURE] | Quick Capture via menubar app (atalho global Mac) | Futuro distante |
