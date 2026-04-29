@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Textarea } from '@mantine/core';
 import { IconNotes } from '@tabler/icons-react';
 
 export function QuickNotes() {
@@ -13,22 +12,12 @@ export function QuickNotes() {
         <IconNotes size={15} className="text-zinc-400" />
         <span className="text-[12px] font-semibold text-zinc-700">Quick Notes</span>
       </div>
-      <Textarea
+      <textarea
         placeholder="Type anything here…"
-        autosize
-        minRows={5}
-        maxRows={10}
         value={value}
-        onChange={(e) => setValue(e.currentTarget.value)}
-        styles={{
-          input: {
-            fontSize: '12px',
-            backgroundColor: '#F9F9FA',
-            border: '1px solid #E4E4E7',
-            borderRadius: '8px',
-            resize: 'none',
-          },
-        }}
+        rows={5}
+        onChange={(e) => setValue(e.target.value)}
+        className="w-full text-[12px] bg-[#F9F9FA] border border-zinc-200 rounded-lg p-3 resize-none focus:outline-none focus:ring-1 focus:ring-blue-300 placeholder:text-zinc-400 text-zinc-800"
       />
       {value && (
         <button
