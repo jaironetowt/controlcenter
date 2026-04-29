@@ -4,12 +4,30 @@ _Status: Em descoberta. Última atualização: 2026-04-29_
 
 ---
 
+## Convenção de IDs
+
+| Prefixo | Significado | Exemplos |
+|---------|-------------|---------|
+| `CC-F##` | **Feature** — funcionalidades novas, parte das fases planejadas | CC-F01, CC-F05 |
+| `CC-P##` | **Polish** — bugs, ajustes visuais, melhorias cross-cutting sem spec formal | CC-P01, CC-P02 |
+| `PI-###` | **Project Intelligence** — módulos de risco, decisão, action items | PI-001 |
+| `KN-###` | **Knowledge** — repositório de links, atas, IA | KN-001 |
+| `CF-###` | **Config / Integrations** — OAuth, API tokens, webhooks | CF-001 |
+| `ME-###` | **Metrics** — widgets de métricas, integrações Jira | ME-002 |
+| `RP-###` | **Reporting** — geração de reports, exportações | RP-001 |
+
+---
+
 ## Polimento & Bugs (cross-cutting)
 
 | ID | Ticket | Status |
 |----|--------|--------|
 | CC-P01 | Tipografia — padronização da escala de fontes (size, weight, hierarchy) | ✅ Feito |
 | CC-P02 | Animação painéis — hydration guard + overflow-hidden clipping + botões sem pulo | ✅ Feito |
+| CC-P03 | QuickNotes — trocar Mantine Textarea por textarea nativo (eliminar expansion no reload) | ✅ Feito |
+| CC-P04 | Mantine hydration — suppressHydrationWarning + defaultColorScheme alinhado | ✅ Feito |
+| CC-P05 | Right panel — sempre aberta por padrão (remover persist), borda de cards oculta no strip | ✅ Feito |
+| CC-P06 | Sidebar — sempre aberta por padrão (remover persist), espaçamento com conteúdo principal | ✅ Feito |
 
 ---
 
@@ -22,8 +40,8 @@ Objetivo: app rodando com navegação, layout completo e os dois primeiros gadge
 | CC-F01 | App Shell — estrutura base (sidebar + main + right panel) | [spec](docs/specs/CC-F01-app-shell.md) | ✅ Feito |
 | CC-F02 | Sidebar — navegação com sub-menu colapsável | [spec](docs/specs/CC-F01-app-shell.md#sidebar-cc-f02) | ✅ Feito |
 | CC-F03 | Right Panel — barra de gadgets (Quick Notes + Upcoming + placeholder) | [spec](docs/specs/CC-F01-app-shell.md#right-panel-cc-f03) | ✅ Feito |
-| CC-F04 | Painéis colapsáveis (sidebar 56px + right panel 28px) | [spec](docs/specs/CC-F04-collapsible-panels.md) | ✅ Feito — refinamento de botões pendente |
-| CC-F05 | Project View — header do projeto com External/Internal health | [spec](docs/specs/CC-F05-project-view-header.md) | **Pronto para dev** |
+| CC-F04 | Painéis colapsáveis (sidebar 56px + right panel 28px) | [spec](docs/specs/CC-F04-collapsible-panels.md) | ✅ Feito |
+| CC-F05 | Project View — header do projeto com External/Internal health | [spec](docs/specs/CC-F05-project-view-header.md) | ✅ Feito |
 | CC-F06 | Global View — cards de projetos com health badge | [spec](docs/specs/CC-F06-global-view.md) | **Pronto para dev** |
 | CC-F07 | Criar / editar / arquivar projeto | A especificar | Pendente |
 
