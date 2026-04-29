@@ -4,6 +4,15 @@ _Status: Em descoberta. Última atualização: 2026-04-29_
 
 ---
 
+## Polimento & Bugs (cross-cutting)
+
+| ID | Ticket | Status |
+|----|--------|--------|
+| CC-P01 | Tipografia — padronização da escala de fontes (size, weight, hierarchy) | ✅ Feito |
+| CC-P02 | Animação painéis — hydration guard + overflow-hidden clipping + botões sem pulo | ✅ Feito |
+
+---
+
 ## Fase 1 — Foundation (App Shell + Gadgets Iniciais)
 
 Objetivo: app rodando com navegação, layout completo e os dois primeiros gadgets funcionais.

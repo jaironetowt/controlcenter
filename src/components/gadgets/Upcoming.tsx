@@ -12,7 +12,7 @@ export function Upcoming() {
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <IconCalendar size={15} className="text-zinc-400" />
-        <span className="text-[12px] font-semibold text-zinc-700">Upcoming</span>
+        <span className="text-[13px] font-semibold text-zinc-700">Upcoming</span>
       </div>
       <ul className="flex flex-col gap-2">
         {events.map((ev) => (

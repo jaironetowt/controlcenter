@@ -145,7 +145,7 @@ export function Sidebar() {
 
       {/* Projects section label */}
       <div className="px-4 mb-1 flex-shrink-0">
-        <span className={`text-[10px] font-semibold text-[#C7C7CC]/60 tracking-wider uppercase ${labelCls}`}>
+        <span className={`text-[10px] font-medium text-[#C7C7CC]/60 tracking-wider uppercase ${labelCls}`}>
           Projects
         </span>
       </div>
