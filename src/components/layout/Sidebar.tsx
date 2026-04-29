@@ -96,7 +96,7 @@ export function Sidebar() {
           <div className="w-7 h-7 rounded-md bg-blue-500 flex items-center justify-center flex-shrink-0">
             <IconStack2 size={16} color="white" />
           </div>
-          <span className={`text-white text-[13px] font-semibold tracking-tight truncate ${labelCls}`}>
+          <span className={`text-white text-[14px] font-semibold tracking-tight truncate ${labelCls}`}>
             Control Center
           </span>
         </div>

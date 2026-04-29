@@ -109,7 +109,7 @@ export function ExternalHealthBadge({ projectId }: ExternalHealthBadgeProps) {
 
       <Popover.Dropdown>
         <div className="flex flex-col gap-2 p-1">
-          <p className="text-[11px] font-medium text-zinc-500 px-1 mb-0.5">External health</p>
+          <p className="text-[12px] font-medium text-zinc-500 px-1 mb-0.5">External health</p>
           <div className="flex items-center gap-2">
             {STATUS_OPTIONS.map((option) => (
               <button

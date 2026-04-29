@@ -11,11 +11,8 @@ html, body {
 }
 
 body {
-  letter-spacing: 0.005em;
-  font-feature-settings: "ss01" 1;
-}
-
-input, textarea, select, button {
-  font-family: inherit;
-  font-size: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

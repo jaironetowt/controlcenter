@@ -12,15 +12,15 @@ export function Upcoming() {
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <IconCalendar size={15} className="text-zinc-400" />
-        <span className="text-[14px] font-semibold text-zinc-700">Upcoming</span>
+        <span className="text-[14px] font-semibold text-zinc-800">Upcoming</span>
       </div>
       <ul className="flex flex-col gap-2">
         {events.map((ev) => (
           <li key={ev.label} className="flex items-start gap-3">
-            <span className={`text-[11px] font-medium w-12 flex-shrink-0 pt-px ${ev.urgent ? 'text-red-500' : 'text-zinc-400'}`}>
+            <span className={`text-[12px] font-medium w-12 flex-shrink-0 pt-px ${ev.urgent ? 'text-red-500' : 'text-zinc-400'}`}>
               {ev.date}
             </span>
-            <span className="text-[12px] text-zinc-700 leading-tight">{ev.label}</span>
+            <span className="text-[13px] text-zinc-700 leading-tight">{ev.label}</span>
           </li>
         ))}
       </ul>

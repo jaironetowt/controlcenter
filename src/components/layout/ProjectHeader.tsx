@@ -36,7 +36,7 @@ export function ProjectHeader({
 
       {/* Project identity */}
       <div className="flex-1 min-w-0">
-        <p className="text-[18px] font-semibold text-zinc-900 truncate">{name}</p>
+        <p className="text-[20px] font-semibold text-zinc-900 truncate">{name}</p>
         <p className="text-[12px] text-zinc-500 mt-0.5">
           {client} · {phase} · {dateRange}
         </p>
