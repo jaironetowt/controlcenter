@@ -14,3 +14,8 @@ body {
   letter-spacing: 0.005em;
   font-feature-settings: "ss01" 1;
 }
+
+input, textarea, select, button {
+  font-family: inherit;
+  font-size: inherit;
+}

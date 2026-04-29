@@ -10,7 +10,7 @@ export function QuickNotes() {
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
         <IconNotes size={15} className="text-zinc-400" />
-        <span className="text-[13px] font-semibold text-zinc-700">Quick Notes</span>
+        <span className="text-[14px] font-semibold text-zinc-700">Quick Notes</span>
       </div>
       <textarea
         placeholder="Type anything here…"
