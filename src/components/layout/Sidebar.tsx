@@ -18,6 +18,7 @@ import {
   IconLayoutSidebarLeftExpand,
   IconPlus,
   IconPencil,
+  IconSettings,
 } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
 import { create } from 'zustand';
@@ -263,6 +264,34 @@ export function Sidebar() {
 
         {/* Footer */}
         <div className="mt-auto flex-shrink-0">
+          <div className="mx-3 mb-2 h-px bg-white/8" />
+
+          {/* Settings link */}
+          <div className="px-2 mb-2">
+            {isCollapsed ? (
+              <Tooltip label="Settings" position="right" withArrow>
+                <Link
+                  href="/settings"
+                  className={`flex items-center justify-center rounded-md p-2 text-[13px] transition-colors w-full ${
+                    pathname === '/settings' ? 'bg-white/10 text-white' : 'text-[#C7C7CC] hover:bg-white/8 hover:text-white'
+                  }`}
+                >
+                  <IconSettings size={15} />
+                </Link>
+              </Tooltip>
+            ) : (
+              <Link
+                href="/settings"
+                className={`flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[13px] transition-colors w-full ${
+                  pathname === '/settings' ? 'bg-white/10 text-white' : 'text-[#C7C7CC] hover:bg-white/8 hover:text-white'
+                }`}
+              >
+                <IconSettings size={15} className="flex-shrink-0" />
+                <span className={labelCls}>Settings</span>
+              </Link>
+            )}
+          </div>
+
           <div className={`mx-4 mb-4 pt-3 border-t border-white/8 overflow-hidden transition-[opacity,max-height] duration-150 ${isCollapsed ? 'opacity-0 max-h-0 pointer-events-none' : 'opacity-100 max-h-20'}`}>
             <p className="text-[13px] text-white font-medium whitespace-nowrap">Jairo Neto</p>
             <p className="text-[11px] text-[#C7C7CC]/60 whitespace-nowrap">jairo.neto@poatek.com</p>
