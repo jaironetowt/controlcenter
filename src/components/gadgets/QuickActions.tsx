@@ -174,6 +174,7 @@ function CaptureCard({ placeholder, descriptionPlaceholder, onSave, meta }: Capt
 
 export function QuickActions() {
   const [mounted, setMounted]       = useState(false);
+  const [collapsed, setCollapsed]   = useState(false);
   const [selected, setSelected]     = useState<FormType>('risk');
   const [projectId, setProjectId]   = useState('');
   const [impact, setImpact]         = useState<Impact>('Medium');
@@ -212,9 +213,15 @@ if (!mounted) return null;
       <div className="flex items-center gap-2">
         <IconBolt size={15} className="text-orange-500 flex-shrink-0" />
         <span className="text-[13px] font-semibold text-zinc-800 flex-1">Quick Actions</span>
+        <button
+          onClick={() => setCollapsed((c) => !c)}
+          className="text-zinc-400 hover:text-zinc-700 transition-colors focus:outline-none"
+        >
+          <IconChevronDown size={14} className={`transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`} />
+        </button>
       </div>
 
-      {/* Type selector row */}
+      {!collapsed && <>{/* Type selector row */}
       <button
         onClick={() => {
           const idx = ACTIONS.findIndex((a) => a.key === selected);
@@ -307,6 +314,7 @@ if (!mounted) return null;
           <p className="text-[10px] text-zinc-300">Google Tasks / Calendar</p>
         </div>
       )}
+      </>}
     </div>
   );
 }
