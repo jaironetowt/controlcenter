@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Tooltip } from '@mantine/core';
 import {
   IconLayoutDashboard,
@@ -299,11 +299,15 @@ interface ProjectRowProps {
 
 function ProjectRow({ project, isActive, isCollapsed, labelCls, onEditClick }: ProjectRowProps) {
   const [hovered, setHovered] = useState(false);
+  const router = useRouter();
 
   return (
-    <Link
-      href="/dashboard"
-      className={`flex items-center w-full rounded-md text-[13px] transition-colors ${
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => router.push('/dashboard')}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard'); }}
+      className={`flex items-center w-full rounded-md text-[13px] transition-colors cursor-pointer ${
         isActive ? 'bg-white/10 text-white font-medium' : 'text-[#C7C7CC] hover:bg-white/8 hover:text-white'
       } ${isCollapsed ? 'justify-center p-2' : 'gap-2.5 px-2 py-1.5'}`}
       onMouseEnter={() => setHovered(true)}
@@ -318,7 +322,7 @@ function ProjectRow({ project, isActive, isCollapsed, labelCls, onEditClick }: P
       {!isCollapsed && (
         <button
           aria-label={`Edit ${project.name}`}
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEditClick(); }}
+          onClick={(e) => { e.stopPropagation(); onEditClick(); }}
           className={`flex-shrink-0 flex items-center justify-center text-[#C7C7CC]/60 hover:text-white transition-all cursor-pointer rounded ${
             hovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
@@ -327,6 +331,6 @@ function ProjectRow({ project, isActive, isCollapsed, labelCls, onEditClick }: P
           <IconPencil size={14} />
         </button>
       )}
-    </Link>
+    </div>
   );
 }
