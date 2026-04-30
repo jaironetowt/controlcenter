@@ -175,39 +175,39 @@ if (!mounted) return null;
 
   return (
     <>
-      {/* Header: title + type selector */}
+      {/* Header: title + project selector */}
       <div className="flex items-center gap-2 mb-2">
         <IconBolt size={15} className="text-orange-500 flex-shrink-0" />
         <span className="text-[13px] font-semibold text-zinc-800 flex-1 whitespace-nowrap">Quick Actions</span>
 
-        {/* Type selector — cycles on click */}
-        <button
-          onClick={() => {
-            const idx = ACTIONS.findIndex((a) => a.key === selected);
-            setSelected(ACTIONS[(idx + 1) % ACTIONS.length].key);
-          }}
-          className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border border-orange-200 bg-orange-50 text-orange-600 hover:border-orange-400 transition-colors flex-shrink-0 whitespace-nowrap focus:outline-none"
-        >
-          {current.icon}
-          <span>{current.label}</span>
-        </button>
+        {/* Project selector — compact, cycles on click, hidden for Alert */}
+        {selected !== 'reminder' && (() => {
+          const proj = allProjects.find((p) => p.id === projectId);
+          return (
+            <button
+              onClick={cycleProject}
+              title="Click to change project"
+              className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-medium border border-zinc-200 bg-white text-zinc-600 hover:border-orange-300 hover:text-orange-600 transition-colors flex-shrink-0 max-w-[100px] focus:outline-none"
+            >
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: proj?.color }} />
+              <span className="truncate">{proj?.name ?? '—'}</span>
+            </button>
+          );
+        })()}
       </div>
 
-      {/* Project selector — full width row */}
-      {selected !== 'reminder' && (() => {
-        const proj = allProjects.find((p) => p.id === projectId);
-        return (
-          <button
-            onClick={cycleProject}
-            title="Click to change project"
-            className="w-full flex items-center gap-2 px-2.5 py-1.5 mb-1 rounded-lg text-[12px] font-medium border border-zinc-200 bg-white text-zinc-600 hover:border-orange-300 hover:text-orange-600 transition-colors focus:outline-none"
-          >
-            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: proj?.color }} />
-            <span className="flex-1 text-left truncate">{proj?.name ?? '—'}</span>
-            <IconChevronDown size={11} className="text-zinc-300 flex-shrink-0" />
-          </button>
-        );
-      })()}
+      {/* Type selector — full width row */}
+      <button
+        onClick={() => {
+          const idx = ACTIONS.findIndex((a) => a.key === selected);
+          setSelected(ACTIONS[(idx + 1) % ACTIONS.length].key);
+        }}
+        className="w-full flex items-center gap-2 px-2.5 py-1.5 mb-1 rounded-lg text-[12px] font-medium border border-orange-200 bg-orange-50 text-orange-600 hover:border-orange-400 transition-colors focus:outline-none"
+      >
+        {current.icon}
+        <span className="flex-1 text-left">{current.label}</span>
+        <IconChevronDown size={11} className="text-orange-300 flex-shrink-0" />
+      </button>
 
       {/* Risk form */}
       {selected === 'risk' && (
