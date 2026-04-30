@@ -23,6 +23,7 @@ import {
   IconChevronRight,
 } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import { create } from 'zustand';
 import { useProjectsStore, type Project } from '@/stores/useProjectsStore';
 import { ProjectModal } from '@/components/projects/ProjectModal';
@@ -86,13 +87,16 @@ export function Sidebar() {
   // Clicking a project name: immediately switch expanded state then navigate
   // so the CSS transition fires before the URL changes
   function handleProjectNavigate(project: Project) {
-    setExpandedProjects(() => {
-      const next: Record<string, boolean> = {};
-      projects.forEach((p) => { next[p.id] = p.id === project.id; });
-      return next;
+    // flushSync forces React to paint the state change before navigation,
+    // so the CSS transition gets a full frame to start before the re-render
+    flushSync(() => {
+      setExpandedProjects(() => {
+        const next: Record<string, boolean> = {};
+        projects.forEach((p) => { next[p.id] = p.id === project.id; });
+        return next;
+      });
     });
-    // Navigate after transition completes so the re-render doesn't interrupt the animation
-    setTimeout(() => router.push(`/projects/${project.id}`), 220);
+    router.push(`/projects/${project.id}`);
   }
 
   // A project's sub-menu is open if explicitly set, otherwise falls back to URL match
