@@ -44,6 +44,9 @@ interface FormErrors {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const isEditMode = !!project;
 
   const addProject    = useProjectsStore((s) => s.addProject);

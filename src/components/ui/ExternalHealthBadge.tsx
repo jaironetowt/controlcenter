@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tooltip, Popover } from '@mantine/core';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useFeaturesStore } from '@/stores/useFeaturesStore';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,8 +57,12 @@ export function ExternalHealthBadge({ projectId }: ExternalHealthBadgeProps) {
 
   const statuses = useProjectHealthStore((s) => s.statuses);
   const setStatus = useProjectHealthStore((s) => s.setStatus);
+  const rawFeatEnabled = useFeaturesStore((s) => s.features.externalHealth);
+  const featEnabled = mounted ? rawFeatEnabled : true;
 
   const status: HealthStatus = mounted ? (statuses[projectId] ?? 'green') : 'green';
+
+  if (!featEnabled) return null;
   const color = COLOR_MAP[status];
   const tooltipLabel = TOOLTIP_MAP[status];
 

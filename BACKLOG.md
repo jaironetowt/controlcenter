@@ -23,8 +23,8 @@ Objetivo: app rodando com navegação, layout completo e os dois primeiros gadge
 | CC-03 | [FEATURE] | Right Panel — Quick Notes, Upcoming, placeholder | [spec](docs/specs/CC-F01-app-shell.md) | ✅ Feito |
 | CC-04 | [FEATURE] | Painéis colapsáveis (sidebar 56px + right panel 28px) | [spec](docs/specs/CC-F04-collapsible-panels.md) | ✅ Feito |
 | CC-05 | [FEATURE] | Project View — header com External/Internal health | [spec](docs/specs/CC-F05-project-view-header.md) | ✅ Feito |
-| CC-06 | [FEATURE] | Global View — cards de projetos com health badge | [spec](docs/specs/CC-F06-global-view.md) | **Pronto para dev** |
-| CC-07 | [FEATURE] | Criar / editar / arquivar projeto | A especificar | Pendente |
+| CC-06 | [FEATURE] | Global View — cards de projetos com health badge | [spec](docs/specs/CC-F06-global-view.md) | 🔄 Em desenvolvimento |
+| CC-07 | [FEATURE] | Criar / editar / arquivar projeto | [spec](docs/specs/CC-07-project-crud.md) | ✅ Feito |
 | CC-08 | [POLISH] | Tipografia — padronização da escala de fontes | — | ✅ Feito |
 | CC-09 | [POLISH] | Animação painéis — hydration guard + transições suaves | — | ✅ Feito |
 | CC-10 | [BUG] | QuickNotes — expansion no reload (Mantine autosize) | — | ✅ Feito |
@@ -40,12 +40,12 @@ Objetivo: Risk log, decision log, action items e stakeholder map funcionando.
 
 | ID | Tipo | Ticket | Status |
 |----|------|--------|--------|
-| CC-14 | [FEATURE] | CRUD Risk Log | Pendente |
-| CC-15 | [FEATURE] | Matriz de risco (severity × probability) | Pendente |
-| CC-16 | [FEATURE] | CRUD Decision Log | Pendente |
-| CC-17 | [FEATURE] | CRUD Action Items | Pendente |
-| CC-18 | [FEATURE] | CRUD Stakeholder Map | Pendente |
-| CC-19 | [FEATURE] | Grid influence × interest | Pendente |
+| CC-14 | [FEATURE] | CRUD Risk Log | 🔄 Em desenvolvimento |
+| CC-15 | [FEATURE] | Matriz de risco (severity × probability) | 🔄 Em desenvolvimento |
+| CC-16 | [FEATURE] | CRUD Decision Log | 🔄 Em desenvolvimento |
+| CC-17 | [FEATURE] | CRUD Action Items | 🔄 Em desenvolvimento |
+| CC-18 | [FEATURE] | CRUD Stakeholder Map | 🔄 Em desenvolvimento |
+| CC-19 | [FEATURE] | Grid influence × interest | 🔄 Em desenvolvimento |
 | CC-20 | [FEATURE] | Repositório de links por projeto | Pendente |
 | CC-21 | [FEATURE] | CRUD Atas de reunião | Pendente |
 
@@ -61,12 +61,12 @@ O sistema define uma interface abstrata (`PMToolConnector`) que qualquer ferrame
 
 | ID | Tipo | Ticket | Status |
 |----|------|--------|--------|
-| CC-25 | [INTEGRATION] | PM Tool — interface abstrata + config por projeto | Pendente |
-| CC-29 | [INTEGRATION] | PM Tool — pull de issues, sprints e epics (via conector) | Pendente |
-| CC-43 | [INTEGRATION] | Conector Jira | Pendente |
-| CC-44 | [INTEGRATION] | Conector Linear | Pendente |
-| CC-45 | [INTEGRATION] | Conector Monday.com | Pendente |
-| CC-46 | [INTEGRATION] | Conector Azure DevOps | Pendente |
+| CC-25 | [INTEGRATION] | PM Tool — interface abstrata + config por projeto | 🔄 Em desenvolvimento |
+| CC-29 | [INTEGRATION] | PM Tool — pull de issues, sprints e epics (via conector) | 🔄 Em desenvolvimento |
+| CC-43 | [INTEGRATION] | Conector Jira | 🔄 Em desenvolvimento |
+| CC-44 | [INTEGRATION] | Conector Linear | ⬇️ Baixíssima prioridade |
+| CC-45 | [INTEGRATION] | Conector Monday.com | ⬇️ Baixíssima prioridade |
+| CC-46 | [INTEGRATION] | Conector Azure DevOps | ⬇️ Baixíssima prioridade |
 
 ### Outras integrações
 

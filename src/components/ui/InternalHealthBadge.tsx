@@ -1,13 +1,20 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Tooltip } from '@mantine/core';
+import { useFeaturesStore } from '@/stores/useFeaturesStore';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-// Phase 1: always green, read-only, no click interaction.
-// Future phases will derive status from Risk Log and Action Items data.
-
 export function InternalHealthBadge() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  const rawEnabled = useFeaturesStore((s) => s.features.internalHealth);
+  const enabled = mounted ? rawEnabled : true;
+
+  if (!enabled) return null;
+
   return (
     <Tooltip
       label="Internal: On Track (calculated)"
@@ -20,12 +27,10 @@ export function InternalHealthBadge() {
         style={{ width: 18, height: 18, opacity: 0.8 }}
         aria-label="Internal: On Track (calculated)"
       >
-        {/* Circle */}
         <span
           className="rounded-full block"
           style={{ width: 14, height: 14, backgroundColor: '#22C55E' }}
         />
-        {/* Label */}
         <span
           className="absolute inset-0 flex items-center justify-center font-bold text-white select-none"
           style={{ fontSize: 8, lineHeight: 1, paddingTop: 1 }}
