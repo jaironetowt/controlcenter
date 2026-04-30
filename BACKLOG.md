@@ -74,6 +74,16 @@ Objetivo: Risk log, decision log, action items e stakeholder map funcionando.
 > Ticket de revisão: **CC-60**
 
 | CC-60 | [INTEGRATION] | Salesforce — substituir SF CLI por OAuth in-app via External Client App (ECA) para distribuição multi-usuário | Pendente (requer admin SF) |
+| CC-61 | [FEATURE] | Hot Desk — painel direito com título, flame icon, estado colapsado, tooltip no hover | ✅ Feito |
+| CC-62 | [FEATURE] | Hot Desk — gadgets drag-to-reorder com ordem persistida em localStorage | ✅ Feito |
+| CC-63 | [FEATURE] | Hot Desk — gadget Urgent Actions (filtro por due date configurável, links para project/actions) | ✅ Feito |
+| CC-64 | [FEATURE] | Global Action Items — página consolidada com swimlanes por projeto e filtro por status | ✅ Feito |
+| CC-65 | [BUG] | Scroll independente por coluna — overflow hidden no html/body | ✅ Feito |
+| CC-66 | [BUG] | Hot Desk scroll — flex-1 min-h-0 no container + flex-shrink-0 nos cards para ativar overflow-y-auto corretamente | ✅ Feito |
+| CC-67 | [POLISH] | Global Action Items — colunas consistentes entre swimlanes via table-fixed + colgroup | ✅ Feito |
+| CC-68 | [FEATURE] | Hot Desk — gadget Upcoming conectado a dados reais (hoje hardcoded) | Pendente |
+| CC-69 | [FEATURE] | Hot Desk — GadgetSlot "Add gadget" funcional (hoje é placeholder) | Pendente |
+| CC-70 | [FEATURE] | Global Action Items — botão "New item" com seletor de projeto no modal | Pendente |
 
 ---
 
