@@ -47,7 +47,7 @@ function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) =
   function handleOpen() {
     if (buttonRef.current) {
       const r = buttonRef.current.getBoundingClientRect();
-      setPos({ top: r.top - 8, left: r.left });
+      setPos({ top: r.top - 8, left: r.right - 180 });
     }
     setDraft(owner);
     setOpen((o) => !o);
