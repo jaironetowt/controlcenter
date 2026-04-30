@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Tooltip } from '@mantine/core';
 import {
   IconLayoutDashboard,
@@ -33,36 +35,35 @@ const useSidebarStore = create<SidebarStore>()((set) => ({
   toggle: () => set((s) => ({ collapsed: !s.collapsed })),
 }));
 
+// ─── Nav config ───────────────────────────────────────────────────────────────
+
 const moduleItems = [
-  { label: 'Dashboard',    icon: IconLayoutDashboard },
-  { label: 'Risks',        icon: IconAlertTriangle   },
-  { label: 'Decisions',    icon: IconNotes           },
-  { label: 'Action Items', icon: IconChecklist       },
-  { label: 'Stakeholders', icon: IconUsers           },
-  { label: 'Metrics',      icon: IconChartBar        },
-  { label: 'Knowledge',    icon: IconBook            },
-  { label: 'Reports',      icon: IconFileText        },
+  { label: 'Dashboard',    href: '/dashboard',    icon: IconLayoutDashboard },
+  { label: 'Risks',        href: '/risks',         icon: IconAlertTriangle   },
+  { label: 'Decisions',    href: '/decisions',     icon: IconNotes           },
+  { label: 'Action Items', href: '/actions',       icon: IconChecklist       },
+  { label: 'Stakeholders', href: '/stakeholders',  icon: IconUsers           },
+  { label: 'Metrics',      href: null,             icon: IconChartBar        },
+  { label: 'Knowledge',    href: null,             icon: IconBook            },
+  { label: 'Reports',      href: null,             icon: IconFileText        },
 ];
 
 const globalNavItems = [
-  { label: 'All Projects', icon: IconLayoutDashboard },
-  { label: 'Action Items', icon: IconChecklist },
-  { label: 'Alerts',       icon: IconBell },
+  { label: 'All Projects', href: '/global',   icon: IconLayoutDashboard },
+  { label: 'Action Items', href: '/actions',  icon: IconChecklist       },
+  { label: 'Alerts',       href: null,        icon: IconBell            },
 ];
-
-const activeModule = 'Dashboard';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export function Sidebar() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
   const { collapsed, toggle } = useSidebarStore();
+  const pathname = usePathname();
 
   // Projects store — guarded by mounted to avoid SSR/hydration mismatch
   const storeProjects = useProjectsStore((s) => s.projects);
-  const projects = mounted
-    ? storeProjects.filter((p) => !p.archived)
-    : [];
+  const projects = mounted ? storeProjects.filter((p) => !p.archived) : [];
 
   const activeProject = projects[0] ?? null;
 
@@ -85,20 +86,18 @@ export function Sidebar() {
     setEditingProject(undefined);
   }
 
-  // Before hydration, always render expanded (matches SSR default)
   const isCollapsed = mounted ? collapsed : false;
-
-  // Only apply transition after mount to avoid flash
   const transitionClass = mounted ? 'transition-[width] duration-200 ease-in-out' : '';
-
-  // Shared class for text labels that fade/shrink when collapsed
   const labelCls = `overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-150 ease-in-out ${
     isCollapsed ? 'opacity-0 max-w-0' : 'opacity-100 max-w-full'
   }`;
 
+  // Active module: which project-level section is open
+  const isProjectRoute = moduleItems.some((m) => m.href && pathname === m.href);
+
   return (
     <div className={`relative h-full flex-shrink-0 ${transitionClass}`} style={{ width: isCollapsed ? 56 : 240 }}>
-      {/* Protruding expand tab — only visible when collapsed */}
+      {/* Protruding expand tab */}
       {isCollapsed && (
         <button
           onClick={toggle}
@@ -110,150 +109,172 @@ export function Sidebar() {
         </button>
       )}
 
-      <aside
-        className="w-full h-full bg-[#1F1F24] flex flex-col overflow-hidden"
-      >
-      {/* Logo + toggle */}
-      <div className={`flex items-center py-4 flex-shrink-0 ${isCollapsed ? 'justify-center px-0' : 'px-4 gap-0'}`}>
-        {/* Logo */}
-        <div className={`flex items-center gap-2.5 ${isCollapsed ? 'justify-center' : 'flex-1 min-w-0'}`}>
-          <div className="w-7 h-7 rounded-md bg-blue-500 flex items-center justify-center flex-shrink-0">
-            <IconStack2 size={16} color="white" />
+      <aside className="w-full h-full bg-[#1F1F24] flex flex-col overflow-hidden">
+        {/* Logo + toggle */}
+        <div className={`flex items-center py-4 flex-shrink-0 ${isCollapsed ? 'justify-center px-0' : 'px-4 gap-0'}`}>
+          <div className={`flex items-center gap-2.5 ${isCollapsed ? 'justify-center' : 'flex-1 min-w-0'}`}>
+            <div className="w-7 h-7 rounded-md bg-blue-500 flex items-center justify-center flex-shrink-0">
+              <IconStack2 size={16} color="white" />
+            </div>
+            <span className={`text-white text-[14px] font-semibold tracking-tight truncate ${labelCls}`}>
+              Control Center
+            </span>
           </div>
-          <span className={`text-white text-[14px] font-semibold tracking-tight truncate ${labelCls}`}>
-            Control Center
+          {!isCollapsed && (
+            <button
+              onClick={toggle}
+              className="text-[#C7C7CC] hover:text-white transition-colors flex-shrink-0"
+              aria-label="Collapse sidebar"
+            >
+              <IconLayoutSidebarLeftCollapse size={18} />
+            </button>
+          )}
+        </div>
+
+        <div className="mx-3 h-px bg-white/8 flex-shrink-0" />
+
+        {/* Global nav */}
+        <nav className="px-2 pt-3 pb-1 flex flex-col gap-0.5 flex-shrink-0">
+          {globalNavItems.map(({ label, href, icon: Icon }) => {
+            const isActive = href ? pathname === href : false;
+            const btn = href ? (
+              <Link
+                key={label}
+                href={href}
+                className={`flex items-center rounded-md text-[13px] transition-colors text-left w-full ${
+                  isCollapsed ? 'justify-center p-2' : 'gap-2.5 px-2 py-1.5'
+                } ${isActive ? 'bg-white/10 text-white' : 'text-[#C7C7CC] hover:bg-white/8 hover:text-white'}`}
+              >
+                <Icon size={15} className="flex-shrink-0" />
+                <span className={labelCls}>{label}</span>
+              </Link>
+            ) : (
+              <button
+                key={label}
+                disabled
+                className={`flex items-center rounded-md text-[13px] text-[#C7C7CC]/40 text-left w-full cursor-not-allowed ${
+                  isCollapsed ? 'justify-center p-2' : 'gap-2.5 px-2 py-1.5'
+                }`}
+              >
+                <Icon size={15} className="flex-shrink-0" />
+                <span className={labelCls}>{label}</span>
+              </button>
+            );
+
+            if (isCollapsed) {
+              return (
+                <Tooltip key={label} label={label} position="right" withArrow>
+                  {btn}
+                </Tooltip>
+              );
+            }
+            return <span key={label}>{btn}</span>;
+          })}
+        </nav>
+
+        <div className="mx-3 my-2 h-px bg-white/8 flex-shrink-0" />
+
+        {/* Projects section label */}
+        <div className="px-4 mb-1 flex-shrink-0">
+          <span className={`text-[10px] font-medium text-[#C7C7CC]/60 tracking-wider uppercase ${labelCls}`}>
+            Projects
           </span>
         </div>
 
-        {/* Collapse button — only visible when expanded */}
-        {!isCollapsed && (
-          <button
-            onClick={toggle}
-            className="text-[#C7C7CC] hover:text-white transition-colors flex-shrink-0"
-            aria-label="Collapse sidebar"
-          >
-            <IconLayoutSidebarLeftCollapse size={18} />
-          </button>
-        )}
-      </div>
+        {/* Project list */}
+        <div className="px-2 flex flex-col gap-0.5 overflow-y-auto">
+          {projects.map((project) => {
+            const isActive = activeProject !== null && project.id === activeProject.id;
 
-      <div className="mx-3 h-px bg-white/8 flex-shrink-0" />
-
-      {/* Global nav */}
-      <nav className="px-2 pt-3 pb-1 flex flex-col gap-0.5 flex-shrink-0">
-        {globalNavItems.map(({ label, icon: Icon }) => {
-          const btn = (
-            <button
-              key={label}
-              className={`flex items-center rounded-md text-[13px] text-[#C7C7CC] hover:bg-white/8 hover:text-white transition-colors text-left w-full ${
-                isCollapsed ? 'justify-center p-2' : 'gap-2.5 px-2 py-1.5'
-              }`}
-            >
-              <Icon size={15} className="flex-shrink-0" />
-              <span className={labelCls}>{label}</span>
-            </button>
-          );
-
-          if (isCollapsed) {
-            return (
-              <Tooltip key={label} label={label} position="right" withArrow>
-                {btn}
-              </Tooltip>
+            const projectBtn = (
+              <ProjectRow
+                key={project.id}
+                project={project}
+                isActive={isActive}
+                isCollapsed={isCollapsed}
+                labelCls={labelCls}
+                onEditClick={() => openEditModal(project)}
+              />
             );
-          }
-          return btn;
-        })}
-      </nav>
 
-      <div className="mx-3 my-2 h-px bg-white/8 flex-shrink-0" />
+            return (
+              <div key={project.id}>
+                {isCollapsed ? (
+                  <Tooltip label={project.name} position="right" withArrow>
+                    {projectBtn}
+                  </Tooltip>
+                ) : (
+                  projectBtn
+                )}
 
-      {/* Projects section label */}
-      <div className="px-4 mb-1 flex-shrink-0">
-        <span className={`text-[10px] font-medium text-[#C7C7CC]/60 tracking-wider uppercase ${labelCls}`}>
-          Projects
-        </span>
-      </div>
+                {/* Module sub-menu */}
+                {isActive && (
+                  <div
+                    className={`ml-4 mt-0.5 mb-1 flex flex-col gap-0.5 border-l border-white/10 pl-3 overflow-hidden transition-[opacity,max-height] duration-150 ease-in-out ${
+                      isCollapsed ? 'opacity-0 max-h-0' : 'opacity-100 max-h-96'
+                    }`}
+                  >
+                    {moduleItems.map(({ label, href, icon: Icon }) => {
+                      const isModuleActive = href ? pathname === href : false;
+                      if (href) {
+                        return (
+                          <Link
+                            key={label}
+                            href={href}
+                            className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] transition-colors text-left w-full ${
+                              isModuleActive
+                                ? 'bg-white/8 text-white font-medium'
+                                : 'text-[#C7C7CC]/70 hover:text-white hover:bg-white/5'
+                            }`}
+                          >
+                            <Icon size={13} className="flex-shrink-0" />
+                            <span className="whitespace-nowrap">{label}</span>
+                          </Link>
+                        );
+                      }
+                      return (
+                        <button
+                          key={label}
+                          disabled
+                          className="flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] text-[#C7C7CC]/30 text-left w-full cursor-not-allowed"
+                        >
+                          <Icon size={13} className="flex-shrink-0" />
+                          <span className="whitespace-nowrap">{label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
 
-      {/* Project list */}
-      <div className="px-2 flex flex-col gap-0.5 overflow-y-auto">
-        {projects.map((project) => {
-          const isActive = activeProject !== null && project.id === activeProject.id;
-
-          const projectBtn = (
-            <ProjectRow
-              key={project.id}
-              project={project}
-              isActive={isActive}
-              isCollapsed={isCollapsed}
-              labelCls={labelCls}
-              onEditClick={() => openEditModal(project)}
-            />
-          );
-
-          return (
-            <div key={project.id}>
-              {isCollapsed ? (
-                <Tooltip label={project.name} position="right" withArrow>
-                  {projectBtn}
-                </Tooltip>
-              ) : (
-                projectBtn
-              )}
-
-              {/* Module sub-menu — only in expanded mode */}
-              {isActive && (
-                <div
-                  className={`ml-4 mt-0.5 mb-1 flex flex-col gap-0.5 border-l border-white/10 pl-3 overflow-hidden transition-[opacity,max-height] duration-150 ease-in-out ${
-                    isCollapsed ? 'opacity-0 max-h-0' : 'opacity-100 max-h-96'
-                  }`}
-                >
-                  {moduleItems.map(({ label, icon: Icon }) => (
-                    <button
-                      key={label}
-                      className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] transition-colors text-left w-full ${
-                        label === activeModule
-                          ? 'bg-white/8 text-white font-medium'
-                          : 'text-[#C7C7CC]/70 hover:text-white hover:bg-white/5'
-                      }`}
-                    >
-                      <Icon size={13} className="flex-shrink-0" />
-                      <span className="whitespace-nowrap">{label}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
-
-        {/* + New Project button — expanded mode only */}
-        {!isCollapsed && (
-          <button
-            onClick={openCreateModal}
-            className="flex items-center gap-1 px-2 py-1.5 mt-1 rounded-md text-[12px] text-[#C7C7CC]/60 hover:text-[#C7C7CC] transition-colors text-left w-full"
-          >
-            <IconPlus size={11} className="flex-shrink-0" />
-            <span>New Project</span>
-          </button>
-        )}
-      </div>
-
-      {/* Footer */}
-      <div className="mt-auto flex-shrink-0">
-        {/* Expanded footer — always mounted, fades out when collapsed */}
-        <div className={`mx-4 mb-4 pt-3 border-t border-white/8 overflow-hidden transition-[opacity,max-height] duration-150 ${isCollapsed ? 'opacity-0 max-h-0 pointer-events-none' : 'opacity-100 max-h-20'}`}>
-          <p className="text-[13px] text-white font-medium whitespace-nowrap">Jairo Neto</p>
-          <p className="text-[11px] text-[#C7C7CC]/60 whitespace-nowrap">jairo.neto@poatek.com</p>
+          {/* + New Project button */}
+          {!isCollapsed && (
+            <button
+              onClick={openCreateModal}
+              className="flex items-center gap-1 px-2 py-1.5 mt-1 rounded-md text-[12px] text-[#C7C7CC]/60 hover:text-[#C7C7CC] transition-colors text-left w-full"
+            >
+              <IconPlus size={11} className="flex-shrink-0" />
+              <span>New Project</span>
+            </button>
+          )}
         </div>
-        {/* Collapsed avatar — always mounted, fades in when collapsed */}
-        <div className={`mb-4 flex justify-center transition-opacity duration-150 ${isCollapsed ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-          <Tooltip label="Jairo Neto" position="right" withArrow>
-            <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center cursor-default">
-              <span className="text-white text-[10px] font-bold">JN</span>
-            </div>
-          </Tooltip>
+
+        {/* Footer */}
+        <div className="mt-auto flex-shrink-0">
+          <div className={`mx-4 mb-4 pt-3 border-t border-white/8 overflow-hidden transition-[opacity,max-height] duration-150 ${isCollapsed ? 'opacity-0 max-h-0 pointer-events-none' : 'opacity-100 max-h-20'}`}>
+            <p className="text-[13px] text-white font-medium whitespace-nowrap">Jairo Neto</p>
+            <p className="text-[11px] text-[#C7C7CC]/60 whitespace-nowrap">jairo.neto@poatek.com</p>
+          </div>
+          <div className={`mb-4 flex justify-center transition-opacity duration-150 ${isCollapsed ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <Tooltip label="Jairo Neto" position="right" withArrow>
+              <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center cursor-default">
+                <span className="text-white text-[10px] font-bold">JN</span>
+              </div>
+            </Tooltip>
+          </div>
         </div>
-      </div>
       </aside>
 
       {/* Project create/edit modal */}
@@ -280,27 +301,24 @@ function ProjectRow({ project, isActive, isCollapsed, labelCls, onEditClick }: P
   const [hovered, setHovered] = useState(false);
 
   return (
-    <div
+    <Link
+      href="/dashboard"
       className={`flex items-center w-full rounded-md text-[13px] transition-colors ${
         isActive ? 'bg-white/10 text-white font-medium' : 'text-[#C7C7CC] hover:bg-white/8 hover:text-white'
       } ${isCollapsed ? 'justify-center p-2' : 'gap-2.5 px-2 py-1.5'}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Color dot — always visible */}
       <span
         className="w-2 h-2 rounded-full flex-shrink-0"
         style={{ backgroundColor: project.color }}
       />
-
-      {/* Project name */}
       <span className={`${labelCls} flex-1 min-w-0 text-left`}>{project.name}</span>
 
-      {/* Edit pencil — right side, visible on hover, expanded mode only */}
       {!isCollapsed && (
         <button
           aria-label={`Edit ${project.name}`}
-          onClick={(e) => { e.stopPropagation(); onEditClick(); }}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEditClick(); }}
           className={`flex-shrink-0 flex items-center justify-center text-[#C7C7CC]/60 hover:text-white transition-all cursor-pointer rounded ${
             hovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
@@ -309,6 +327,6 @@ function ProjectRow({ project, isActive, isCollapsed, labelCls, onEditClick }: P
           <IconPencil size={14} />
         </button>
       )}
-    </div>
+    </Link>
   );
 }
