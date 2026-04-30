@@ -187,7 +187,7 @@ if (!mounted) return null;
             <button
               onClick={cycleProject}
               title="Click to change project"
-              className="flex-1 min-w-0 flex items-center justify-center px-2 py-1 rounded-lg text-[10px] font-medium border bg-white text-zinc-600 transition-colors focus:outline-none hover:opacity-80"
+              className="flex-1 min-w-0 flex items-center justify-center px-2 py-1 rounded-lg text-[9px] font-medium border bg-white text-zinc-500 transition-colors focus:outline-none hover:opacity-80 uppercase tracking-wide"
               style={{ borderColor: proj?.color ?? '#e4e4e7' }}
             >
               <span className="truncate">{proj?.name ?? '—'}</span>
