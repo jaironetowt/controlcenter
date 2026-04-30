@@ -75,6 +75,7 @@ function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) =
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') confirm(); if (e.key === 'Escape') setOpen(false); }}
             placeholder="Your name"
+            autoComplete="off"
             className="flex-1 text-[12px] text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:border-zinc-400"
           />
           <button
@@ -175,9 +176,9 @@ if (!mounted) return null;
   const current = ACTIONS.find((a) => a.key === selected)!;
 
   return (
-    <>
-      {/* Header: title + project selector */}
-      <div className="flex items-center gap-2 mb-1">
+    <div className="flex flex-col gap-2">
+      {/* Header */}
+      <div className="flex items-center gap-2">
         <IconBolt size={15} className="text-orange-500 flex-shrink-0" />
         <span className="text-[13px] font-semibold text-zinc-800 flex-1">Quick Actions</span>
       </div>
@@ -188,7 +189,7 @@ if (!mounted) return null;
           const idx = ACTIONS.findIndex((a) => a.key === selected);
           setSelected(ACTIONS[(idx + 1) % ACTIONS.length].key);
         }}
-        className="w-full flex items-center gap-2 px-2.5 py-1.5 mb-1 rounded-lg text-[12px] font-medium border border-orange-200 bg-orange-50 text-orange-600 hover:border-orange-400 transition-colors focus:outline-none"
+        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12px] font-medium border border-orange-200 bg-orange-50 text-orange-600 hover:border-orange-400 transition-colors focus:outline-none"
       >
         {current.icon}
         <span className="flex-1 text-left">{current.label}</span>
@@ -199,7 +200,7 @@ if (!mounted) return null;
       {selected !== 'reminder' && (() => {
         const proj = allProjects.find((p) => p.id === projectId);
         return (
-          <div className="flex items-center gap-1.5 mb-1">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={cycleProject}
               title="Click to change project"
@@ -262,12 +263,12 @@ if (!mounted) return null;
 
       {/* Reminder placeholder */}
       {selected === 'reminder' && (
-        <div className="mt-2 flex flex-col items-center gap-1.5 py-5 rounded-xl bg-zinc-50 border border-zinc-200">
+        <div className="flex flex-col items-center gap-1.5 py-5 rounded-xl bg-zinc-50 border border-zinc-200">
           <IconBell size={18} className="text-zinc-300" />
           <p className="text-[11px] text-zinc-400">Alerts coming soon</p>
           <p className="text-[10px] text-zinc-300">Google Tasks / Calendar</p>
         </div>
       )}
-    </>
+    </div>
   );
 }
