@@ -113,12 +113,14 @@ function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) =
 
 interface CaptureCardProps {
   placeholder: string;
-  onSave: (title: string) => void;
+  descriptionPlaceholder?: string;
+  onSave: (title: string, description: string) => void;
   meta: React.ReactNode;
 }
 
-function CaptureCard({ placeholder, onSave, meta }: CaptureCardProps) {
-  const [title, setTitle] = useState('');
+function CaptureCard({ placeholder, descriptionPlaceholder, onSave, meta }: CaptureCardProps) {
+  const [title, setTitle]       = useState('');
+  const [description, setDesc]  = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -127,8 +129,9 @@ function CaptureCard({ placeholder, onSave, meta }: CaptureCardProps) {
 
   function handleSave() {
     if (!title.trim()) return;
-    onSave(title.trim());
+    onSave(title.trim(), description.trim());
     setTitle('');
+    setDesc('');
     inputRef.current?.focus({ preventScroll: true });
   }
 
@@ -142,6 +145,15 @@ function CaptureCard({ placeholder, onSave, meta }: CaptureCardProps) {
         placeholder={placeholder}
         className="w-full bg-transparent px-3 pt-3 pb-2 text-[13px] text-zinc-800 placeholder:text-zinc-400 focus:outline-none"
       />
+      {descriptionPlaceholder && (
+        <input
+          value={description}
+          onChange={(e) => setDesc(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+          placeholder={descriptionPlaceholder}
+          className="w-full bg-transparent px-3 pb-2 text-[12px] text-zinc-600 placeholder:text-zinc-300 focus:outline-none border-t border-zinc-100"
+        />
+      )}
       <div className="flex items-end gap-1.5 px-3 pb-2.5 pt-1.5 border-t border-zinc-200">
         <div className="flex flex-col gap-1 flex-1">
           {meta}
@@ -237,24 +249,25 @@ if (!mounted) return null;
       {/* Risk form */}
       {selected === 'risk' && (
         <CaptureCard
-          placeholder="Describe the risk…"
-          onSave={(title) => addRisk({ projectId, title, description: '', impact, probability, status: 'Open', owner })}
+          placeholder="Risk title…"
+          descriptionPlaceholder="Describe the risk…"
+          onSave={(title, description) => addRisk({ projectId, title, description, impact, probability, status: 'Open', owner })}
           meta={
             <>
               <button
                 onClick={() => setProbability(nextLevel)}
                 title="Probability"
-                className="flex items-center gap-1 px-1.5 py-px rounded-full bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-fit"
+                className="flex items-center gap-1 px-1.5 py-px rounded-full bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-full"
               >
-                <span className="text-zinc-500 text-[10px] truncate max-w-[52px]">Probability</span>
+                <span className="text-zinc-500 text-[10px] flex-1 text-left">Probability</span>
                 <PriorityIcon priority={probability as Priority} />
               </button>
               <button
                 onClick={() => setImpact(nextLevel)}
                 title="Impact"
-                className="flex items-center gap-1 px-1.5 py-px rounded-full bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-fit"
+                className="flex items-center gap-1 px-1.5 py-px rounded-full bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-full"
               >
-                <span className="text-zinc-500 text-[10px]">Impact</span>
+                <span className="text-zinc-500 text-[10px] flex-1 text-left">Impact</span>
                 <PriorityIcon priority={impact as Priority} />
               </button>
             </>
