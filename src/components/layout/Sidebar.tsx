@@ -14,9 +14,14 @@ import {
   IconStack2,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
+  IconPlus,
+  IconPencil,
 } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
 import { create } from 'zustand';
+import { useProjectsStore, type Project } from '@/stores/useProjectsStore';
+import { ProjectModal } from '@/components/projects/ProjectModal';
+
 // ─── Zustand store ────────────────────────────────────────────────────────────
 interface SidebarStore {
   collapsed: boolean;
@@ -27,13 +32,6 @@ const useSidebarStore = create<SidebarStore>()((set) => ({
   collapsed: false,
   toggle: () => set((s) => ({ collapsed: !s.collapsed })),
 }));
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
-const projects = [
-  { id: 'mosaic', name: 'Mosaic', color: '#3E77FC' },
-  { id: 'whr', name: 'WHR Redesign', color: '#8B56FC' },
-  { id: 'client-x', name: 'Client X', color: '#F59E0B' },
-];
 
 const moduleItems = [
   { label: 'Dashboard',    icon: IconLayoutDashboard },
@@ -52,7 +50,6 @@ const globalNavItems = [
   { label: 'Alerts',       icon: IconBell },
 ];
 
-const activeProject = projects[0];
 const activeModule = 'Dashboard';
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -60,6 +57,33 @@ export function Sidebar() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
   const { collapsed, toggle } = useSidebarStore();
+
+  // Projects store — guarded by mounted to avoid SSR/hydration mismatch
+  const storeProjects = useProjectsStore((s) => s.projects);
+  const projects = mounted
+    ? storeProjects.filter((p) => !p.archived)
+    : [];
+
+  const activeProject = projects[0] ?? null;
+
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | undefined>(undefined);
+
+  function openCreateModal() {
+    setEditingProject(undefined);
+    setModalOpen(true);
+  }
+
+  function openEditModal(project: Project) {
+    setEditingProject(project);
+    setModalOpen(true);
+  }
+
+  function closeModal() {
+    setModalOpen(false);
+    setEditingProject(undefined);
+  }
 
   // Before hydration, always render expanded (matches SSR default)
   const isCollapsed = mounted ? collapsed : false;
@@ -153,17 +177,17 @@ export function Sidebar() {
       {/* Project list */}
       <div className="px-2 flex flex-col gap-0.5 overflow-y-auto">
         {projects.map((project) => {
-          const isActive = project.id === activeProject.id;
+          const isActive = activeProject !== null && project.id === activeProject.id;
 
           const projectBtn = (
-            <button
-              className={`flex items-center w-full rounded-md text-[13px] transition-colors text-left ${
-                isActive ? 'bg-white/10 text-white font-medium' : 'text-[#C7C7CC] hover:bg-white/8 hover:text-white'
-              } ${isCollapsed ? 'justify-center p-2' : 'gap-2.5 px-2 py-1.5'}`}
-            >
-              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: project.color }} />
-              <span className={labelCls}>{project.name}</span>
-            </button>
+            <ProjectRow
+              key={project.id}
+              project={project}
+              isActive={isActive}
+              isCollapsed={isCollapsed}
+              labelCls={labelCls}
+              onEditClick={() => openEditModal(project)}
+            />
           );
 
           return (
@@ -201,6 +225,17 @@ export function Sidebar() {
             </div>
           );
         })}
+
+        {/* + New Project button — expanded mode only */}
+        {!isCollapsed && (
+          <button
+            onClick={openCreateModal}
+            className="flex items-center gap-1 px-2 py-1.5 mt-1 rounded-md text-[12px] text-[#C7C7CC]/60 hover:text-[#C7C7CC] transition-colors text-left w-full"
+          >
+            <IconPlus size={11} className="flex-shrink-0" />
+            <span>New Project</span>
+          </button>
+        )}
       </div>
 
       {/* Footer */}
@@ -220,6 +255,68 @@ export function Sidebar() {
         </div>
       </div>
       </aside>
+
+      {/* Project create/edit modal */}
+      <ProjectModal
+        opened={modalOpen}
+        onClose={closeModal}
+        project={editingProject}
+      />
     </div>
+  );
+}
+
+// ─── ProjectRow sub-component ─────────────────────────────────────────────────
+
+interface ProjectRowProps {
+  project: Project;
+  isActive: boolean;
+  isCollapsed: boolean;
+  labelCls: string;
+  onEditClick: () => void;
+}
+
+function ProjectRow({ project, isActive, isCollapsed, labelCls, onEditClick }: ProjectRowProps) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <button
+      className={`group flex items-center w-full rounded-md text-[13px] transition-colors text-left ${
+        isActive ? 'bg-white/10 text-white font-medium' : 'text-[#C7C7CC] hover:bg-white/8 hover:text-white'
+      } ${isCollapsed ? 'justify-center p-2' : 'gap-2.5 px-2 py-1.5'}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Color dot / pencil icon toggle */}
+      {!isCollapsed && hovered ? (
+        <span
+          role="button"
+          aria-label={`Edit ${project.name}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onEditClick();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              e.stopPropagation();
+              onEditClick();
+            }
+          }}
+          tabIndex={0}
+          className="flex-shrink-0 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+          style={{ width: 8, height: 8 }}
+        >
+          <IconPencil size={12} />
+        </span>
+      ) : (
+        <span
+          className="w-2 h-2 rounded-full flex-shrink-0"
+          style={{ backgroundColor: project.color }}
+        />
+      )}
+
+      <span className={labelCls}>{project.name}</span>
+    </button>
   );
 }
