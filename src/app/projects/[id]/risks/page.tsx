@@ -25,7 +25,7 @@ export default function ProjectRisksPage({ params }: { params: Promise<{ id: str
   return (
     <>
       <ProjectHeader name={p.name} color={p.color} client={p.client} phase={p.phase} dateRange={p.dateRange} projectId={id} archived={p.archived} />
-      <div className="flex-1 overflow-y-auto pl-10 pr-6 py-6">
+      <div className="flex-1 overflow-y-auto px-10 py-6">
         <div className="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm">
           <RiskLog projectId={id} />
           {features.riskMatrix && <RiskMatrix projectId={id} />}
