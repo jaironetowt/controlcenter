@@ -79,12 +79,12 @@ function SortableGadgetCard({ id }: { id: string }) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="group bg-white rounded-xl border border-orange-300 overflow-hidden">
+    <div ref={setNodeRef} style={style} className="bg-white rounded-xl border border-orange-300 overflow-hidden">
       {/* Drag handle bar */}
       <div
         {...attributes}
         {...listeners}
-        className="flex items-center justify-center h-0 group-hover:h-5 overflow-hidden cursor-grab active:cursor-grabbing transition-all duration-150 group-hover:delay-[250ms] bg-zinc-50 border-b border-zinc-100 touch-none"
+        className="flex items-center justify-center h-1 hover:h-5 overflow-hidden cursor-grab active:cursor-grabbing transition-all duration-150 hover:delay-[250ms] hover:bg-zinc-50 hover:border-b hover:border-zinc-100 touch-none"
         aria-label="Drag to reorder"
       >
         <IconGripHorizontal size={12} className="text-zinc-300" />
