@@ -53,11 +53,11 @@ export function TimecardWidget() {
     <>
       <div className="flex items-start justify-between mb-3">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <IconClock size={15} className="text-orange-500" />
             <span className="text-[13px] font-semibold text-zinc-800">Missing Timecards</span>
           </div>
-          <p className="text-[11px] text-zinc-400 mt-0.5 ml-5">Week ending {weekEnd}</p>
+          <p className="text-[11px] text-zinc-400 mt-0.5 ml-4">Week ending {weekEnd}</p>
         </div>
         {total > 0 && (
           <span className="text-[11px] font-medium bg-red-100 text-red-600 rounded-full px-2 py-0.5">

@@ -176,7 +176,7 @@ if (!mounted) return null;
   return (
     <>
       {/* Header: title + project selector */}
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-1 mb-2">
         <IconBolt size={15} className="text-orange-500 flex-shrink-0" />
         <span className="text-[13px] font-semibold text-zinc-800 flex-shrink-0">Quick Actions</span>
 
@@ -187,7 +187,7 @@ if (!mounted) return null;
             <button
               onClick={cycleProject}
               title="Click to change project"
-              className="flex-1 min-w-0 flex items-center justify-center px-2 py-1 rounded-lg text-[9px] font-medium border bg-white text-zinc-500 transition-colors focus:outline-none hover:opacity-80 uppercase tracking-wide"
+              className="flex-1 min-w-0 flex items-center justify-center px-2 py-1 rounded-lg text-[10px] font-medium border bg-white text-zinc-500 transition-colors focus:outline-none hover:opacity-80 tracking-tight"
               style={{ borderColor: proj?.color ?? '#e4e4e7' }}
             >
               <span className="truncate">{proj?.name ?? '—'}</span>

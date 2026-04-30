@@ -68,7 +68,7 @@ export function UrgentActions() {
     <>
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <IconChecklist size={15} className="text-orange-500" />
           <span className="text-[13px] font-semibold text-zinc-800">Urgent Actions</span>
         </div>
