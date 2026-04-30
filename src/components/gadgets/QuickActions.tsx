@@ -94,8 +94,11 @@ function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) =
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') confirm(); if (e.key === 'Escape') setOpen(false); }}
             placeholder="Your name"
-            autoComplete="new-password"
-            className="flex-1 text-[12px] text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:border-zinc-400"
+            autoComplete="off"
+            data-form-type="other"
+            data-lpignore="true"
+            className="flex-1 text-[12px] text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:border-zinc-400 [&::-webkit-search-cancel-button]:hidden"
+            type="search"
           />
           <button onClick={confirm} className="px-2 py-1 rounded-lg bg-orange-500 text-white text-[11px] font-medium hover:bg-orange-600 transition-colors">
             OK
