@@ -84,10 +84,10 @@ function SortableGadgetCard({ id }: { id: string }) {
       <div
         {...attributes}
         {...listeners}
-        className="flex items-center justify-center h-1 hover:h-5 overflow-hidden cursor-grab active:cursor-grabbing transition-all duration-150 hover:delay-[250ms] hover:bg-zinc-50 hover:border-b hover:border-zinc-100 touch-none"
+        className="group/handle flex items-center justify-center h-5 cursor-grab active:cursor-grabbing touch-none border-b border-transparent hover:border-zinc-100 hover:bg-zinc-50 transition-colors duration-150 hover:delay-[250ms]"
         aria-label="Drag to reorder"
       >
-        <IconGripHorizontal size={12} className="text-zinc-300" />
+        <IconGripHorizontal size={12} className="text-transparent group-hover/handle:text-zinc-300 transition-colors duration-150 group-hover/handle:delay-[250ms]" />
       </div>
       <div className="p-4">
         {GADGETS[id]}
