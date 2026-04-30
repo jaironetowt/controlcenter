@@ -15,6 +15,7 @@ import {
   IconChecklist,
   IconBell,
   IconClock,
+  IconStack2,
   IconLayoutSidebarLeftCollapse,
   IconLayoutSidebarLeftExpand,
   IconPlus,
