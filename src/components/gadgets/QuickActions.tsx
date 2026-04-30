@@ -173,22 +173,7 @@ if (!mounted) return null;
       {/* Header: title + project selector */}
       <div className="flex items-center gap-2 mb-2">
         <IconBolt size={15} className="text-orange-500 flex-shrink-0" />
-        <span className="text-[13px] font-semibold text-zinc-800 flex-shrink-0">Quick Actions</span>
-
-        {/* Project selector — compact, cycles on click, hidden for Alert */}
-        {selected !== 'reminder' && (() => {
-          const proj = allProjects.find((p) => p.id === projectId);
-          return (
-            <button
-              onClick={cycleProject}
-              title="Click to change project"
-              className="flex-1 min-w-0 flex items-center justify-center px-2 py-1 rounded-lg text-[10px] font-medium border bg-white text-zinc-600 transition-colors focus:outline-none hover:opacity-80"
-              style={{ borderColor: proj?.color ?? '#e4e4e7' }}
-            >
-              <span className="truncate">{proj?.name ?? '—'}</span>
-            </button>
-          );
-        })()}
+        <span className="text-[13px] font-semibold text-zinc-800 flex-1">Quick Actions</span>
       </div>
 
       {/* Type selector + owner chip row */}
@@ -206,6 +191,22 @@ if (!mounted) return null;
         </button>
         <OwnerChip owner={owner} onChange={setOwner} />
       </div>
+
+      {/* Project selector — full width, below type, hidden for Alert */}
+      {selected !== 'reminder' && (() => {
+        const proj = allProjects.find((p) => p.id === projectId);
+        return (
+          <button
+            onClick={cycleProject}
+            title="Click to change project"
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 mb-1 rounded-lg text-[12px] font-medium border border-zinc-200 bg-white text-zinc-600 hover:border-orange-300 hover:text-orange-600 transition-colors focus:outline-none"
+          >
+            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: proj?.color }} />
+            <span className="flex-1 text-left truncate">{proj?.name ?? '—'}</span>
+            <IconChevronDown size={11} className="text-zinc-300 flex-shrink-0" />
+          </button>
+        );
+      })()}
 
       {/* Risk form */}
       {selected === 'risk' && (
