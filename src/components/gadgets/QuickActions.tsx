@@ -93,13 +93,11 @@ function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) =
 
 interface CaptureCardProps {
   placeholder: string;
-  owner: string;
-  onOwnerChange: (v: string) => void;
   onSave: (title: string) => void;
   meta: React.ReactNode;
 }
 
-function CaptureCard({ placeholder, owner, onOwnerChange, onSave, meta }: CaptureCardProps) {
+function CaptureCard({ placeholder, onSave, meta }: CaptureCardProps) {
   const [title, setTitle] = useState('');
 
   function handleSave() {
@@ -122,16 +120,13 @@ function CaptureCard({ placeholder, owner, onOwnerChange, onSave, meta }: Captur
         <div className="flex flex-col gap-1 flex-1">
           {meta}
         </div>
-        <div className="flex items-center gap-1.5 flex-shrink-0">
-          <OwnerChip owner={owner} onChange={onOwnerChange} />
-          <button
-            onClick={handleSave}
-            disabled={!title.trim()}
-            className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-30"
-          >
-            <IconArrowRight size={13} />
-          </button>
-        </div>
+        <button
+          onClick={handleSave}
+          disabled={!title.trim()}
+          className="flex items-center justify-center w-6 h-6 rounded-full bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-30 flex-shrink-0"
+        >
+          <IconArrowRight size={13} />
+        </button>
       </div>
     </div>
   );
@@ -196,25 +191,26 @@ if (!mounted) return null;
         })()}
       </div>
 
-      {/* Type selector — full width row */}
-      <button
-        onClick={() => {
-          const idx = ACTIONS.findIndex((a) => a.key === selected);
-          setSelected(ACTIONS[(idx + 1) % ACTIONS.length].key);
-        }}
-        className="w-full flex items-center gap-2 px-2.5 py-1.5 mb-1 rounded-lg text-[12px] font-medium border border-orange-200 bg-orange-50 text-orange-600 hover:border-orange-400 transition-colors focus:outline-none"
-      >
-        {current.icon}
-        <span className="flex-1 text-left">{current.label}</span>
-        <IconChevronDown size={11} className="text-orange-300 flex-shrink-0" />
-      </button>
+      {/* Type selector + owner chip row */}
+      <div className="flex items-center gap-1.5 mb-1">
+        <button
+          onClick={() => {
+            const idx = ACTIONS.findIndex((a) => a.key === selected);
+            setSelected(ACTIONS[(idx + 1) % ACTIONS.length].key);
+          }}
+          className="flex-1 flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12px] font-medium border border-orange-200 bg-orange-50 text-orange-600 hover:border-orange-400 transition-colors focus:outline-none"
+        >
+          {current.icon}
+          <span className="flex-1 text-left">{current.label}</span>
+          <IconChevronDown size={11} className="text-orange-300 flex-shrink-0" />
+        </button>
+        <OwnerChip owner={owner} onChange={setOwner} />
+      </div>
 
       {/* Risk form */}
       {selected === 'risk' && (
         <CaptureCard
           placeholder="Describe the risk…"
-          owner={owner}
-          onOwnerChange={setOwner}
           onSave={(title) => addRisk({ projectId, title, description: '', impact, probability, status: 'Open', owner })}
           meta={
             <>
@@ -243,8 +239,6 @@ if (!mounted) return null;
       {selected === 'action' && (
         <CaptureCard
           placeholder="What needs to be done…"
-          owner={owner}
-          onOwnerChange={setOwner}
           onSave={(title) => addItem({ projectId, title, owner, dueDate: '', priority, status: 'To Do' })}
           meta={
             <button
