@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { IconChecklist, IconSettings, IconCircle, IconCircleHalf2, IconX } from '@tabler/icons-react';
 import { useActionItemsStore, type ActionStatus } from '@/stores/useActionItemsStore';
+import { PriorityIcon } from '@/components/ui/PriorityIcon';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 
 const STORAGE_KEY = 'hd-urgent-days';
@@ -21,6 +22,7 @@ function getDueDateLabel(dueDate: string): { label: string; cls: string } {
   if (diff === 1) return { label: 'Tomorrow', cls: 'text-orange-400 font-medium' };
   return { label: `${diff}d`,  cls: 'text-zinc-400' };
 }
+
 
 function StatusIcon({ status }: { status: ActionStatus }) {
   if (status === 'In Progress') return <IconCircleHalf2 size={13} className="text-blue-500 flex-shrink-0" />;
@@ -72,7 +74,7 @@ export function UrgentActions() {
         </div>
         <div className="flex items-center gap-1.5">
           {urgent.length > 0 && (
-            <span className="text-[11px] font-medium text-red-600 px-2 py-0.5">
+            <span className="text-[11px] font-medium bg-red-100 text-red-600 rounded-full px-2 py-0.5">
               {urgent.length}
             </span>
           )}
@@ -118,19 +120,27 @@ export function UrgentActions() {
               <Link
                 key={item.id}
                 href={`/projects/${item.projectId}/actions`}
-                className="flex items-start gap-2 group"
+                className="flex flex-col gap-0.5 group"
               >
-                <StatusIcon status={item.status} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[12px] text-zinc-700 group-hover:text-zinc-900 truncate transition-colors leading-tight">
-                    {item.title}
-                  </p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    {proj && (
-                      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: proj.color }} />
-                    )}
-                    <span className={`text-[11px] ${cls}`}>{label}</span>
+                {/* Title row: radio centered on 1-2 lines */}
+                <div className="flex items-center gap-2">
+                  <StatusIcon status={item.status} />
+                  <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                    <PriorityIcon priority={item.priority} />
+                    <p className="text-[12px] text-zinc-700 group-hover:text-zinc-900 line-clamp-2 transition-colors leading-tight">
+                      {item.title}
+                    </p>
                   </div>
+                </div>
+                {/* Metadata: offset = StatusIcon(13px) + gap-2(8px) = 21px, aligns with priority start */}
+                <div className="flex items-center gap-1.5 flex-wrap" style={{ marginLeft: 21 }}>
+                  {proj && (
+                    <>
+                      <span className="text-[11px] text-zinc-500 font-medium">{proj.name}</span>
+                      <span className="text-zinc-300 text-[10px]">·</span>
+                    </>
+                  )}
+                  <span className={`text-[11px] ${cls}`}>{label}</span>
                 </div>
               </Link>
             );

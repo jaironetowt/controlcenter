@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Modal, TextInput, Select, Button, Group, Stack } from '@mantine/core';
 import { useActionItemsStore, type ActionItem, type Priority, type ActionStatus } from '@/stores/useActionItemsStore';
+import { PriorityIcon } from '@/components/ui/PriorityIcon';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -152,6 +153,12 @@ export function ActionItemModal({ opened, onClose, projectId, item }: ActionItem
           value={form.priority}
           onChange={(val) => { if (val) setField('priority', val as Priority); }}
           allowDeselect={false}
+          renderOption={({ option }) => (
+            <div className="flex items-center gap-2">
+              <PriorityIcon priority={option.value as Priority} />
+              <span>{option.label}</span>
+            </div>
+          )}
         />
 
         <Select

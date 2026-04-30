@@ -5,9 +5,10 @@ import {
   IconCircle, IconCircleHalf2, IconCircleCheck,
   IconPencil, IconTrash, IconChecklist,
 } from '@tabler/icons-react';
-import { useActionItemsStore, type ActionItem, type ActionStatus, type Priority } from '@/stores/useActionItemsStore';
+import { useActionItemsStore, type ActionItem, type ActionStatus } from '@/stores/useActionItemsStore';
 import { useProjectsStore, type Project } from '@/stores/useProjectsStore';
 import { ActionItemModal } from '@/components/actions/ActionItemModal';
+import { PriorityIcon } from '@/components/ui/PriorityIcon';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,18 +24,6 @@ const STATUS_CYCLE: Record<ActionStatus, ActionStatus> = {
 
 // ─── Badge helpers ────────────────────────────────────────────────────────────
 
-function PriorityBadge({ priority }: { priority: Priority }) {
-  const cls: Record<Priority, string> = {
-    High:   'bg-red-100 text-red-700',
-    Medium: 'bg-yellow-100 text-yellow-700',
-    Low:    'bg-zinc-100 text-zinc-600',
-  };
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${cls[priority]}`}>
-      {priority}
-    </span>
-  );
-}
 
 function StatusBadge({ status }: { status: ActionStatus }) {
   const cls: Record<ActionStatus, string> = {
@@ -81,18 +70,23 @@ function ActionRow({ item, onEdit, onDelete, onCycleStatus }: RowProps) {
       <td className="py-2.5 px-3">
         <div className="flex items-center gap-2">
           <CycleStatusButton status={item.status} onClick={() => onCycleStatus(item.id, STATUS_CYCLE[item.status])} />
-          <span className={`text-[13px] text-zinc-800 ${item.status === 'Done' ? 'line-through text-zinc-400' : ''}`}>
+          <span className={`text-[13px] text-zinc-800 truncate ${item.status === 'Done' ? 'line-through text-zinc-400' : ''}`}>
             {item.title}
           </span>
         </div>
       </td>
-      <td className="py-2.5 px-3 text-[12px] text-zinc-500 whitespace-nowrap">
+      <td className="py-2.5 px-3 text-[12px] text-zinc-500 truncate">
         {item.owner || <span className="text-zinc-300">—</span>}
       </td>
       <td className={`py-2.5 px-3 text-[12px] whitespace-nowrap ${isPastDue ? 'text-red-500 font-medium' : 'text-zinc-500'}`}>
         {item.dueDate || <span className="text-zinc-300">—</span>}
       </td>
-      <td className="py-2.5 px-3"><PriorityBadge priority={item.priority} /></td>
+      <td className="py-2.5 px-3">
+        <div className="flex items-center gap-1.5">
+          <PriorityIcon priority={item.priority} />
+          <span className="text-[12px] text-zinc-600">{item.priority}</span>
+        </div>
+      </td>
       <td className="py-2.5 px-3"><StatusBadge status={item.status} /></td>
       <td className="py-2.5 px-3">
         <div className="flex items-center gap-1">

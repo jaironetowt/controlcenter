@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { IconPencil, IconTrash, IconCircle, IconCircleHalf2, IconCircleCheck } from '@tabler/icons-react';
-import { useActionItemsStore, type ActionItem, type ActionStatus, type Priority } from '@/stores/useActionItemsStore';
+import { useActionItemsStore, type ActionItem, type ActionStatus } from '@/stores/useActionItemsStore';
+import { PriorityIcon } from '@/components/ui/PriorityIcon';
 import { ActionItemModal } from './ActionItemModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -25,19 +26,6 @@ const STATUS_CYCLE: Record<ActionStatus, ActionStatus> = {
 
 // ─── Badge helpers ────────────────────────────────────────────────────────────
 
-function PriorityBadge({ priority }: { priority: Priority }) {
-  const cls: Record<Priority, string> = {
-    High:   'bg-red-100 text-red-700',
-    Medium: 'bg-yellow-100 text-yellow-700',
-    Low:    'bg-zinc-100 text-zinc-600',
-  };
-
-  return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${cls[priority]}`}>
-      {priority}
-    </span>
-  );
-}
 
 function StatusBadge({ status }: { status: ActionStatus }) {
   const cls: Record<ActionStatus, string> = {
@@ -95,14 +83,14 @@ function ActionRow({ item, onEdit, onDelete, onCycleStatus }: RowProps) {
             status={item.status}
             onClick={() => onCycleStatus(item.id, STATUS_CYCLE[item.status])}
           />
-          <span className={`text-[13px] text-zinc-800 ${item.status === 'Done' ? 'line-through text-zinc-400' : ''}`}>
+          <span className={`text-[13px] text-zinc-800 truncate ${item.status === 'Done' ? 'line-through text-zinc-400' : ''}`}>
             {item.title}
           </span>
         </div>
       </td>
 
       {/* Owner */}
-      <td className="py-2.5 px-3 text-[12px] text-zinc-500 whitespace-nowrap">
+      <td className="py-2.5 px-3 text-[12px] text-zinc-500 truncate">
         {item.owner || <span className="text-zinc-300">—</span>}
       </td>
 
@@ -113,7 +101,10 @@ function ActionRow({ item, onEdit, onDelete, onCycleStatus }: RowProps) {
 
       {/* Priority */}
       <td className="py-2.5 px-3">
-        <PriorityBadge priority={item.priority} />
+        <div className="flex items-center gap-1.5">
+          <PriorityIcon priority={item.priority} />
+          <span className="text-[12px] text-zinc-600">{item.priority}</span>
+        </div>
       </td>
 
       {/* Status */}
@@ -235,7 +226,15 @@ export function ActionItemList({ projectId }: ActionItemListProps) {
         </div>
       ) : (
         <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
-          <table className="w-full">
+          <table className="w-full table-fixed">
+            <colgroup>
+              <col className="w-auto" />
+              <col style={{ width: 100 }} />
+              <col style={{ width: 110 }} />
+              <col style={{ width: 90 }} />
+              <col style={{ width: 110 }} />
+              <col style={{ width: 64 }} />
+            </colgroup>
             <thead>
               <tr className="border-b border-zinc-100 bg-zinc-50/60">
                 <th className="py-2 px-3 text-left text-[11px] font-medium text-zinc-500 uppercase tracking-wide">Title</th>
@@ -243,7 +242,7 @@ export function ActionItemList({ projectId }: ActionItemListProps) {
                 <th className="py-2 px-3 text-left text-[11px] font-medium text-zinc-500 uppercase tracking-wide">Due Date</th>
                 <th className="py-2 px-3 text-left text-[11px] font-medium text-zinc-500 uppercase tracking-wide">Priority</th>
                 <th className="py-2 px-3 text-left text-[11px] font-medium text-zinc-500 uppercase tracking-wide">Status</th>
-                <th className="py-2 px-3 text-left text-[11px] font-medium text-zinc-500 uppercase tracking-wide">Actions</th>
+                <th className="py-2 px-3" />
               </tr>
             </thead>
             <tbody>
