@@ -81,6 +81,8 @@ Objetivo: Risk log, decision log, action items e stakeholder map funcionando.
 | CC-65 | [BUG] | Scroll independente por coluna — overflow hidden no html/body | ✅ Feito |
 | CC-66 | [BUG] | Hot Desk scroll — flex-1 min-h-0 no container + flex-shrink-0 nos cards para ativar overflow-y-auto corretamente | ✅ Feito |
 | CC-67 | [POLISH] | Global Action Items — colunas consistentes entre swimlanes via table-fixed + colgroup | ✅ Feito |
+| CC-71 | [POLISH] | Urgent Actions — exibir nome do projeto e priority em cada item | Em progresso |
+| CC-72 | [FEATURE] | Sidebar — item Milestones inativo em cada projeto | Em progresso |
 | CC-68 | [FEATURE] | Hot Desk — gadget Upcoming conectado a dados reais (hoje hardcoded) | Pendente |
 | CC-69 | [FEATURE] | Hot Desk — GadgetSlot "Add gadget" funcional (hoje é placeholder) | Pendente |
 | CC-70 | [FEATURE] | Global Action Items — botão "New item" com seletor de projeto no modal | Pendente |
