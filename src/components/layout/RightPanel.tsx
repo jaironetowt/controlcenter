@@ -174,13 +174,21 @@ export function RightPanel() {
 
         {/* Sortable gadgets */}
         <div className="flex flex-col gap-3 px-4 py-4 overflow-y-auto">
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={order} strategy={verticalListSortingStrategy}>
-              {order.map((id) => (
-                <SortableGadgetCard key={id} id={id} />
-              ))}
-            </SortableContext>
-          </DndContext>
+          {mounted ? (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={order} strategy={verticalListSortingStrategy}>
+                {order.map((id) => (
+                  <SortableGadgetCard key={id} id={id} />
+                ))}
+              </SortableContext>
+            </DndContext>
+          ) : (
+            DEFAULT_ORDER.map((id) => (
+              <div key={id} className="bg-white rounded-xl border border-orange-300 p-4">
+                {GADGETS[id]}
+              </div>
+            ))
+          )}
 
           <GadgetSlot />
         </div>
