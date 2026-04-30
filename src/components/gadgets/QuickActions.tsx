@@ -285,15 +285,16 @@ if (!mounted) return null;
           placeholder="What needs to be done…"
           onSave={(title) => addItem({ projectId, title, owner, dueDate: '', priority, status: 'To Do' })}
           meta={
-            <button
-              onClick={() => setPriority(nextLevel)}
-              title="Priority"
-              className="flex items-center gap-1 px-1.5 py-px rounded-full bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-fit"
-            >
-              <span className="text-zinc-500 text-[10px]">Priority</span>
-              <PriorityIcon priority={priority} />
-              <span className="text-zinc-400 text-[10px]">{priority}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <span className="text-zinc-500 text-[10px] w-[60px]">Priority</span>
+              <button
+                onClick={() => setPriority(nextLevel)}
+                className="flex items-center gap-1 px-1.5 py-px rounded-md bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-[76px]"
+              >
+                <PriorityIcon priority={priority} />
+                <span className="text-zinc-400 text-[10px] ml-auto">{priority}</span>
+              </button>
+            </div>
           }
         />
       )}
