@@ -25,20 +25,31 @@ export function FeaturesConfig() {
             className="flex items-start justify-between gap-4 py-3 border-b border-zinc-100 last:border-0"
           >
             <div className="flex flex-col gap-0.5">
-              <Text size="sm" fw={500} className="text-zinc-800">
-                {meta.label}
-              </Text>
+              <div className="flex items-center gap-2">
+                <Text size="sm" fw={500} className={meta.comingSoon ? 'text-zinc-400' : 'text-zinc-800'}>
+                  {meta.label}
+                </Text>
+                {meta.comingSoon && (
+                  <span className="text-[10px] font-medium text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded">
+                    Coming soon
+                  </span>
+                )}
+              </div>
               <Text size="xs" c="dimmed">
                 {meta.description}
               </Text>
             </div>
-            <Switch
-              checked={features[key]}
-              onChange={(e) => setFeature(key, e.currentTarget.checked)}
-              disabled={!mounted}
-              size="sm"
-              className="flex-shrink-0 mt-0.5"
-            />
+            {meta.comingSoon ? (
+              <Switch checked={false} disabled size="sm" className="flex-shrink-0 mt-0.5" />
+            ) : (
+              <Switch
+                checked={features[key]}
+                onChange={(e) => setFeature(key, e.currentTarget.checked)}
+                disabled={!mounted}
+                size="sm"
+                className="flex-shrink-0 mt-0.5"
+              />
+            )}
           </div>
         );
       })}

@@ -1,6 +1,6 @@
 # BACKLOG — Control Center
 
-_Status: Em desenvolvimento. Última atualização: 2026-04-30_
+_Status: Em desenvolvimento. Última atualização: 2026-04-29_
 
 ---
 
@@ -50,6 +50,30 @@ Objetivo: Risk log, decision log, action items e stakeholder map funcionando.
 | CC-21 | [FEATURE] | CRUD Atas de reunião | Pendente |
 | CC-47 | [FEATURE] | Feature flags — gerenciar features habilitadas no sistema (Settings > Features) | ✅ Feito |
 | CC-48 | [FEATURE] | Dashboard do projeto — visão geral com stat cards (open risks, decisions, action items, stakeholders) | ✅ Feito |
+| CC-49 | [BUG] | Sidebar animation — cada página instanciava `<Sidebar>` separado, remontava a cada nav; corrigido com `projects/layout.tsx` compartilhado + `flushSync` + `rAF` | ✅ Feito |
+| CC-50 | [POLISH] | Feature flags — internal health marcado como "Coming soon" (disabled no final da lista); external health removido das settings (feature nativa) | ✅ Feito |
+| CC-51 | [BUG] | Archive projeto — 404 ao arquivar estando na página do projeto; corrigido com redirect para `/global` + toast de confirmação | ✅ Feito |
+| CC-52 | [FEATURE] | Projetos arquivados — seção colapsável "Archived" na global view; cards clicáveis com opacidade reduzida; badge "Archived" no header; campo `archivedAt` no modelo | ✅ Feito |
+| CC-53 | [POLISH] | ProjectHeader unificado — todas as páginas de projeto usam o mesmo componente; removido hero custom do dashboard; label "STATUS" adicionado ao lado dos health badges | ✅ Feito |
+| CC-54 | [POLISH] | Project cards — label "STATUS" antes dos health badges; popover de cor do badge corrigido para fechar ao clicar fora (`onChange` em vez de `onClose`) | ✅ Feito |
+| CC-55 | [FEATURE] | Project settings — seção "Project Info" para editar nome, cor, cliente, fase e date range direto na página de settings do projeto | ✅ Feito |
+| CC-56 | [BUG] | Module card hrefs — cards no dashboard do projeto apontavam para `/risks` etc. em vez de `/projects/${id}/risks` | ✅ Feito |
+| CC-57 | [BUG] | Toast — Mantine Notifications empurrava layout; substituído por implementação custom com `createPortal(content, document.body)` | ✅ Feito |
+| CC-58 | [POLISH] | Logo "Control Center" na sidebar — clicável, redireciona para `/global` | ✅ Feito |
+| CC-59 | [INTEGRATION] | Salesforce — importar projeto por URL (nome + datas) via SF CLI local | ✅ Feito |
+
+---
+
+> ⚠️ **CC-59 — Limitação conhecida (documentada intencionalmente)**
+>
+> A integração Salesforce atual usa o **Salesforce CLI** instalado localmente. Funciona apenas para quem tem o SF CLI instalado e autenticado (`sf org login web --set-default`). Essa foi uma decisão consciente para desbloquear o uso local enquanto a solução multi-usuário não está disponível.
+>
+> **Para distribuir o app para outros usuários da empresa:**
+> Um admin Salesforce precisa criar um **External Client App (ECA)** na org. Isso habilita OAuth in-app (botão "Connect Salesforce" → browser → login → retorna ao app), sem dependência de CLI. Ver: https://developer.salesforce.com/docs/platform/external-client-apps
+>
+> Ticket de revisão: **CC-60**
+
+| CC-60 | [INTEGRATION] | Salesforce — substituir SF CLI por OAuth in-app via External Client App (ECA) para distribuição multi-usuário | Pendente (requer admin SF) |
 
 ---
 

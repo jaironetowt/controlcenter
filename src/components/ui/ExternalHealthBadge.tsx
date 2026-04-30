@@ -57,16 +57,12 @@ export function ExternalHealthBadge({ projectId }: ExternalHealthBadgeProps) {
 
   const statuses = useProjectHealthStore((s) => s.statuses);
   const setStatus = useProjectHealthStore((s) => s.setStatus);
-  const rawFeatEnabled = useFeaturesStore((s) => s.features.externalHealth);
   const rawInternalEnabled = useFeaturesStore((s) => s.features.internalHealth);
 
-  const featEnabled = mounted ? rawFeatEnabled : true;
   // Show "E" label only when internal badge is also visible (to distinguish the two)
   const showLabel = mounted ? rawInternalEnabled : true;
 
   const status: HealthStatus = mounted ? (statuses[projectId] ?? 'green') : 'green';
-
-  if (!featEnabled) return null;
 
   const color = COLOR_MAP[status];
   const tooltipLabel = TOOLTIP_MAP[status];
@@ -79,11 +75,12 @@ export function ExternalHealthBadge({ projectId }: ExternalHealthBadgeProps) {
   return (
     <Popover
       opened={popoverOpen}
-      onClose={() => setPopoverOpen(false)}
+      onChange={setPopoverOpen}
       position="bottom-end"
       withArrow
       shadow="md"
       withinPortal
+      closeOnClickOutside
     >
       <Popover.Target>
         <Tooltip label={tooltipLabel} withArrow position="top" withinPortal styles={{ tooltip: { fontSize: '11px' } }}>

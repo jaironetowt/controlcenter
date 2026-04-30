@@ -51,8 +51,8 @@ export function RiskLog({ projectId }: RiskLogProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  const rawRisks = useRisksStore((s) => s.risks.filter((r) => r.projectId === projectId));
-  const risks = mounted ? rawRisks : [];
+  const allRisks   = useRisksStore((s) => s.risks);
+  const risks      = mounted ? allRisks.filter((r) => r.projectId === projectId) : [];
   const deleteRisk = useRisksStore((s) => s.deleteRisk);
 
   const [modalOpen, setModalOpen]   = useState(false);
@@ -111,6 +111,9 @@ export function RiskLog({ projectId }: RiskLogProps) {
                 <tr key={risk.id} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
                   <td className="py-2.5 pr-4">
                     <span className="text-[13px] text-zinc-800">{risk.title}</span>
+                    {risk.description && (
+                      <p className="text-[11px] text-zinc-400 mt-0.5 leading-snug">{risk.description}</p>
+                    )}
                   </td>
                   <td className="py-2.5 pr-4">
                     <Badge label={risk.probability} className={probabilityBadgeClass(risk.probability)} />

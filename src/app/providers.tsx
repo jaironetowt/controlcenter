@@ -1,6 +1,7 @@
 'use client';
 
 import { MantineProvider } from '@mantine/core';
+import { ToastContainer } from '@/components/ui/Toast';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         },
       }}
     >
+      <ToastContainer />
       {children}
     </MantineProvider>
   );

@@ -1,8 +1,46 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Modal, TextInput, Button, Group, Stack, Text } from '@mantine/core';
+import { useRouter } from 'next/navigation';
+import { Modal, TextInput, Button, Group, Stack, Text, Divider, Loader } from '@mantine/core';
+import { IconCloudDown } from '@tabler/icons-react';
+import { toast } from '@/components/ui/Toast';
 import { useProjectsStore, type Project } from '@/stores/useProjectsStore';
+
+// ─── Salesforce helpers ───────────────────────────────────────────────────────
+
+function formatSFDate(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+async function fetchSalesforceProject(url: string): Promise<{ name: string; dateRange: string; client: string; salesforceId: string }> {
+  const res = await fetch('/api/salesforce/record', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+  });
+  const data = await res.json() as {
+    record?: Record<string, unknown>;
+    error?: string;
+    message?: string;
+  };
+  if (!res.ok) {
+    if (data.error === 'SF_CLI_NOT_AUTHENTICATED') {
+      throw new Error('SF_CLI_NOT_AUTHENTICATED');
+    }
+    throw new Error(data.error ?? 'Failed to fetch from Salesforce');
+  }
+  const record = data.record ?? {};
+  const salesforceId = String(record['Id'] ?? '');
+  const name   = String(record['Name'] ?? '');
+  const start  = record['pse__Start_Date__c'] ? formatSFDate(String(record['pse__Start_Date__c'])) : '';
+  const end    = record['pse__End_Date__c']   ? formatSFDate(String(record['pse__End_Date__c']))   : '';
+  const dateRange = start && end ? `${start} – ${end}` : start || end;
+  const accountRecord = record['pse__Account__r'] as Record<string, unknown> | null | undefined;
+  const client = accountRecord ? String(accountRecord['Name'] ?? '') : '';
+  return { name, dateRange, client, salesforceId };
+}
 
 // ─── Color palette ────────────────────────────────────────────────────────────
 
@@ -38,7 +76,6 @@ interface FormErrors {
   name?: string;
   color?: string;
   client?: string;
-  phase?: string;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -47,10 +84,11 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
+  const router = useRouter();
   const isEditMode = !!project;
 
-  const addProject    = useProjectsStore((s) => s.addProject);
-  const updateProject = useProjectsStore((s) => s.updateProject);
+  const addProject     = useProjectsStore((s) => s.addProject);
+  const updateProject  = useProjectsStore((s) => s.updateProject);
   const archiveProject = useProjectsStore((s) => s.archiveProject);
 
   // ── Form state ──────────────────────────────────────────────────────────────
@@ -67,6 +105,12 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
   // Confirmation step for archive
   const [confirmingArchive, setConfirmingArchive] = useState(false);
 
+  // Salesforce import
+  const [sfUrl, setSfUrl]             = useState('');
+  const [sfLoading, setSfLoading]     = useState(false);
+  const [sfError, setSfError]         = useState('');
+  const [sfImportedId, setSfImportedId] = useState('');
+
   // Reset form whenever the modal opens (or the project changes)
   useEffect(() => {
     if (opened) {
@@ -79,6 +123,10 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
       });
       setErrors({});
       setConfirmingArchive(false);
+      setSfUrl('');
+      setSfError('');
+      setSfLoading(false);
+      setSfImportedId('');
     }
   }, [opened, project]);
 
@@ -97,7 +145,6 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
     if (form.name.length > 50) next.name = 'Max 50 characters';
     if (!form.color)         next.color  = 'Please select a color';
     if (!form.client.trim()) next.client = 'Client is required';
-    if (!form.phase.trim())  next.phase  = 'Phase is required';
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -115,15 +162,42 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
       });
     } else {
       addProject({
-        name:      form.name.trim(),
-        color:     form.color,
-        client:    form.client.trim(),
-        phase:     form.phase.trim(),
-        dateRange: form.dateRange.trim(),
+        name:        form.name.trim(),
+        color:       form.color,
+        client:      form.client.trim(),
+        phase:       form.phase.trim(),
+        dateRange:   form.dateRange.trim(),
+        salesforceId: sfImportedId || undefined,
       });
     }
 
     onClose();
+  }
+
+  async function handleSalesforceImport() {
+    if (!sfUrl.trim()) return;
+    setSfLoading(true);
+    setSfError('');
+    try {
+      const imported = await fetchSalesforceProject(sfUrl.trim());
+      setSfImportedId(imported.salesforceId);
+      setForm((prev) => ({
+        ...prev,
+        name:      imported.name      || prev.name,
+        dateRange: imported.dateRange || prev.dateRange,
+        client:    imported.client    || prev.client,
+      }));
+      setErrors((prev) => ({ ...prev, name: undefined }));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      if (msg === 'SF_CLI_NOT_AUTHENTICATED') {
+        setSfError('Salesforce CLI not authenticated. Run: sf org login web --set-default');
+      } else {
+        setSfError(msg);
+      }
+    } finally {
+      setSfLoading(false);
+    }
   }
 
   function handleArchiveRequest() {
@@ -131,11 +205,17 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
   }
 
   function handleArchiveConfirm() {
+    const name = form.name || 'Project';
     if (project) {
       archiveProject(project.id);
     }
     setConfirmingArchive(false);
     onClose();
+    toast.show({
+      title: 'Project archived',
+      message: `"${name}" was archived. You can still access it from All Projects.`,
+    });
+    router.push('/global');
   }
 
   function handleArchiveCancel() {
@@ -171,6 +251,40 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
       ) : (
         /* ── Form view ──────────────────────────────────────────────────────── */
         <Stack gap="sm">
+          {/* Salesforce import — create mode only */}
+          {!isEditMode && (
+            <>
+              <div>
+                <Group gap="xs" mb={6}>
+                  <IconCloudDown size={14} color="#00A1E0" />
+                  <Text size="xs" fw={500} c="dimmed">Import from Salesforce</Text>
+                </Group>
+                <Group gap="xs" align="flex-start">
+                  <TextInput
+                    placeholder="Paste Salesforce project URL"
+                    value={sfUrl}
+                    onChange={(e) => { setSfUrl(e.currentTarget.value); setSfError(''); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleSalesforceImport(); } }}
+                    error={sfError || undefined}
+                    style={{ flex: 1 }}
+                    size="xs"
+                  />
+                  <Button
+                    size="xs"
+                    variant="default"
+                    loading={sfLoading}
+                    disabled={!sfUrl.trim()}
+                    onClick={() => void handleSalesforceImport()}
+                    leftSection={sfLoading ? <Loader size={12} /> : undefined}
+                  >
+                    Import
+                  </Button>
+                </Group>
+              </div>
+              <Divider label="or fill manually" labelPosition="center" />
+            </>
+          )}
+
           {/* Project name */}
           <TextInput
             label="Project name"
@@ -229,8 +343,6 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
             placeholder="Development, Design, Discovery…"
             value={form.phase}
             onChange={(e) => setField('phase', e.currentTarget.value)}
-            error={errors.phase}
-            required
           />
 
           {/* Date range */}

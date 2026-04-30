@@ -3,22 +3,15 @@ import { persist } from 'zustand/middleware';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type FeatureKey = 'internalHealth' | 'externalHealth' | 'riskMatrix' | 'stakeholderGrid';
+export type FeatureKey = 'internalHealth' | 'riskMatrix' | 'stakeholderGrid';
 
 export interface FeatureMeta {
   label: string;
   description: string;
+  comingSoon?: boolean;
 }
 
 export const FEATURE_META: Record<FeatureKey, FeatureMeta> = {
-  internalHealth: {
-    label: 'Internal Health badge',
-    description: 'Calculated health indicator derived from open risks and overdue action items.',
-  },
-  externalHealth: {
-    label: 'External Health badge',
-    description: 'Manually set health status shown to external stakeholders on project cards and header.',
-  },
   riskMatrix: {
     label: 'Risk Matrix',
     description: 'Probability × Impact matrix visualisation on the Risk Log page.',
@@ -27,13 +20,17 @@ export const FEATURE_META: Record<FeatureKey, FeatureMeta> = {
     label: 'Stakeholder Influence Grid',
     description: 'Influence × Interest quadrant grid on the Stakeholders page.',
   },
+  internalHealth: {
+    label: 'Internal Health badge',
+    description: 'Calculated health indicator derived from open risks and overdue action items.',
+    comingSoon: true,
+  },
 };
 
 export type FeaturesMap = Record<FeatureKey, boolean>;
 
 export const DEFAULT_FEATURES: FeaturesMap = {
   internalHealth: true,
-  externalHealth: true,
   riskMatrix: true,
   stakeholderGrid: true,
 };

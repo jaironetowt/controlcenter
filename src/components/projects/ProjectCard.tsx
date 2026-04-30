@@ -25,6 +25,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
       <div className="pl-4 pr-4 py-4">
         {/* Health badges — top-right */}
         <div className="absolute top-3 right-3 flex items-center gap-1.5">
+          <span className="text-[9px] font-medium text-zinc-400 uppercase tracking-wider mr-0.5">Status</span>
           <ExternalHealthBadge projectId={project.id} />
           <InternalHealthBadge />
         </div>
