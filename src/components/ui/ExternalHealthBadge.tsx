@@ -50,12 +50,14 @@ interface ExternalHealthBadgeProps {
 }
 
 export function ExternalHealthBadge({ projectId }: ExternalHealthBadgeProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const [popoverOpen, setPopoverOpen] = useState(false);
 
   const statuses = useProjectHealthStore((s) => s.statuses);
   const setStatus = useProjectHealthStore((s) => s.setStatus);
 
-  const status: HealthStatus = statuses[projectId] ?? 'green';
+  const status: HealthStatus = mounted ? (statuses[projectId] ?? 'green') : 'green';
   const color = COLOR_MAP[status];
   const tooltipLabel = TOOLTIP_MAP[status];
 
