@@ -14,7 +14,7 @@ export function InternalHealthBadge() {
   if (!enabled) return null;
 
   return (
-    <Tooltip label="Internal: On Track (calculated)" withArrow position="top" withinPortal>
+    <Tooltip label="Internal: On Track (calculated)" withArrow position="top" withinPortal styles={{ tooltip: { fontSize: '11px' } }}>
       <div
         className="relative flex items-center justify-center flex-shrink-0"
         style={{ width: 22, height: 22, opacity: 0.85 }}

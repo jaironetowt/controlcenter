@@ -86,7 +86,7 @@ export function ExternalHealthBadge({ projectId }: ExternalHealthBadgeProps) {
       withinPortal
     >
       <Popover.Target>
-        <Tooltip label={tooltipLabel} withArrow position="top" withinPortal>
+        <Tooltip label={tooltipLabel} withArrow position="top" withinPortal styles={{ tooltip: { fontSize: '11px' } }}>
           <div
             role="button"
             tabIndex={0}
