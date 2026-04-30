@@ -75,7 +75,7 @@ function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) =
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') confirm(); if (e.key === 'Escape') setOpen(false); }}
             placeholder="Your name"
-            autoComplete="off"
+            autoComplete="new-password"
             className="flex-1 text-[12px] text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:border-zinc-400"
           />
           <button
@@ -176,7 +176,7 @@ if (!mounted) return null;
   const current = ACTIONS.find((a) => a.key === selected)!;
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 w-full">
       {/* Header */}
       <div className="flex items-center gap-2">
         <IconBolt size={15} className="text-orange-500 flex-shrink-0" />
