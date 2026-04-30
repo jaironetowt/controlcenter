@@ -19,6 +19,8 @@ import {
   IconPlus,
   IconPencil,
   IconSettings,
+  IconChevronDown,
+  IconChevronRight,
 } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
 import { create } from 'zustand';
@@ -38,21 +40,23 @@ const useSidebarStore = create<SidebarStore>()((set) => ({
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
-const moduleItems = [
-  { label: 'Dashboard',    href: '/dashboard',    icon: IconLayoutDashboard },
-  { label: 'Risks',        href: '/risks',         icon: IconAlertTriangle   },
-  { label: 'Decisions',    href: '/decisions',     icon: IconNotes           },
-  { label: 'Action Items', href: '/actions',       icon: IconChecklist       },
-  { label: 'Stakeholders', href: '/stakeholders',  icon: IconUsers           },
-  { label: 'Metrics',      href: null,             icon: IconChartBar        },
-  { label: 'Knowledge',    href: null,             icon: IconBook            },
-  { label: 'Reports',      href: null,             icon: IconFileText        },
-];
+function getModuleItems(projectId: string) {
+  return [
+    { label: 'Dashboard',    href: `/projects/${projectId}`,              icon: IconLayoutDashboard },
+    { label: 'Risks',        href: `/projects/${projectId}/risks`,        icon: IconAlertTriangle   },
+    { label: 'Decisions',    href: `/projects/${projectId}/decisions`,    icon: IconNotes           },
+    { label: 'Action Items', href: `/projects/${projectId}/actions`,      icon: IconChecklist       },
+    { label: 'Stakeholders', href: `/projects/${projectId}/stakeholders`, icon: IconUsers           },
+    { label: 'Metrics',      href: null,                                  icon: IconChartBar        },
+    { label: 'Knowledge',    href: null,                                  icon: IconBook            },
+    { label: 'Reports',      href: null,                                  icon: IconFileText        },
+  ];
+}
 
 const globalNavItems = [
-  { label: 'All Projects', href: '/global',   icon: IconLayoutDashboard },
-  { label: 'Action Items', href: '/actions',  icon: IconChecklist       },
-  { label: 'Alerts',       href: null,        icon: IconBell            },
+  { label: 'All Projects', href: '/global',  icon: IconLayoutDashboard },
+  { label: 'Action Items', href: null,       icon: IconChecklist       },
+  { label: 'Alerts',       href: null,       icon: IconBell            },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -62,30 +66,35 @@ export function Sidebar() {
   const { collapsed, toggle } = useSidebarStore();
   const pathname = usePathname();
 
-  // Projects store — guarded by mounted to avoid SSR/hydration mismatch
   const storeProjects = useProjectsStore((s) => s.projects);
   const projects = mounted ? storeProjects.filter((p) => !p.archived) : [];
 
-  const activeProject = projects[0] ?? null;
+  // Derive active project from current URL, fall back to first project
+  const urlProjectId = pathname.match(/^\/projects\/([^/]+)/)?.[1] ?? null;
+  const activeProject = mounted
+    ? (urlProjectId ? projects.find((p) => p.id === urlProjectId) ?? projects[0] ?? null : projects[0] ?? null)
+    : null;
+
+  // Which projects have their sub-menu expanded
+  const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
+
+  function toggleProjectMenu(id: string) {
+    setExpandedProjects((prev) => ({ ...prev, [id]: !prev[id] }));
+  }
+
+  // A project's sub-menu is open if it's the active URL project OR manually expanded
+  function isMenuOpen(project: Project) {
+    if (expandedProjects[project.id] !== undefined) return expandedProjects[project.id];
+    return activeProject?.id === project.id;
+  }
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | undefined>(undefined);
 
-  function openCreateModal() {
-    setEditingProject(undefined);
-    setModalOpen(true);
-  }
-
-  function openEditModal(project: Project) {
-    setEditingProject(project);
-    setModalOpen(true);
-  }
-
-  function closeModal() {
-    setModalOpen(false);
-    setEditingProject(undefined);
-  }
+  function openCreateModal() { setEditingProject(undefined); setModalOpen(true); }
+  function openEditModal(project: Project) { setEditingProject(project); setModalOpen(true); }
+  function closeModal() { setModalOpen(false); setEditingProject(undefined); }
 
   const isCollapsed = mounted ? collapsed : false;
   const transitionClass = mounted ? 'transition-[width] duration-200 ease-in-out' : '';
@@ -93,12 +102,8 @@ export function Sidebar() {
     isCollapsed ? 'opacity-0 max-w-0' : 'opacity-100 max-w-full'
   }`;
 
-  // Active module: which project-level section is open
-  const isProjectRoute = moduleItems.some((m) => m.href && pathname === m.href);
-
   return (
     <div className={`relative h-full flex-shrink-0 ${transitionClass}`} style={{ width: isCollapsed ? 56 : 240 }}>
-      {/* Protruding expand tab */}
       {isCollapsed && (
         <button
           onClick={toggle}
@@ -122,11 +127,7 @@ export function Sidebar() {
             </span>
           </div>
           {!isCollapsed && (
-            <button
-              onClick={toggle}
-              className="text-[#C7C7CC] hover:text-white transition-colors flex-shrink-0"
-              aria-label="Collapse sidebar"
-            >
+            <button onClick={toggle} className="text-[#C7C7CC] hover:text-white transition-colors flex-shrink-0" aria-label="Collapse sidebar">
               <IconLayoutSidebarLeftCollapse size={18} />
             </button>
           )}
@@ -163,11 +164,7 @@ export function Sidebar() {
             );
 
             if (isCollapsed) {
-              return (
-                <Tooltip key={label} label={label} position="right" withArrow>
-                  {btn}
-                </Tooltip>
-              );
+              return <Tooltip key={label} label={label} position="right" withArrow>{btn}</Tooltip>;
             }
             return <span key={label}>{btn}</span>;
           })}
@@ -185,7 +182,9 @@ export function Sidebar() {
         {/* Project list */}
         <div className="px-2 flex flex-col gap-0.5 overflow-y-auto">
           {projects.map((project) => {
-            const isActive = activeProject !== null && project.id === activeProject.id;
+            const isActive = activeProject?.id === project.id;
+            const menuOpen = isMenuOpen(project);
+            const moduleItems = getModuleItems(project.id);
 
             const projectBtn = (
               <ProjectRow
@@ -194,6 +193,8 @@ export function Sidebar() {
                 isActive={isActive}
                 isCollapsed={isCollapsed}
                 labelCls={labelCls}
+                menuOpen={menuOpen}
+                onToggleMenu={() => toggleProjectMenu(project.id)}
                 onEditClick={() => openEditModal(project)}
               />
             );
@@ -201,56 +202,51 @@ export function Sidebar() {
             return (
               <div key={project.id}>
                 {isCollapsed ? (
-                  <Tooltip label={project.name} position="right" withArrow>
-                    {projectBtn}
-                  </Tooltip>
+                  <Tooltip label={project.name} position="right" withArrow>{projectBtn}</Tooltip>
                 ) : (
                   projectBtn
                 )}
 
-                {/* Module sub-menu */}
-                {isActive && (
-                  <div
-                    className={`ml-4 mt-0.5 mb-1 flex flex-col gap-0.5 border-l border-white/10 pl-3 overflow-hidden transition-[opacity,max-height] duration-150 ease-in-out ${
-                      isCollapsed ? 'opacity-0 max-h-0' : 'opacity-100 max-h-96'
-                    }`}
-                  >
-                    {moduleItems.map(({ label, href, icon: Icon }) => {
-                      const isModuleActive = href ? pathname === href : false;
-                      if (href) {
-                        return (
-                          <Link
-                            key={label}
-                            href={href}
-                            className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] transition-colors text-left w-full ${
-                              isModuleActive
-                                ? 'bg-white/8 text-white font-medium'
-                                : 'text-[#C7C7CC]/70 hover:text-white hover:bg-white/5'
-                            }`}
-                          >
-                            <Icon size={13} className="flex-shrink-0" />
-                            <span className="whitespace-nowrap">{label}</span>
-                          </Link>
-                        );
-                      }
+                {/* Module sub-menu — visible for any project when expanded */}
+                <div
+                  className={`ml-4 flex flex-col gap-0.5 border-l border-white/10 pl-3 overflow-hidden transition-[opacity,max-height] duration-150 ease-in-out ${
+                    !isCollapsed && menuOpen ? 'opacity-100 max-h-96 mt-0.5 mb-1' : 'opacity-0 max-h-0'
+                  }`}
+                >
+                  {moduleItems.map(({ label, href, icon: Icon }) => {
+                    const isModuleActive = href ? pathname === href : false;
+                    if (href) {
                       return (
-                        <button
+                        <Link
                           key={label}
-                          disabled
-                          className="flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] text-[#C7C7CC]/30 text-left w-full cursor-not-allowed"
+                          href={href}
+                          className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] transition-colors text-left w-full ${
+                            isModuleActive
+                              ? 'bg-white/8 text-white font-medium'
+                              : 'text-[#C7C7CC]/70 hover:text-white hover:bg-white/5'
+                          }`}
                         >
                           <Icon size={13} className="flex-shrink-0" />
                           <span className="whitespace-nowrap">{label}</span>
-                        </button>
+                        </Link>
                       );
-                    })}
-                  </div>
-                )}
+                    }
+                    return (
+                      <button
+                        key={label}
+                        disabled
+                        className="flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] text-[#C7C7CC]/30 text-left w-full cursor-not-allowed"
+                      >
+                        <Icon size={13} className="flex-shrink-0" />
+                        <span className="whitespace-nowrap">{label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             );
           })}
 
-          {/* + New Project button */}
           {!isCollapsed && (
             <button
               onClick={openCreateModal}
@@ -306,48 +302,67 @@ export function Sidebar() {
         </div>
       </aside>
 
-      {/* Project create/edit modal */}
-      <ProjectModal
-        opened={modalOpen}
-        onClose={closeModal}
-        project={editingProject}
-      />
+      <ProjectModal opened={modalOpen} onClose={closeModal} project={editingProject} />
     </div>
   );
 }
 
-// ─── ProjectRow sub-component ─────────────────────────────────────────────────
+// ─── ProjectRow ───────────────────────────────────────────────────────────────
 
 interface ProjectRowProps {
   project: Project;
   isActive: boolean;
   isCollapsed: boolean;
   labelCls: string;
+  menuOpen: boolean;
+  onToggleMenu: () => void;
   onEditClick: () => void;
 }
 
-function ProjectRow({ project, isActive, isCollapsed, labelCls, onEditClick }: ProjectRowProps) {
+function ProjectRow({ project, isActive, isCollapsed, labelCls, menuOpen, onToggleMenu, onEditClick }: ProjectRowProps) {
   const [hovered, setHovered] = useState(false);
   const router = useRouter();
 
+  const ChevronIcon = menuOpen ? IconChevronDown : IconChevronRight;
+
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={() => router.push(`/projects/${project.id}`)}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/projects/${project.id}`); }}
-      className={`flex items-center w-full rounded-md text-[13px] transition-colors cursor-pointer ${
+      className={`flex items-center w-full rounded-md text-[13px] transition-colors ${
         isActive ? 'bg-white/10 text-white font-medium' : 'text-[#C7C7CC] hover:bg-white/8 hover:text-white'
-      } ${isCollapsed ? 'justify-center p-2' : 'gap-2.5 px-2 py-1.5'}`}
+      } ${isCollapsed ? 'justify-center p-2' : 'gap-2 px-2 py-1.5'}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <span
-        className="w-2 h-2 rounded-full flex-shrink-0"
-        style={{ backgroundColor: project.color }}
-      />
-      <span className={`${labelCls} flex-1 min-w-0 text-left`}>{project.name}</span>
+      {/* Color dot — click toggles sub-menu */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onToggleMenu(); }}
+        className="relative flex items-center justify-center flex-shrink-0 rounded-full group/dot"
+        style={{ width: 16, height: 16 }}
+        aria-label={menuOpen ? 'Collapse project menu' : 'Expand project menu'}
+      >
+        <span
+          className="rounded-full block transition-opacity group-hover/dot:opacity-0"
+          style={{ width: 8, height: 8, backgroundColor: project.color, position: 'absolute' }}
+        />
+        <ChevronIcon
+          size={12}
+          className="opacity-0 group-hover/dot:opacity-100 transition-opacity"
+          style={{ position: 'absolute' }}
+        />
+      </button>
 
+      {/* Project name — click navigates */}
+      <span
+        role="button"
+        tabIndex={0}
+        onClick={() => router.push(`/projects/${project.id}`)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/projects/${project.id}`); }}
+        className={`${labelCls} flex-1 min-w-0 text-left cursor-pointer`}
+      >
+        {project.name}
+      </span>
+
+      {/* Edit pencil */}
       {!isCollapsed && (
         <button
           aria-label={`Edit ${project.name}`}

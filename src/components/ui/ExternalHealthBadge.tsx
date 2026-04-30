@@ -58,11 +58,16 @@ export function ExternalHealthBadge({ projectId }: ExternalHealthBadgeProps) {
   const statuses = useProjectHealthStore((s) => s.statuses);
   const setStatus = useProjectHealthStore((s) => s.setStatus);
   const rawFeatEnabled = useFeaturesStore((s) => s.features.externalHealth);
+  const rawInternalEnabled = useFeaturesStore((s) => s.features.internalHealth);
+
   const featEnabled = mounted ? rawFeatEnabled : true;
+  // Show "E" label only when internal badge is also visible (to distinguish the two)
+  const showLabel = mounted ? rawInternalEnabled : true;
 
   const status: HealthStatus = mounted ? (statuses[projectId] ?? 'green') : 'green';
 
   if (!featEnabled) return null;
+
   const color = COLOR_MAP[status];
   const tooltipLabel = TOOLTIP_MAP[status];
 
@@ -82,7 +87,6 @@ export function ExternalHealthBadge({ projectId }: ExternalHealthBadgeProps) {
     >
       <Popover.Target>
         <Tooltip label={tooltipLabel} withArrow position="top" withinPortal>
-          {/* Wrapper div required — Popover.Target needs a single child */}
           <div
             role="button"
             tabIndex={0}
@@ -95,21 +99,18 @@ export function ExternalHealthBadge({ projectId }: ExternalHealthBadgeProps) {
               }
             }}
             className="relative flex items-center justify-center cursor-pointer flex-shrink-0"
-            style={{ width: 18, height: 18 }}
+            style={{ width: 22, height: 22 }}
           >
-            {/* Circle */}
-            <span
-              className="rounded-full block"
-              style={{ width: 14, height: 14, backgroundColor: color }}
-            />
-            {/* Label */}
-            <span
-              className="absolute inset-0 flex items-center justify-center font-bold text-white select-none"
-              style={{ fontSize: 8, lineHeight: 1, paddingTop: 1 }}
-              aria-hidden
-            >
-              E
-            </span>
+            <span className="rounded-full block" style={{ width: 18, height: 18, backgroundColor: color }} />
+            {showLabel && (
+              <span
+                className="absolute inset-0 flex items-center justify-center font-bold text-white select-none"
+                style={{ fontSize: 9, lineHeight: 1, paddingTop: 1 }}
+                aria-hidden
+              >
+                E
+              </span>
+            )}
           </div>
         </Tooltip>
       </Popover.Target>
