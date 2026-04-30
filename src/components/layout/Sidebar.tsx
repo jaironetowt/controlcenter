@@ -305,8 +305,8 @@ function ProjectRow({ project, isActive, isCollapsed, labelCls, onEditClick }: P
     <div
       role="button"
       tabIndex={0}
-      onClick={() => router.push('/dashboard')}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push('/dashboard'); }}
+      onClick={() => router.push(`/projects/${project.id}`)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/projects/${project.id}`); }}
       className={`flex items-center w-full rounded-md text-[13px] transition-colors cursor-pointer ${
         isActive ? 'bg-white/10 text-white font-medium' : 'text-[#C7C7CC] hover:bg-white/8 hover:text-white'
       } ${isCollapsed ? 'justify-center p-2' : 'gap-2.5 px-2 py-1.5'}`}

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { type Project } from '@/stores/useProjectsStore';
 import { ExternalHealthBadge } from '@/components/ui/ExternalHealthBadge';
 import { InternalHealthBadge } from '@/components/ui/InternalHealthBadge';
@@ -10,7 +11,10 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project }: ProjectCardProps) {
   return (
-    <div className="bg-white rounded-xl border border-zinc-200 p-4 hover:shadow-sm transition-shadow cursor-pointer relative">
+    <Link
+      href={`/projects/${project.id}`}
+      className="block bg-white rounded-xl border border-zinc-200 p-4 hover:shadow-md transition-all cursor-pointer relative"
+    >
       {/* Health badges — absolute top-right */}
       <div className="absolute top-3 right-3 flex items-center gap-1.5">
         <ExternalHealthBadge projectId={project.id} />
@@ -34,6 +38,6 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <span className="text-[12px] text-zinc-500">{project.phase}</span>
         <span className="text-[12px] text-zinc-500">{project.dateRange}</span>
       </div>
-    </div>
+    </Link>
   );
 }
