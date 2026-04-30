@@ -178,7 +178,7 @@ if (!mounted) return null;
       {/* Header: title + type selector */}
       <div className="flex items-center gap-2 mb-2">
         <IconBolt size={15} className="text-orange-500 flex-shrink-0" />
-        <span className="text-[13px] font-semibold text-zinc-800 flex-1">Quick Actions</span>
+        <span className="text-[13px] font-semibold text-zinc-800 flex-1 whitespace-nowrap">Quick Actions</span>
 
         {/* Type selector — cycles on click */}
         <button
@@ -186,7 +186,7 @@ if (!mounted) return null;
             const idx = ACTIONS.findIndex((a) => a.key === selected);
             setSelected(ACTIONS[(idx + 1) % ACTIONS.length].key);
           }}
-          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-medium border border-orange-200 bg-orange-50 text-orange-600 hover:border-orange-400 transition-colors w-28 justify-center"
+          className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium border border-orange-200 bg-orange-50 text-orange-600 hover:border-orange-400 transition-colors w-[90px] justify-center flex-shrink-0"
         >
           {current.icon}
           <span>{current.label}</span>
