@@ -1,6 +1,6 @@
 # BACKLOG — Control Center
 
-_Status: Em descoberta. Última atualização: 2026-04-29_
+_Status: Em desenvolvimento. Última atualização: 2026-04-30_
 
 ---
 
@@ -23,7 +23,7 @@ Objetivo: app rodando com navegação, layout completo e os dois primeiros gadge
 | CC-03 | [FEATURE] | Right Panel — Quick Notes, Upcoming, placeholder | [spec](docs/specs/CC-F01-app-shell.md) | ✅ Feito |
 | CC-04 | [FEATURE] | Painéis colapsáveis (sidebar 56px + right panel 28px) | [spec](docs/specs/CC-F04-collapsible-panels.md) | ✅ Feito |
 | CC-05 | [FEATURE] | Project View — header com External/Internal health | [spec](docs/specs/CC-F05-project-view-header.md) | ✅ Feito |
-| CC-06 | [FEATURE] | Global View — cards de projetos com health badge | [spec](docs/specs/CC-F06-global-view.md) | 🔄 Em desenvolvimento |
+| CC-06 | [FEATURE] | Global View — cards de projetos com health badge | [spec](docs/specs/CC-F06-global-view.md) | ✅ Feito |
 | CC-07 | [FEATURE] | Criar / editar / arquivar projeto | [spec](docs/specs/CC-07-project-crud.md) | ✅ Feito |
 | CC-08 | [POLISH] | Tipografia — padronização da escala de fontes | — | ✅ Feito |
 | CC-09 | [POLISH] | Animação painéis — hydration guard + transições suaves | — | ✅ Feito |
@@ -40,14 +40,16 @@ Objetivo: Risk log, decision log, action items e stakeholder map funcionando.
 
 | ID | Tipo | Ticket | Status |
 |----|------|--------|--------|
-| CC-14 | [FEATURE] | CRUD Risk Log | 🔄 Em desenvolvimento |
-| CC-15 | [FEATURE] | Matriz de risco (severity × probability) | 🔄 Em desenvolvimento |
-| CC-16 | [FEATURE] | CRUD Decision Log | 🔄 Em desenvolvimento |
-| CC-17 | [FEATURE] | CRUD Action Items | 🔄 Em desenvolvimento |
-| CC-18 | [FEATURE] | CRUD Stakeholder Map | 🔄 Em desenvolvimento |
-| CC-19 | [FEATURE] | Grid influence × interest | 🔄 Em desenvolvimento |
+| CC-14 | [FEATURE] | CRUD Risk Log | ✅ Feito |
+| CC-15 | [FEATURE] | Matriz de risco (severity × probability) | ✅ Feito |
+| CC-16 | [FEATURE] | CRUD Decision Log | ✅ Feito |
+| CC-17 | [FEATURE] | CRUD Action Items | ✅ Feito |
+| CC-18 | [FEATURE] | CRUD Stakeholder Map | ✅ Feito |
+| CC-19 | [FEATURE] | Grid influence × interest | ✅ Feito |
 | CC-20 | [FEATURE] | Repositório de links por projeto | Pendente |
 | CC-21 | [FEATURE] | CRUD Atas de reunião | Pendente |
+| CC-47 | [FEATURE] | Feature flags — gerenciar features habilitadas no sistema (Settings > Features) | ✅ Feito |
+| CC-48 | [FEATURE] | Dashboard do projeto — visão geral com stat cards (open risks, decisions, action items, stakeholders) | ✅ Feito |
 
 ---
 
@@ -55,15 +57,15 @@ Objetivo: Risk log, decision log, action items e stakeholder map funcionando.
 
 Objetivo: camada agnóstica de PM Tool + conectores + Google Suite + Salesforce.
 
-### PM Tool — Camada agnóstica (A especificar)
+### PM Tool — Camada agnóstica
 
 O sistema define uma interface abstrata (`PMToolConnector`) que qualquer ferramenta implementa. Cada projeto configura qual conector está ativo. A UI nunca fala diretamente com Jira, Linear etc — sempre via interface.
 
 | ID | Tipo | Ticket | Status |
 |----|------|--------|--------|
-| CC-25 | [INTEGRATION] | PM Tool — interface abstrata + config por projeto | 🔄 Em desenvolvimento |
-| CC-29 | [INTEGRATION] | PM Tool — pull de issues, sprints e epics (via conector) | 🔄 Em desenvolvimento |
-| CC-43 | [INTEGRATION] | Conector Jira | 🔄 Em desenvolvimento |
+| CC-25 | [INTEGRATION] | PM Tool — interface abstrata + config por projeto (`/settings`) | ✅ Feito |
+| CC-29 | [INTEGRATION] | PM Tool — pull de issues, sprints e epics (via conector Jira) | ✅ Feito |
+| CC-43 | [INTEGRATION] | Conector Jira | ✅ Feito |
 | CC-44 | [INTEGRATION] | Conector Linear | ⬇️ Baixíssima prioridade |
 | CC-45 | [INTEGRATION] | Conector Monday.com | ⬇️ Baixíssima prioridade |
 | CC-46 | [INTEGRATION] | Conector Azure DevOps | ⬇️ Baixíssima prioridade |
