@@ -178,7 +178,7 @@ if (!mounted) return null;
       {/* Header: title + project selector */}
       <div className="flex items-center gap-2 mb-2">
         <IconBolt size={15} className="text-orange-500 flex-shrink-0" />
-        <span className="text-[13px] font-semibold text-zinc-800 flex-1 whitespace-nowrap">Quick Actions</span>
+        <span className="text-[13px] font-semibold text-zinc-800 flex-1 min-w-0">Quick Actions</span>
 
         {/* Project selector — compact, cycles on click, hidden for Alert */}
         {selected !== 'reminder' && (() => {
@@ -187,7 +187,7 @@ if (!mounted) return null;
             <button
               onClick={cycleProject}
               title="Click to change project"
-              className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-medium border border-zinc-200 bg-white text-zinc-600 hover:border-orange-300 hover:text-orange-600 transition-colors flex-shrink-0 max-w-[100px] focus:outline-none"
+              className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-medium border border-zinc-200 bg-white text-zinc-600 hover:border-orange-300 hover:text-orange-600 transition-colors flex-shrink-0 max-w-[72px] focus:outline-none"
             >
               <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: proj?.color }} />
               <span className="truncate">{proj?.name ?? '—'}</span>
