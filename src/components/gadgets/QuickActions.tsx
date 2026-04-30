@@ -73,7 +73,6 @@ function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) =
       <button
         ref={buttonRef}
         onClick={handleOpen}
-        title={owner || 'Set owner'}
         className="group flex items-center justify-center w-5 h-5 rounded-full bg-zinc-600 text-white text-[10px] font-bold hover:bg-zinc-700 transition-colors"
       >
         {initial}
