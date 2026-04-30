@@ -1,5 +1,6 @@
 'use client';
 
+import { flushSync } from 'react-dom';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Tooltip } from '@mantine/core';
@@ -48,7 +49,8 @@ function getModuleItems(projectId: string) {
     { label: 'Decisions',    href: `/projects/${projectId}/decisions`,    icon: IconNotes           },
     { label: 'Action Items', href: `/projects/${projectId}/actions`,      icon: IconChecklist       },
     { label: 'Stakeholders', href: `/projects/${projectId}/stakeholders`, icon: IconUsers           },
-    { label: 'Metrics',      href: null,                                   icon: IconChartBar        },
+    { label: 'Timecards',   href: `/projects/${projectId}/timecards`,    icon: IconStack2          },
+    { label: 'Metrics',     href: null,                                   icon: IconChartBar        },
     { label: 'Knowledge',    href: null,                                   icon: IconBook            },
     { label: 'Reports',      href: null,                                   icon: IconFileText        },
     { label: 'Settings',     href: `/projects/${projectId}/settings`,      icon: IconSettings2       },
@@ -57,7 +59,7 @@ function getModuleItems(projectId: string) {
 
 const globalNavItems = [
   { label: 'All Projects', href: '/global',  icon: IconLayoutDashboard },
-  { label: 'Action Items', href: null,       icon: IconChecklist       },
+  { label: 'Action Items', href: '/global/actions', icon: IconChecklist },
   { label: 'Alerts',       href: null,       icon: IconBell            },
 ];
 
@@ -85,20 +87,19 @@ export function Sidebar() {
     setExpandedProjects((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
-  // Clicking a project name: immediately switch expanded state then navigate
-  // so the CSS transition fires before the URL changes
+  // flushSync commits the state to the DOM synchronously (CSS transition engine sees the
+  // "before" state), then a single rAF fires after the browser paints that frame,
+  // at which point the transition is already running and navigation can fire safely.
   function handleProjectNavigate(project: Project) {
-    setExpandedProjects(() => {
-      const next: Record<string, boolean> = {};
-      projects.forEach((p) => { next[p.id] = p.id === project.id; });
-      return next;
-    });
-    // Double rAF: React commits + browser paints frame 1 with transition started,
-    // then navigation fires in frame 2 (~33ms). Content loads fast, animation uninterrupted.
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        router.push(`/projects/${project.id}`);
+    flushSync(() => {
+      setExpandedProjects(() => {
+        const next: Record<string, boolean> = {};
+        projects.forEach((p) => { next[p.id] = p.id === project.id; });
+        return next;
       });
+    });
+    requestAnimationFrame(() => {
+      router.push(`/projects/${project.id}`);
     });
   }
 
@@ -138,14 +139,14 @@ export function Sidebar() {
       <aside className="w-full h-full bg-[#1F1F24] flex flex-col overflow-hidden">
         {/* Logo + toggle */}
         <div className={`flex items-center py-4 flex-shrink-0 ${isCollapsed ? 'justify-center px-0' : 'px-4 gap-0'}`}>
-          <div className={`flex items-center gap-2.5 ${isCollapsed ? 'justify-center' : 'flex-1 min-w-0'}`}>
+          <Link href="/global" className={`flex items-center gap-2.5 ${isCollapsed ? 'justify-center' : 'flex-1 min-w-0'}`}>
             <div className="w-7 h-7 rounded-md bg-blue-500 flex items-center justify-center flex-shrink-0">
               <IconStack2 size={16} color="white" />
             </div>
             <span className={`text-white text-[14px] font-semibold tracking-tight truncate ${labelCls}`}>
               Control Center
             </span>
-          </div>
+          </Link>
           {!isCollapsed && (
             <button onClick={toggle} className="text-[#C7C7CC] hover:text-white transition-colors flex-shrink-0" aria-label="Collapse sidebar">
               <IconLayoutSidebarLeftCollapse size={18} />
