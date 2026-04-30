@@ -186,7 +186,7 @@ if (!mounted) return null;
             const idx = ACTIONS.findIndex((a) => a.key === selected);
             setSelected(ACTIONS[(idx + 1) % ACTIONS.length].key);
           }}
-          className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium border border-orange-200 bg-orange-50 text-orange-600 hover:border-orange-400 transition-colors w-[90px] justify-center flex-shrink-0"
+          className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium border border-orange-200 bg-orange-50 text-orange-600 hover:border-orange-400 transition-colors flex-shrink-0 whitespace-nowrap"
         >
           {current.icon}
           <span>{current.label}</span>
