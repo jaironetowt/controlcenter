@@ -2,6 +2,7 @@
 
 import { MantineProvider } from '@mantine/core';
 import { ToastContainer } from '@/components/ui/Toast';
+import { QuickActionsFAB } from '@/components/gadgets/QuickActionsFAB';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -16,6 +17,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }}
     >
       <ToastContainer />
+      <QuickActionsFAB />
       {children}
     </MantineProvider>
   );

@@ -1,6 +1,6 @@
 # BACKLOG — Control Center
 
-_Status: Em desenvolvimento. Última atualização: 2026-04-29_
+_Status: Em desenvolvimento. Última atualização: 2026-04-30_
 
 ---
 
@@ -81,8 +81,10 @@ Objetivo: Risk log, decision log, action items e stakeholder map funcionando.
 | CC-65 | [BUG] | Scroll independente por coluna — overflow hidden no html/body | ✅ Feito |
 | CC-66 | [BUG] | Hot Desk scroll — flex-1 min-h-0 no container + flex-shrink-0 nos cards para ativar overflow-y-auto corretamente | ✅ Feito |
 | CC-67 | [POLISH] | Global Action Items — colunas consistentes entre swimlanes via table-fixed + colgroup | ✅ Feito |
-| CC-71 | [POLISH] | Urgent Actions — exibir nome do projeto e priority em cada item | Em progresso |
-| CC-72 | [FEATURE] | Sidebar — item Milestones inativo em cada projeto | Em progresso |
+| CC-71 | [POLISH] | Urgent Actions — exibir nome do projeto e priority em cada item | ✅ Feito |
+| CC-72 | [FEATURE] | Sidebar — item Milestones inativo em cada projeto | ✅ Feito |
+| CC-73 | [FEATURE] | Quick Actions gadget — Add Risk (título + descrição + probability/impact), Add Action Item (priority), Reminder placeholder; OwnerChip com portal; selecionar projeto com último usado | ✅ Feito |
+| CC-74 | [FEATURE] | Quick Actions FAB — ícone de raio flutuante (bottom-right relativo ao right panel); pulso animado; expande painel flutuante com QuickActions; fecha ao clicar fora da zona de sombra; removido do Hot Desk | ✅ Feito |
 | CC-68 | [FEATURE] | Hot Desk — gadget Upcoming conectado a dados reais (hoje hardcoded) | Pendente |
 | CC-69 | [FEATURE] | Hot Desk — GadgetSlot "Add gadget" funcional (hoje é placeholder) | Pendente |
 | CC-70 | [FEATURE] | Global Action Items — botão "New item" com seletor de projeto no modal | Pendente |

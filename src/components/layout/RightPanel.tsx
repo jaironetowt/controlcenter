@@ -22,7 +22,6 @@ import {
   IconFlame,
   IconGripHorizontal,
 } from '@tabler/icons-react';
-import { QuickActions } from '@/components/gadgets/QuickActions';
 import { Upcoming } from '@/components/gadgets/Upcoming';
 import { GadgetSlot } from '@/components/gadgets/GadgetSlot';
 import { TimecardWidget } from '@/components/gadgets/TimecardWidget';
@@ -43,13 +42,12 @@ export const useRightPanelStore = create<RightPanelStore>()((set) => ({
 // ─── Gadget registry ──────────────────────────────────────────────────────────
 
 const GADGETS: Record<string, React.ReactNode> = {
-  'quick-actions':  <QuickActions />,
   'upcoming':       <Upcoming />,
   'urgent-actions': <UrgentActions />,
   'timecards':      <TimecardWidget />,
 };
 
-const DEFAULT_ORDER = ['quick-actions', 'upcoming', 'urgent-actions', 'timecards'];
+const DEFAULT_ORDER = ['upcoming', 'urgent-actions', 'timecards'];
 const ORDER_KEY = 'hd-gadget-order';
 
 function loadOrder(): string[] {
