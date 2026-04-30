@@ -154,7 +154,7 @@ function CaptureCard({ placeholder, descriptionPlaceholder, onSave, meta }: Capt
           className="w-full bg-transparent px-3 pb-2 text-[12px] text-zinc-600 placeholder:text-zinc-300 focus:outline-none border-t border-zinc-100"
         />
       )}
-      <div className="flex items-end gap-1.5 px-3 pb-2.5 pt-1.5 border-t border-zinc-200">
+      <div className="flex items-center gap-1.5 px-3 pb-2.5 pt-1.5 border-t border-zinc-200">
         <div className="flex flex-col gap-1 flex-1">
           {meta}
         </div>
@@ -261,7 +261,7 @@ if (!mounted) return null;
                   className="flex items-center gap-1 px-1.5 py-px rounded-md bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-[76px]"
                 >
                   <PriorityIcon priority={probability as Priority} />
-                  <span className="text-zinc-400 text-[10px] flex-1 text-right">{probability}</span>
+                  <span className="text-zinc-400 text-[10px] ml-auto">{probability}</span>
                 </button>
               </div>
               <div className="flex items-center gap-2">
@@ -271,7 +271,7 @@ if (!mounted) return null;
                   className="flex items-center gap-1 px-1.5 py-px rounded-md bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-[76px]"
                 >
                   <PriorityIcon priority={impact as Priority} />
-                  <span className="text-zinc-400 text-[10px] flex-1 text-right">{impact}</span>
+                  <span className="text-zinc-400 text-[10px] ml-auto">{impact}</span>
                 </button>
               </div>
             </div>
