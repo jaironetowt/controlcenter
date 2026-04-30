@@ -253,10 +253,10 @@ if (!mounted) return null;
           descriptionPlaceholder="Describe the risk…"
           onSave={(title, description) => addRisk({ projectId, title, description, impact, probability, status: 'Open', owner })}
           meta={
-            <div className="flex flex-col gap-1 w-fit">
+            <div className="flex flex-col gap-1">
               <button
                 onClick={() => setProbability(nextLevel)}
-                className="w-full flex items-center px-1.5 py-px rounded-full bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors"
+                className="w-[130px] flex items-center px-1.5 py-px rounded-full bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors"
               >
                 <span className="text-zinc-500 text-[10px] flex-1 text-left">Probability</span>
                 <span className="flex items-center gap-1 flex-shrink-0">
@@ -266,7 +266,7 @@ if (!mounted) return null;
               </button>
               <button
                 onClick={() => setImpact(nextLevel)}
-                className="w-full flex items-center px-1.5 py-px rounded-full bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors"
+                className="w-[130px] flex items-center px-1.5 py-px rounded-full bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors"
               >
                 <span className="text-zinc-500 text-[10px] flex-1 text-left">Impact</span>
                 <span className="flex items-center gap-1 flex-shrink-0">
