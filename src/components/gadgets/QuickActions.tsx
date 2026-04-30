@@ -114,7 +114,7 @@ function CaptureCard({ placeholder, onSave, meta }: CaptureCardProps) {
   }
 
   return (
-    <div className="mt-1 rounded-xl border border-zinc-300 bg-white overflow-hidden shadow-sm">
+    <div className="rounded-xl border border-zinc-300 bg-white overflow-hidden shadow-sm">
       <input
         ref={inputRef}
         value={title}
