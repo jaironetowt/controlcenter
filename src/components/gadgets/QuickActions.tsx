@@ -99,17 +99,23 @@ interface CaptureCardProps {
 
 function CaptureCard({ placeholder, onSave, meta }: CaptureCardProps) {
   const [title, setTitle] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus({ preventScroll: true });
+  }, []);
 
   function handleSave() {
     if (!title.trim()) return;
     onSave(title.trim());
     setTitle('');
+    inputRef.current?.focus({ preventScroll: true });
   }
 
   return (
     <div className="mt-2 rounded-xl border border-zinc-300 bg-white overflow-hidden shadow-sm">
       <input
-        autoFocus
+        ref={inputRef}
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handleSave()}
@@ -176,35 +182,35 @@ if (!mounted) return null;
         <span className="text-[13px] font-semibold text-zinc-800 flex-1">Quick Actions</span>
       </div>
 
-      {/* Type selector + owner chip row */}
-      <div className="flex items-center gap-1.5 mb-1">
-        <button
-          onClick={() => {
-            const idx = ACTIONS.findIndex((a) => a.key === selected);
-            setSelected(ACTIONS[(idx + 1) % ACTIONS.length].key);
-          }}
-          className="flex-1 flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12px] font-medium border border-orange-200 bg-orange-50 text-orange-600 hover:border-orange-400 transition-colors focus:outline-none"
-        >
-          {current.icon}
-          <span className="flex-1 text-left">{current.label}</span>
-          <IconChevronDown size={11} className="text-orange-300 flex-shrink-0" />
-        </button>
-        <OwnerChip owner={owner} onChange={setOwner} />
-      </div>
+      {/* Type selector row */}
+      <button
+        onClick={() => {
+          const idx = ACTIONS.findIndex((a) => a.key === selected);
+          setSelected(ACTIONS[(idx + 1) % ACTIONS.length].key);
+        }}
+        className="w-full flex items-center gap-2 px-2.5 py-1.5 mb-1 rounded-lg text-[12px] font-medium border border-orange-200 bg-orange-50 text-orange-600 hover:border-orange-400 transition-colors focus:outline-none"
+      >
+        {current.icon}
+        <span className="flex-1 text-left">{current.label}</span>
+        <IconChevronDown size={11} className="text-orange-300 flex-shrink-0" />
+      </button>
 
-      {/* Project selector — full width, below type, hidden for Alert */}
+      {/* Project selector + owner chip row */}
       {selected !== 'reminder' && (() => {
         const proj = allProjects.find((p) => p.id === projectId);
         return (
-          <button
-            onClick={cycleProject}
-            title="Click to change project"
-            className="w-full flex items-center gap-2 px-2.5 py-1.5 mb-1 rounded-lg text-[12px] font-medium border border-zinc-200 bg-white text-zinc-600 hover:border-orange-300 hover:text-orange-600 transition-colors focus:outline-none"
-          >
-            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: proj?.color }} />
-            <span className="flex-1 text-left truncate">{proj?.name ?? '—'}</span>
-            <IconChevronDown size={11} className="text-zinc-300 flex-shrink-0" />
-          </button>
+          <div className="flex items-center gap-1.5 mb-1">
+            <button
+              onClick={cycleProject}
+              title="Click to change project"
+              className="flex-1 flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12px] font-medium border border-zinc-200 bg-white text-zinc-600 hover:border-orange-300 hover:text-orange-600 transition-colors focus:outline-none"
+            >
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: proj?.color }} />
+              <span className="flex-1 text-left truncate">{proj?.name ?? '—'}</span>
+              <IconChevronDown size={11} className="text-zinc-300 flex-shrink-0" />
+            </button>
+            <OwnerChip owner={owner} onChange={setOwner} />
+          </div>
         );
       })()}
 
