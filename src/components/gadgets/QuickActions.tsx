@@ -113,7 +113,7 @@ function CaptureCard({ placeholder, onSave, meta }: CaptureCardProps) {
   }
 
   return (
-    <div className="mt-2 rounded-xl border border-zinc-300 bg-white overflow-hidden shadow-sm">
+    <div className="mt-1 rounded-xl border border-zinc-300 bg-white overflow-hidden shadow-sm">
       <input
         ref={inputRef}
         value={title}
@@ -177,7 +177,7 @@ if (!mounted) return null;
   return (
     <>
       {/* Header: title + project selector */}
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-1">
         <IconBolt size={15} className="text-orange-500 flex-shrink-0" />
         <span className="text-[13px] font-semibold text-zinc-800 flex-1">Quick Actions</span>
       </div>
