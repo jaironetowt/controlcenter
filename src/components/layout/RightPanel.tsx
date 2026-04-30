@@ -79,7 +79,7 @@ function SortableGadgetCard({ id }: { id: string }) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="group relative bg-white rounded-xl border border-orange-300 p-4">
+    <div ref={setNodeRef} style={style} className="group relative bg-white rounded-xl border border-orange-300 pt-3 pb-4 pl-4 pr-8">
       {/* Drag handle */}
       <button
         {...attributes}
