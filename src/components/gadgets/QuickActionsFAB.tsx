@@ -73,7 +73,7 @@ export function QuickActionsFAB() {
                 <IconBolt size={16} className="text-orange-200" />
                 Quick Actions
               </h2>
-              <p className="text-[11px] text-orange-200 mt-1">Capture riscos, action items e alertas</p>
+              <p className="text-[11px] text-orange-200 mt-1">Capture risks, action items and alerts</p>
             </div>
           )}
           <button
