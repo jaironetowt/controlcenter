@@ -22,7 +22,7 @@ import {
   IconFlame,
   IconGripHorizontal,
 } from '@tabler/icons-react';
-import { QuickNotes } from '@/components/gadgets/QuickNotes';
+import { QuickActions } from '@/components/gadgets/QuickActions';
 import { Upcoming } from '@/components/gadgets/Upcoming';
 import { GadgetSlot } from '@/components/gadgets/GadgetSlot';
 import { TimecardWidget } from '@/components/gadgets/TimecardWidget';
@@ -43,13 +43,13 @@ export const useRightPanelStore = create<RightPanelStore>()((set) => ({
 // ─── Gadget registry ──────────────────────────────────────────────────────────
 
 const GADGETS: Record<string, React.ReactNode> = {
-  'quick-notes':    <QuickNotes />,
+  'quick-actions':  <QuickActions />,
   'upcoming':       <Upcoming />,
   'urgent-actions': <UrgentActions />,
   'timecards':      <TimecardWidget />,
 };
 
-const DEFAULT_ORDER = ['quick-notes', 'upcoming', 'urgent-actions', 'timecards'];
+const DEFAULT_ORDER = ['quick-actions', 'upcoming', 'urgent-actions', 'timecards'];
 const ORDER_KEY = 'hd-gadget-order';
 
 function loadOrder(): string[] {
@@ -79,7 +79,7 @@ function SortableGadgetCard({ id }: { id: string }) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="bg-white rounded-xl border border-orange-300 overflow-hidden flex-shrink-0">
+    <div ref={setNodeRef} style={style} className="bg-white rounded-xl border border-orange-300 flex-shrink-0">
       {/* Drag handle bar */}
       <div
         {...attributes}
