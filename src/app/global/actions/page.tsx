@@ -143,7 +143,15 @@ function Swimlane({ project, items, onEdit, onDelete, onCycleStatus }: SwimlaneP
       </div>
 
       <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
-        <table className="w-full">
+        <table className="w-full table-fixed">
+          <colgroup>
+            <col className="w-auto" />
+            <col style={{ width: 100 }} />
+            <col style={{ width: 110 }} />
+            <col style={{ width: 90 }} />
+            <col style={{ width: 110 }} />
+            <col style={{ width: 64 }} />
+          </colgroup>
           <thead>
             <tr className="border-b border-zinc-100 bg-zinc-50/60">
               <th className="py-2 px-3 text-left text-[11px] font-medium text-zinc-500 uppercase tracking-wide">Title</th>

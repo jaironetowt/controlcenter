@@ -79,7 +79,7 @@ function SortableGadgetCard({ id }: { id: string }) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="bg-white rounded-xl border border-orange-300 overflow-hidden">
+    <div ref={setNodeRef} style={style} className="bg-white rounded-xl border border-orange-300 overflow-hidden flex-shrink-0">
       {/* Drag handle bar */}
       <div
         {...attributes}
@@ -89,7 +89,7 @@ function SortableGadgetCard({ id }: { id: string }) {
       >
         <IconGripHorizontal size={12} className="text-transparent group-hover/handle:text-zinc-300 transition-colors duration-150 group-hover/handle:delay-[250ms]" />
       </div>
-      <div className="px-4 pb-4">
+      <div className="px-4 pt-2 pb-4">
         {GADGETS[id]}
       </div>
     </div>
@@ -174,7 +174,7 @@ export function RightPanel() {
         </div>
 
         {/* Sortable gadgets */}
-        <div className="flex flex-col gap-3 px-4 py-4 overflow-y-auto">
+        <div className="flex flex-col gap-4 px-4 py-4 overflow-y-auto flex-1 min-h-0">
           {mounted ? (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <SortableContext items={order} strategy={verticalListSortingStrategy}>
