@@ -53,18 +53,31 @@ Objetivo: Risk log, decision log, action items e stakeholder map funcionando.
 
 ## Fase 3 — Integrações
 
-Objetivo: dados reais de Jira, Salesforce e Google Suite.
+Objetivo: camada agnóstica de PM Tool + conectores + Google Suite + Salesforce.
+
+### PM Tool — Camada agnóstica (A especificar)
+
+O sistema define uma interface abstrata (`PMToolConnector`) que qualquer ferramenta implementa. Cada projeto configura qual conector está ativo. A UI nunca fala diretamente com Jira, Linear etc — sempre via interface.
 
 | ID | Tipo | Ticket | Status |
 |----|------|--------|--------|
-| CC-22 | [FEATURE] | CRUD de projetos com config de stack | Pendente |
+| CC-25 | [INTEGRATION] | PM Tool — interface abstrata + config por projeto | Pendente |
+| CC-29 | [INTEGRATION] | PM Tool — pull de issues, sprints e epics (via conector) | Pendente |
+| CC-43 | [INTEGRATION] | Conector Jira | Pendente |
+| CC-44 | [INTEGRATION] | Conector Linear | Pendente |
+| CC-45 | [INTEGRATION] | Conector Monday.com | Pendente |
+| CC-46 | [INTEGRATION] | Conector Azure DevOps | Pendente |
+
+### Outras integrações
+
+| ID | Tipo | Ticket | Status |
+|----|------|--------|--------|
+| CC-22 | [FEATURE] | Configuração de stack por projeto (qual PM tool, Salesforce, etc.) | Pendente |
 | CC-23 | [FEATURE] | Configuração da API Anthropic | Pendente |
 | CC-24 | [INTEGRATION] | Google OAuth | Pendente |
-| CC-25 | [INTEGRATION] | Jira API token | Pendente |
 | CC-26 | [FEATURE] | Configuração de gadgets por projeto | Pendente |
 | CC-27 | [INTEGRATION] | Salesforce API token | Pendente |
 | CC-28 | [INTEGRATION] | Webhook n8n (entrada e saída) | Pendente |
-| CC-29 | [INTEGRATION] | Jira — issues e sprints | Pendente |
 | CC-30 | [FEATURE] | Widget velocity | Pendente |
 | CC-31 | [FEATURE] | Widget burn-down | Pendente |
 
