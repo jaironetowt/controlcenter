@@ -261,6 +261,7 @@ if (!mounted) return null;
               >
                 <span className="text-zinc-500 text-[10px] flex-1 text-left">Probability</span>
                 <PriorityIcon priority={probability as Priority} />
+                <span className="text-zinc-400 text-[10px]">{probability}</span>
               </button>
               <button
                 onClick={() => setImpact(nextLevel)}
@@ -269,6 +270,7 @@ if (!mounted) return null;
               >
                 <span className="text-zinc-500 text-[10px] flex-1 text-left">Impact</span>
                 <PriorityIcon priority={impact as Priority} />
+                <span className="text-zinc-400 text-[10px]">{impact}</span>
               </button>
             </>
           }
@@ -288,6 +290,7 @@ if (!mounted) return null;
             >
               <span className="text-zinc-500 text-[10px]">Priority</span>
               <PriorityIcon priority={priority} />
+              <span className="text-zinc-400 text-[10px]">{priority}</span>
             </button>
           }
         />
