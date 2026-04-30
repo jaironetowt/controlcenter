@@ -32,7 +32,7 @@ const ACTIONS: { key: FormType; label: string; icon: React.ReactNode }[] = [
 function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) => void }) {
   const [open, setOpen]   = useState(false);
   const [draft, setDraft] = useState(owner);
-  const [pos, setPos]     = useState({ top: 0, left: 0 });
+  const [pos, setPos]     = useState({ top: 0, right: 0 });
   const inputRef          = useRef<HTMLInputElement>(null);
   const buttonRef         = useRef<HTMLButtonElement>(null);
   const popoverRef        = useRef<HTMLDivElement>(null);
@@ -47,7 +47,7 @@ function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) =
   function handleOpen() {
     if (buttonRef.current) {
       const r = buttonRef.current.getBoundingClientRect();
-      setPos({ top: r.top - 8, left: r.right - 180 });
+      setPos({ top: r.top - 8, right: window.innerWidth - r.right });
     }
     setDraft(owner);
     setOpen((o) => !o);
@@ -85,7 +85,7 @@ function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) =
       {open && typeof window !== 'undefined' && createPortal(
         <div
           ref={popoverRef}
-          style={{ position: 'fixed', top: pos.top, left: pos.left, transform: 'translateY(-100%)', zIndex: 9999, minWidth: 180 }}
+          style={{ position: 'fixed', top: pos.top, right: pos.right, transform: 'translateY(-100%)', zIndex: 9999, minWidth: 180 }}
           className="bg-white border border-zinc-200 rounded-xl shadow-lg p-2 flex gap-1.5"
         >
           <input
