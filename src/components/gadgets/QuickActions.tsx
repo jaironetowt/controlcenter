@@ -59,7 +59,7 @@ function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) =
       <button
         onClick={() => { setDraft(owner); setOpen((o) => !o); }}
         title={owner || 'Set owner'}
-        className="group flex items-center justify-center w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] font-bold hover:bg-orange-600 transition-colors"
+        className="group flex items-center justify-center w-5 h-5 rounded-full bg-zinc-600 text-white text-[10px] font-bold hover:bg-zinc-700 transition-colors"
       >
         {initial}
         <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 whitespace-nowrap rounded-md bg-zinc-800 px-2 py-1 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">
