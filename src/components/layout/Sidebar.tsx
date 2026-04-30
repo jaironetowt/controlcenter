@@ -345,7 +345,8 @@ function ProjectRow({ project, isActive, isCollapsed, labelCls, menuOpen, onTogg
           style={{ width: 8, height: 8, backgroundColor: project.color, position: 'absolute' }}
         />
         <ChevronIcon
-          size={12}
+          size={14}
+          stroke={2.5}
           className="opacity-0 group-hover/dot:opacity-100 transition-opacity"
           style={{ position: 'absolute' }}
         />
