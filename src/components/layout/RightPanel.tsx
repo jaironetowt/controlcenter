@@ -11,6 +11,7 @@ import { QuickNotes } from '@/components/gadgets/QuickNotes';
 import { Upcoming } from '@/components/gadgets/Upcoming';
 import { GadgetSlot } from '@/components/gadgets/GadgetSlot';
 import { TimecardWidget } from '@/components/gadgets/TimecardWidget';
+import { UrgentActions } from '@/components/gadgets/UrgentActions';
 
 // ─── Zustand store ────────────────────────────────────────────────────────────
 interface RightPanelStore {
@@ -97,6 +98,10 @@ export function RightPanel() {
 
           <GadgetCard>
             <Upcoming />
+          </GadgetCard>
+
+          <GadgetCard>
+            <UrgentActions />
           </GadgetCard>
 
           <GadgetCard>
