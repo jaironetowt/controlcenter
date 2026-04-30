@@ -143,7 +143,7 @@ function CaptureCard({ placeholder, descriptionPlaceholder, onSave, meta }: Capt
         onChange={(e) => setTitle(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handleSave()}
         placeholder={placeholder}
-        className="w-full bg-transparent px-3 pt-3 pb-2 text-[13px] text-zinc-800 placeholder:text-zinc-400 focus:outline-none"
+        className="w-full bg-transparent px-3 py-2.5 text-[13px] text-zinc-800 placeholder:text-zinc-400 focus:outline-none"
       />
       {descriptionPlaceholder && (
         <input
@@ -151,10 +151,10 @@ function CaptureCard({ placeholder, descriptionPlaceholder, onSave, meta }: Capt
           onChange={(e) => setDesc(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSave()}
           placeholder={descriptionPlaceholder}
-          className="w-full bg-transparent px-3 pb-2 text-[12px] text-zinc-600 placeholder:text-zinc-300 focus:outline-none border-t border-zinc-100"
+          className="w-full bg-transparent px-3 py-2.5 text-[13px] text-zinc-500 placeholder:text-zinc-300 focus:outline-none border-t border-zinc-100"
         />
       )}
-      <div className="flex items-center gap-1.5 px-3 pb-2.5 pt-1.5 border-t border-zinc-200">
+      <div className="flex items-center gap-1.5 px-3 py-2.5 border-t border-zinc-200">
         <div className="flex flex-col gap-1 flex-1">
           {meta}
         </div>
