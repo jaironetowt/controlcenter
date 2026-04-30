@@ -8,12 +8,10 @@ import {
   IconNotes,
   IconChecklist,
   IconUsers,
+  IconStack2,
   IconChevronRight,
 } from '@tabler/icons-react';
-import { Sidebar } from '@/components/layout/Sidebar';
-import { RightPanel } from '@/components/layout/RightPanel';
-import { ExternalHealthBadge } from '@/components/ui/ExternalHealthBadge';
-import { InternalHealthBadge } from '@/components/ui/InternalHealthBadge';
+import { ProjectHeader } from '@/components/layout/ProjectHeader';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { useRisksStore } from '@/stores/useRisksStore';
 import { useDecisionsStore } from '@/stores/useDecisionsStore';
@@ -72,13 +70,11 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const storeItems        = useActionItemsStore((s) => s.items);
   const storeStakeholders = useStakeholdersStore((s) => s.stakeholders);
 
-  const project = mounted ? storeProjects.find((p) => p.id === id && !p.archived) : null;
+  const project = mounted ? storeProjects.find((p) => p.id === id) : null;
 
-  // After hydration, if project not found, 404
   if (mounted && !project) return notFound();
 
-  // Use seed fallback while not yet hydrated so SSR doesn't crash
-  const p = project ?? { id, name: '…', color: '#3E77FC', client: '…', phase: '…', dateRange: '…' };
+  const p = project ?? { id, name: '…', color: '#3E77FC', client: '…', phase: '…', dateRange: '…', archived: false };
 
   const openRisks    = mounted ? storeRisks.filter((r) => r.projectId === id && r.status === 'Open').length : 0;
   const totalRisks   = mounted ? storeRisks.filter((r) => r.projectId === id).length : 0;
@@ -87,73 +83,80 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const totalActions = mounted ? storeItems.filter((i) => i.projectId === id).length : 0;
   const stakeholders = mounted ? storeStakeholders.filter((s) => s.projectId === id).length : 0;
 
+  const updateProject  = useProjectsStore((s) => s.updateProject);
+  const timecardCount  = mounted ? (project?.timecardCount ?? 0) : 0;
+  const timecardCountAt = project?.timecardCountAt ?? 0;
+
+  useEffect(() => {
+    if (!mounted || !project?.salesforceId) return;
+    const stale = Date.now() - timecardCountAt > 3 * 60 * 60 * 1000;
+    if (!stale) return;
+
+    void fetch('/api/salesforce/timecards', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ salesforceId: project.salesforceId }),
+    })
+      .then((r) => r.json())
+      .then((data: { timecards?: unknown[] }) => {
+        const count = data.timecards?.length ?? 0;
+        updateProject(id, { timecardCount: count, timecardCountAt: Date.now() });
+      })
+      .catch(() => undefined);
+  }, [mounted, id, project?.salesforceId, timecardCountAt, updateProject]);
+
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F4F4F5]">
-      <Sidebar />
+    <>
+      <ProjectHeader name={p.name} color={p.color} client={p.client} phase={p.phase} dateRange={p.dateRange} projectId={id} archived={p.archived} />
 
-      <main className="flex-1 flex flex-col overflow-hidden">
-        {/* Project hero header */}
-        <div className="bg-white border-b border-zinc-200 px-10 py-6 flex-shrink-0">
-          <div className="flex items-start gap-4">
-            {/* Color bar */}
-            <span
-              className="w-1.5 h-14 rounded-full flex-shrink-0 mt-0.5"
-              style={{ backgroundColor: p.color }}
+      {/* Module grid */}
+      <div className="flex-1 overflow-y-auto px-10 py-8">
+        <p className="text-[12px] font-medium text-zinc-400 uppercase tracking-wider mb-4">Modules</p>
+        <div className="grid grid-cols-2 gap-4 max-w-2xl">
+          <ModuleCard
+            icon={<IconAlertTriangle size={18} />}
+            label="Risks"
+            count={openRisks}
+            sub={`${totalRisks} total · ${openRisks} open`}
+            href={`/projects/${id}/risks`}
+            color="#EF4444"
+          />
+          <ModuleCard
+            icon={<IconNotes size={18} />}
+            label="Decisions"
+            count={decisions}
+            sub="registered decisions"
+            href={`/projects/${id}/decisions`}
+            color="#8B56FC"
+          />
+          <ModuleCard
+            icon={<IconChecklist size={18} />}
+            label="Action Items"
+            count={openActions}
+            sub={`${totalActions} total · ${openActions} open`}
+            href={`/projects/${id}/actions`}
+            color="#3E77FC"
+          />
+          <ModuleCard
+            icon={<IconUsers size={18} />}
+            label="Stakeholders"
+            count={stakeholders}
+            sub="mapped stakeholders"
+            href={`/projects/${id}/stakeholders`}
+            color="#F59E0B"
+          />
+          {p.salesforceId && (
+            <ModuleCard
+              icon={<IconStack2 size={18} />}
+              label="Timecards"
+              count={timecardCount}
+              sub="missing timecards"
+              href={`/projects/${id}/timecards`}
+              color="#06B6D4"
             />
-            <div className="flex-1 min-w-0">
-              <p className="text-[24px] font-bold text-zinc-900 leading-tight truncate">{p.name}</p>
-              <p className="text-[13px] text-zinc-500 mt-1">
-                {p.client} · {p.phase} · {p.dateRange}
-              </p>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0 mt-1">
-              <ExternalHealthBadge projectId={id} />
-              <InternalHealthBadge />
-            </div>
-          </div>
+          )}
         </div>
-
-        {/* Module grid */}
-        <div className="flex-1 overflow-y-auto px-10 py-8">
-          <p className="text-[12px] font-medium text-zinc-400 uppercase tracking-wider mb-4">Modules</p>
-          <div className="grid grid-cols-2 gap-4 max-w-2xl">
-            <ModuleCard
-              icon={<IconAlertTriangle size={18} />}
-              label="Risks"
-              count={openRisks}
-              sub={`${totalRisks} total · ${openRisks} open`}
-              href="/risks"
-              color="#EF4444"
-            />
-            <ModuleCard
-              icon={<IconNotes size={18} />}
-              label="Decisions"
-              count={decisions}
-              sub="registered decisions"
-              href="/decisions"
-              color="#8B56FC"
-            />
-            <ModuleCard
-              icon={<IconChecklist size={18} />}
-              label="Action Items"
-              count={openActions}
-              sub={`${totalActions} total · ${openActions} open`}
-              href="/actions"
-              color="#3E77FC"
-            />
-            <ModuleCard
-              icon={<IconUsers size={18} />}
-              label="Stakeholders"
-              count={stakeholders}
-              sub="mapped stakeholders"
-              href="/stakeholders"
-              color="#F59E0B"
-            />
-          </div>
-        </div>
-      </main>
-
-      <RightPanel />
-    </div>
+      </div>
+    </>
   );
 }

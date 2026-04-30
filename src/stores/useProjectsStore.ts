@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+function generateProjectId(name: string, existing: string[]): string {
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+  if (slug && !existing.includes(slug)) return slug;
+  const suffix = Math.random().toString(36).slice(2, 6);
+  return slug ? `${slug}-${suffix}` : suffix;
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface Project {
@@ -11,7 +18,11 @@ export interface Project {
   phase: string;
   dateRange: string;
   archived: boolean;
+  archivedAt?: number;
   createdAt: number;
+  salesforceId?: string;
+  timecardCount?: number;
+  timecardCountAt?: number;
 }
 
 interface ProjectsStore {
@@ -19,12 +30,13 @@ interface ProjectsStore {
   addProject: (data: Omit<Project, 'id' | 'archived' | 'createdAt'>) => void;
   updateProject: (id: string, updates: Partial<Omit<Project, 'id' | 'createdAt'>>) => void;
   archiveProject: (id: string) => void;
+  restoreProject: (id: string) => void;
 }
 
 // ─── Seed data ────────────────────────────────────────────────────────────────
 
 const SEED: Project[] = [
-  { id: 'mosaic',   name: 'Mosaic',       color: '#3E77FC', client: 'WillowTree Internal', phase: 'Development', dateRange: 'Jan – Jun 2026', archived: false, createdAt: 0 },
+  { id: 'mosaic',   name: 'Mosaic',       color: '#3E77FC', client: 'WillowTree Internal', phase: 'Development', dateRange: 'Jan – Jun 2026', archived: false, createdAt: 0, salesforceId: 'mock-mosaic' },
   { id: 'whr',      name: 'WHR Redesign', color: '#8B56FC', client: 'WillowTree Internal', phase: 'Design',      dateRange: 'Mar – Jul 2026', archived: false, createdAt: 1 },
   { id: 'client-x', name: 'Client X',    color: '#F59E0B', client: 'Poatek',              phase: 'Discovery',   dateRange: 'Apr – May 2026', archived: false, createdAt: 2 },
 ];
@@ -42,7 +54,7 @@ export const useProjectsStore = create<ProjectsStore>()(
             ...s.projects,
             {
               ...data,
-              id: crypto.randomUUID(),
+              id: generateProjectId(data.name, s.projects.map((p) => p.id)),
               archived: false,
               createdAt: Date.now(),
             },
@@ -59,17 +71,28 @@ export const useProjectsStore = create<ProjectsStore>()(
       archiveProject: (id) =>
         set((s) => ({
           projects: s.projects.map((p) =>
-            p.id === id ? { ...p, archived: true } : p,
+            p.id === id ? { ...p, archived: true, archivedAt: Date.now() } : p,
+          ),
+        })),
+
+      restoreProject: (id) =>
+        set((s) => ({
+          projects: s.projects.map((p) =>
+            p.id === id ? { ...p, archived: false } : p,
           ),
         })),
     }),
     {
       name: 'cc-projects',
-      // Merge persisted state but keep SEED as fallback when storage is empty
       merge: (persisted, current) => {
         const p = persisted as Partial<ProjectsStore>;
         if (!p.projects || p.projects.length === 0) return current;
-        return { ...current, ...p };
+        // Apply SEED fields as defaults for existing projects (persisted values win)
+        const mergedProjects = p.projects.map((pp) => {
+          const seed = current.projects.find((cp) => cp.id === pp.id);
+          return seed ? { ...seed, ...pp } : pp;
+        });
+        return { ...current, ...p, projects: mergedProjects };
       },
     },
   ),
