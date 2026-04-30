@@ -19,11 +19,11 @@ import {
   IconPlus,
   IconPencil,
   IconSettings,
+  IconSettings2,
   IconChevronDown,
   IconChevronRight,
 } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
-import { flushSync } from 'react-dom';
 import { create } from 'zustand';
 import { useProjectsStore, type Project } from '@/stores/useProjectsStore';
 import { ProjectModal } from '@/components/projects/ProjectModal';
@@ -48,9 +48,10 @@ function getModuleItems(projectId: string) {
     { label: 'Decisions',    href: `/projects/${projectId}/decisions`,    icon: IconNotes           },
     { label: 'Action Items', href: `/projects/${projectId}/actions`,      icon: IconChecklist       },
     { label: 'Stakeholders', href: `/projects/${projectId}/stakeholders`, icon: IconUsers           },
-    { label: 'Metrics',      href: null,                                  icon: IconChartBar        },
-    { label: 'Knowledge',    href: null,                                  icon: IconBook            },
-    { label: 'Reports',      href: null,                                  icon: IconFileText        },
+    { label: 'Metrics',      href: null,                                   icon: IconChartBar        },
+    { label: 'Knowledge',    href: null,                                   icon: IconBook            },
+    { label: 'Reports',      href: null,                                   icon: IconFileText        },
+    { label: 'Settings',     href: `/projects/${projectId}/settings`,      icon: IconSettings2       },
   ];
 }
 
@@ -87,16 +88,18 @@ export function Sidebar() {
   // Clicking a project name: immediately switch expanded state then navigate
   // so the CSS transition fires before the URL changes
   function handleProjectNavigate(project: Project) {
-    // flushSync forces React to paint the state change before navigation,
-    // so the CSS transition gets a full frame to start before the re-render
-    flushSync(() => {
-      setExpandedProjects(() => {
-        const next: Record<string, boolean> = {};
-        projects.forEach((p) => { next[p.id] = p.id === project.id; });
-        return next;
+    setExpandedProjects(() => {
+      const next: Record<string, boolean> = {};
+      projects.forEach((p) => { next[p.id] = p.id === project.id; });
+      return next;
+    });
+    // Double rAF: React commits + browser paints frame 1 with transition started,
+    // then navigation fires in frame 2 (~33ms). Content loads fast, animation uninterrupted.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        router.push(`/projects/${project.id}`);
       });
     });
-    router.push(`/projects/${project.id}`);
   }
 
   // A project's sub-menu is open if explicitly set, otherwise falls back to URL match
