@@ -258,7 +258,7 @@ if (!mounted) return null;
                 <span className="text-zinc-500 text-[10px] w-[60px]">Probability</span>
                 <button
                   onClick={() => setProbability(nextLevel)}
-                  className="flex items-center gap-1 px-1.5 py-px rounded-full bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-[76px]"
+                  className="flex items-center gap-1 px-1.5 py-px rounded-md bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-[76px]"
                 >
                   <PriorityIcon priority={probability as Priority} />
                   <span className="text-zinc-400 text-[10px] flex-1 text-right">{probability}</span>
@@ -268,7 +268,7 @@ if (!mounted) return null;
                 <span className="text-zinc-500 text-[10px] w-[60px]">Impact</span>
                 <button
                   onClick={() => setImpact(nextLevel)}
-                  className="flex items-center gap-1 px-1.5 py-px rounded-full bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-[76px]"
+                  className="flex items-center gap-1 px-1.5 py-px rounded-md bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-[76px]"
                 >
                   <PriorityIcon priority={impact as Priority} />
                   <span className="text-zinc-400 text-[10px] flex-1 text-right">{impact}</span>
