@@ -85,6 +85,7 @@ Objetivo: Risk log, decision log, action items e stakeholder map funcionando.
 | CC-72 | [FEATURE] | Sidebar — item Milestones inativo em cada projeto | ✅ Feito |
 | CC-73 | [FEATURE] | Quick Actions gadget — Add Risk (título + descrição + probability/impact), Add Action Item (priority), Reminder placeholder; OwnerChip com portal; selecionar projeto com último usado | ✅ Feito |
 | CC-74 | [FEATURE] | Quick Actions FAB — ícone de raio flutuante (bottom-right relativo ao right panel); pulso animado; expande painel flutuante com QuickActions; fecha ao clicar fora da zona de sombra; removido do Hot Desk | ✅ Feito |
+| CC-75 | [BUG] | Sidebar — projeto ficava destacado em /global e /actions por fallback incorreto para projects[0] quando URL não contém /projects/:id | ✅ Feito |
 | CC-68 | [FEATURE] | Hot Desk — gadget Upcoming conectado a dados reais (hoje hardcoded) | Pendente |
 | CC-69 | [FEATURE] | Hot Desk — GadgetSlot "Add gadget" funcional (hoje é placeholder) | Pendente |
 | CC-70 | [FEATURE] | Global Action Items — botão "New item" com seletor de projeto no modal | Pendente |
