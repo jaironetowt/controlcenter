@@ -171,7 +171,7 @@ if (!mounted) return null;
   return (
     <>
       {/* Header: title + project selector */}
-      <div className="flex items-center gap-1 mb-2">
+      <div className="flex items-center gap-2 mb-2">
         <IconBolt size={15} className="text-orange-500 flex-shrink-0" />
         <span className="text-[13px] font-semibold text-zinc-800 flex-shrink-0">Quick Actions</span>
 
