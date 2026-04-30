@@ -280,43 +280,35 @@ function ProjectRow({ project, isActive, isCollapsed, labelCls, onEditClick }: P
   const [hovered, setHovered] = useState(false);
 
   return (
-    <button
-      className={`group flex items-center w-full rounded-md text-[13px] transition-colors text-left ${
+    <div
+      className={`flex items-center w-full rounded-md text-[13px] transition-colors ${
         isActive ? 'bg-white/10 text-white font-medium' : 'text-[#C7C7CC] hover:bg-white/8 hover:text-white'
       } ${isCollapsed ? 'justify-center p-2' : 'gap-2.5 px-2 py-1.5'}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Color dot / pencil icon toggle */}
-      {!isCollapsed && hovered ? (
-        <span
-          role="button"
-          aria-label={`Edit ${project.name}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onEditClick();
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              e.stopPropagation();
-              onEditClick();
-            }
-          }}
-          tabIndex={0}
-          className="flex-shrink-0 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
-          style={{ width: 8, height: 8 }}
-        >
-          <IconPencil size={12} />
-        </span>
-      ) : (
-        <span
-          className="w-2 h-2 rounded-full flex-shrink-0"
-          style={{ backgroundColor: project.color }}
-        />
-      )}
+      {/* Color dot — always visible */}
+      <span
+        className="w-2 h-2 rounded-full flex-shrink-0"
+        style={{ backgroundColor: project.color }}
+      />
 
-      <span className={labelCls}>{project.name}</span>
-    </button>
+      {/* Project name */}
+      <span className={`${labelCls} flex-1 min-w-0 text-left`}>{project.name}</span>
+
+      {/* Edit pencil — right side, visible on hover, expanded mode only */}
+      {!isCollapsed && (
+        <button
+          aria-label={`Edit ${project.name}`}
+          onClick={(e) => { e.stopPropagation(); onEditClick(); }}
+          className={`flex-shrink-0 flex items-center justify-center text-[#C7C7CC]/60 hover:text-white transition-all cursor-pointer rounded ${
+            hovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+          style={{ width: 20, height: 20 }}
+        >
+          <IconPencil size={14} />
+        </button>
+      )}
+    </div>
   );
 }
