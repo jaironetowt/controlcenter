@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   IconBolt, IconAlertTriangle, IconChecklist, IconBell,
   IconArrowRight, IconChevronDown,
@@ -29,11 +30,13 @@ const ACTIONS: { key: FormType; label: string; icon: React.ReactNode }[] = [
 // ─── Owner chip ───────────────────────────────────────────────────────────────
 
 function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) => void }) {
-  const [open, setOpen]     = useState(false);
-  const [draft, setDraft]   = useState(owner);
-  const inputRef            = useRef<HTMLInputElement>(null);
-  const containerRef        = useRef<HTMLDivElement>(null);
-  const initial             = owner.trim().charAt(0).toUpperCase() || '?';
+  const [open, setOpen]   = useState(false);
+  const [draft, setDraft] = useState(owner);
+  const [pos, setPos]     = useState({ top: 0, left: 0 });
+  const inputRef          = useRef<HTMLInputElement>(null);
+  const buttonRef         = useRef<HTMLButtonElement>(null);
+  const popoverRef        = useRef<HTMLDivElement>(null);
+  const initial           = owner.trim().charAt(0).toUpperCase() || '?';
 
   function confirm() {
     const v = draft.trim();
@@ -41,23 +44,35 @@ function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) =
     setOpen(false);
   }
 
-  useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus(), 0); }, [open]);
+  function handleOpen() {
+    if (buttonRef.current) {
+      const r = buttonRef.current.getBoundingClientRect();
+      setPos({ top: r.top - 8, left: r.left });
+    }
+    setDraft(owner);
+    setOpen((o) => !o);
+  }
+
+  useEffect(() => { if (open) setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 0); }, [open]);
 
   useEffect(() => {
     if (!open) return;
     function handleOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      if (
+        buttonRef.current?.contains(e.target as Node) ||
+        popoverRef.current?.contains(e.target as Node)
+      ) return;
+      setOpen(false);
     }
     document.addEventListener('mousedown', handleOutside);
     return () => document.removeEventListener('mousedown', handleOutside);
   }, [open]);
 
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative flex-shrink-0">
       <button
-        onClick={() => { setDraft(owner); setOpen((o) => !o); }}
+        ref={buttonRef}
+        onClick={handleOpen}
         title={owner || 'Set owner'}
         className="group flex items-center justify-center w-5 h-5 rounded-full bg-zinc-600 text-white text-[10px] font-bold hover:bg-zinc-700 transition-colors"
       >
@@ -67,8 +82,12 @@ function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) =
         </span>
       </button>
 
-      {open && (
-        <div className="absolute bottom-full left-0 mb-2 bg-white border border-zinc-200 rounded-xl shadow-lg p-2 flex gap-1.5 z-30" style={{ minWidth: 160 }}>
+      {open && typeof window !== 'undefined' && createPortal(
+        <div
+          ref={popoverRef}
+          style={{ position: 'fixed', top: pos.top, left: pos.left, transform: 'translateY(-100%)', zIndex: 9999, minWidth: 180 }}
+          className="bg-white border border-zinc-200 rounded-xl shadow-lg p-2 flex gap-1.5"
+        >
           <input
             ref={inputRef}
             value={draft}
@@ -78,13 +97,11 @@ function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) =
             autoComplete="new-password"
             className="flex-1 text-[12px] text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:border-zinc-400"
           />
-          <button
-            onClick={confirm}
-            className="px-2 py-1 rounded-lg bg-orange-500 text-white text-[11px] font-medium hover:bg-orange-600 transition-colors"
-          >
+          <button onClick={confirm} className="px-2 py-1 rounded-lg bg-orange-500 text-white text-[11px] font-medium hover:bg-orange-600 transition-colors">
             OK
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

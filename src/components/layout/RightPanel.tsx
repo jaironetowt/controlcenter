@@ -79,7 +79,7 @@ function SortableGadgetCard({ id }: { id: string }) {
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="bg-white rounded-xl border border-orange-300 flex-shrink-0">
+    <div ref={setNodeRef} style={style} className="bg-white rounded-xl border border-orange-300 overflow-hidden flex-shrink-0">
       {/* Drag handle bar */}
       <div
         {...attributes}
