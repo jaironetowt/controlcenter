@@ -10,10 +10,11 @@ const PANEL_WIDTH = 280;
 const FAB_MARGIN  = 24;
 
 export function QuickActionsFAB() {
-  const [open, setOpen]       = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const containerRef          = useRef<HTMLDivElement>(null);
-  const panelCollapsed        = useRightPanelStore((s) => s.collapsed);
+  const [open, setOpen]         = useState(false);
+  const [mounted, setMounted]   = useState(false);
+  const [hovered, setHovered]   = useState(false);
+  const containerRef            = useRef<HTMLDivElement>(null);
+  const panelCollapsed          = useRightPanelStore((s) => s.collapsed);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -66,8 +67,19 @@ export function QuickActionsFAB() {
               />
             </>
           )}
+          {hovered && !open && (
+            <div className="absolute bottom-0 right-14 pointer-events-none bg-orange-600 rounded-xl px-4 py-3 shadow-lg whitespace-nowrap">
+              <h2 className="flex items-center gap-1.5 text-[16px] font-black text-white tracking-tight leading-none">
+                <IconBolt size={16} className="text-orange-200" />
+                Quick Actions
+              </h2>
+              <p className="text-[11px] text-orange-200 mt-1">Capture riscos, action items e alertas</p>
+            </div>
+          )}
           <button
             onClick={() => setOpen((o) => !o)}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
             className={`relative flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-all duration-200 focus:outline-none ${
               open
                 ? 'bg-zinc-800 text-white shadow-zinc-400/40'
