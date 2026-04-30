@@ -75,7 +75,7 @@ function OwnerChip({ owner, onChange }: { owner: string; onChange: (v: string) =
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') confirm(); if (e.key === 'Escape') setOpen(false); }}
             placeholder="Your name"
-            className="flex-1 text-[12px] text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:border-orange-300"
+            className="flex-1 text-[12px] text-zinc-700 bg-zinc-50 border border-zinc-200 rounded-lg px-2 py-1 focus:outline-none focus:border-zinc-400"
           />
           <button
             onClick={confirm}
