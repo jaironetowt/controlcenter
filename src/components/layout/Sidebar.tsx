@@ -207,12 +207,20 @@ export function Sidebar() {
                   projectBtn
                 )}
 
-                {/* Module sub-menu — visible for any project when expanded */}
+                {/* Module sub-menu — grid-template-rows transition for smooth real-height animation */}
                 <div
-                  className={`ml-4 flex flex-col gap-0.5 border-l border-white/10 pl-3 overflow-hidden transition-[opacity,max-height] duration-150 ease-in-out ${
-                    !isCollapsed && menuOpen ? 'opacity-100 max-h-96 mt-0.5 mb-1' : 'opacity-0 max-h-0'
-                  }`}
+                  className="ml-4 border-l border-white/10 pl-3"
+                  style={{
+                    display: 'grid',
+                    gridTemplateRows: !isCollapsed && menuOpen ? '1fr' : '0fr',
+                    opacity: !isCollapsed && menuOpen ? 1 : 0,
+                    transition: 'grid-template-rows 200ms ease-in-out, opacity 150ms ease-in-out',
+                    marginTop: !isCollapsed && menuOpen ? '2px' : 0,
+                    marginBottom: !isCollapsed && menuOpen ? '4px' : 0,
+                  }}
                 >
+                  <div style={{ overflow: 'hidden', minHeight: 0 }}>
+                  <div className="flex flex-col gap-0.5 py-0.5">
                   {moduleItems.map(({ label, href, icon: Icon }) => {
                     const isModuleActive = href ? pathname === href : false;
                     if (href) {
@@ -242,6 +250,8 @@ export function Sidebar() {
                       </button>
                     );
                   })}
+                  </div>
+                  </div>
                 </div>
               </div>
             );
