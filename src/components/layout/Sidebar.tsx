@@ -65,6 +65,7 @@ export function Sidebar() {
   useEffect(() => { setMounted(true); }, []);
   const { collapsed, toggle } = useSidebarStore();
   const pathname = usePathname();
+  const router = useRouter();
 
   const storeProjects = useProjectsStore((s) => s.projects);
   const projects = mounted ? storeProjects.filter((p) => !p.archived) : [];
@@ -82,7 +83,18 @@ export function Sidebar() {
     setExpandedProjects((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
-  // A project's sub-menu is open if it's the active URL project OR manually expanded
+  // Clicking a project name: immediately switch expanded state then navigate
+  // so the CSS transition fires before the URL changes
+  function handleProjectNavigate(project: Project) {
+    setExpandedProjects(() => {
+      const next: Record<string, boolean> = {};
+      projects.forEach((p) => { next[p.id] = p.id === project.id; });
+      return next;
+    });
+    router.push(`/projects/${project.id}`);
+  }
+
+  // A project's sub-menu is open if explicitly set, otherwise falls back to URL match
   function isMenuOpen(project: Project) {
     if (expandedProjects[project.id] !== undefined) return expandedProjects[project.id];
     return activeProject?.id === project.id;
@@ -195,6 +207,7 @@ export function Sidebar() {
                 labelCls={labelCls}
                 menuOpen={menuOpen}
                 onToggleMenu={() => toggleProjectMenu(project.id)}
+                onNavigate={() => handleProjectNavigate(project)}
                 onEditClick={() => openEditModal(project)}
               />
             );
@@ -326,12 +339,12 @@ interface ProjectRowProps {
   labelCls: string;
   menuOpen: boolean;
   onToggleMenu: () => void;
+  onNavigate: () => void;
   onEditClick: () => void;
 }
 
-function ProjectRow({ project, isActive, isCollapsed, labelCls, menuOpen, onToggleMenu, onEditClick }: ProjectRowProps) {
+function ProjectRow({ project, isActive, isCollapsed, labelCls, menuOpen, onToggleMenu, onNavigate, onEditClick }: ProjectRowProps) {
   const [hovered, setHovered] = useState(false);
-  const router = useRouter();
 
   const ChevronIcon = menuOpen ? IconChevronDown : IconChevronRight;
 
@@ -366,8 +379,8 @@ function ProjectRow({ project, isActive, isCollapsed, labelCls, menuOpen, onTogg
       <span
         role="button"
         tabIndex={0}
-        onClick={() => router.push(`/projects/${project.id}`)}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(`/projects/${project.id}`); }}
+        onClick={onNavigate}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onNavigate(); }}
         className={`${labelCls} flex-1 min-w-0 text-left cursor-pointer`}
       >
         {project.name}
