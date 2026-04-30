@@ -77,10 +77,9 @@ export function Sidebar() {
   const storeProjects = useProjectsStore((s) => s.projects);
   const projects = mounted ? storeProjects.filter((p) => !p.archived) : [];
 
-  // Derive active project from current URL, fall back to first project
   const urlProjectId = pathname.match(/^\/projects\/([^/]+)/)?.[1] ?? null;
   const activeProject = mounted
-    ? (urlProjectId ? projects.find((p) => p.id === urlProjectId) ?? projects[0] ?? null : projects[0] ?? null)
+    ? (urlProjectId ? projects.find((p) => p.id === urlProjectId) ?? null : null)
     : null;
 
   // Which projects have their sub-menu expanded
