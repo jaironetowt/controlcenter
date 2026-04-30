@@ -91,7 +91,8 @@ export function Sidebar() {
       projects.forEach((p) => { next[p.id] = p.id === project.id; });
       return next;
     });
-    router.push(`/projects/${project.id}`);
+    // Navigate after transition completes so the re-render doesn't interrupt the animation
+    setTimeout(() => router.push(`/projects/${project.id}`), 220);
   }
 
   // A project's sub-menu is open if explicitly set, otherwise falls back to URL match
