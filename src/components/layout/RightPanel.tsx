@@ -3,9 +3,24 @@
 import { useState, useEffect } from 'react';
 import { create } from 'zustand';
 import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   IconLayoutSidebarRightCollapse,
-  IconLayoutSidebarRightExpand,
   IconFlame,
+  IconGripVertical,
 } from '@tabler/icons-react';
 import { QuickNotes } from '@/components/gadgets/QuickNotes';
 import { Upcoming } from '@/components/gadgets/Upcoming';
@@ -14,6 +29,7 @@ import { TimecardWidget } from '@/components/gadgets/TimecardWidget';
 import { UrgentActions } from '@/components/gadgets/UrgentActions';
 
 // ─── Zustand store ────────────────────────────────────────────────────────────
+
 interface RightPanelStore {
   collapsed: boolean;
   toggle: () => void;
@@ -24,31 +40,94 @@ export const useRightPanelStore = create<RightPanelStore>()((set) => ({
   toggle: () => set((s) => ({ collapsed: !s.collapsed })),
 }));
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-function GadgetCard({ children }: { children: React.ReactNode }) {
+// ─── Gadget registry ──────────────────────────────────────────────────────────
+
+const GADGETS: Record<string, React.ReactNode> = {
+  'quick-notes':    <QuickNotes />,
+  'upcoming':       <Upcoming />,
+  'urgent-actions': <UrgentActions />,
+  'timecards':      <TimecardWidget />,
+};
+
+const DEFAULT_ORDER = ['quick-notes', 'upcoming', 'urgent-actions', 'timecards'];
+const ORDER_KEY = 'hd-gadget-order';
+
+function loadOrder(): string[] {
+  try {
+    const stored = localStorage.getItem(ORDER_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as string[];
+      // ensure all gadgets present (new ones get appended)
+      const merged = [...parsed.filter((id) => id in GADGETS)];
+      DEFAULT_ORDER.forEach((id) => { if (!merged.includes(id)) merged.push(id); });
+      return merged;
+    }
+  } catch { /* ignore */ }
+  return DEFAULT_ORDER;
+}
+
+// ─── Sortable card ────────────────────────────────────────────────────────────
+
+function SortableGadgetCard({ id }: { id: string }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : undefined,
+  };
+
   return (
-    <div className="bg-white rounded-xl border border-orange-300 p-4">
-      {children}
+    <div ref={setNodeRef} style={style} className="group relative bg-white rounded-xl border border-orange-300 p-4">
+      {/* Drag handle */}
+      <button
+        {...attributes}
+        {...listeners}
+        className="absolute top-2 right-2 p-0.5 rounded text-zinc-300 opacity-0 group-hover:opacity-100 hover:text-zinc-500 transition-all cursor-grab active:cursor-grabbing touch-none"
+        tabIndex={-1}
+        aria-label="Drag to reorder"
+      >
+        <IconGripVertical size={14} />
+      </button>
+      {GADGETS[id]}
     </div>
   );
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
+
 export function RightPanel() {
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted]           = useState(false);
   const [flameHovered, setFlameHovered] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const [order, setOrder]               = useState(DEFAULT_ORDER);
+
+  useEffect(() => {
+    setOrder(loadOrder());
+    setMounted(true);
+  }, []);
+
   const { collapsed, toggle } = useRightPanelStore();
+  const isCollapsed   = mounted ? collapsed : false;
+  const transitionCls = mounted ? 'transition-[width] duration-200 ease-in-out' : '';
 
-  // Before hydration, always render expanded (matches SSR default)
-  const isCollapsed = mounted ? collapsed : false;
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
-  // Only apply transition after mount to avoid flash
-  const transitionClass = mounted ? 'transition-[width] duration-200 ease-in-out' : '';
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = order.indexOf(String(active.id));
+    const newIndex = order.indexOf(String(over.id));
+    const next = arrayMove(order, oldIndex, newIndex);
+    setOrder(next);
+    localStorage.setItem(ORDER_KEY, JSON.stringify(next));
+  }
 
   return (
     <aside
-      className={`h-full flex-shrink-0 overflow-hidden relative ${transitionClass} ${isCollapsed ? 'bg-transparent border-none' : 'bg-zinc-200 border-l border-zinc-300'}`}
+      className={`h-full flex-shrink-0 overflow-hidden relative ${transitionCls} ${
+        isCollapsed ? 'bg-transparent border-none' : 'bg-zinc-200 border-l border-zinc-300'
+      }`}
       style={{ width: isCollapsed ? 0 : 280 }}
     >
       {isCollapsed ? (
@@ -82,6 +161,7 @@ export function RightPanel() {
       )}
 
       <div className="flex flex-col min-w-[252px] h-full overflow-hidden">
+        {/* Header */}
         <div className="flex items-center px-4 py-4 flex-shrink-0">
           <div>
             <h2 className="flex items-center gap-1.5 text-[20px] font-black text-orange-600 tracking-tight">
@@ -91,22 +171,16 @@ export function RightPanel() {
             <p className="text-[11px] text-zinc-500 mt-1">What needs your attention right now</p>
           </div>
         </div>
-<div className="flex flex-col gap-3 px-4 py-4 overflow-y-auto">
-          <GadgetCard>
-            <QuickNotes />
-          </GadgetCard>
 
-          <GadgetCard>
-            <Upcoming />
-          </GadgetCard>
-
-          <GadgetCard>
-            <UrgentActions />
-          </GadgetCard>
-
-          <GadgetCard>
-            <TimecardWidget />
-          </GadgetCard>
+        {/* Sortable gadgets */}
+        <div className="flex flex-col gap-3 px-4 py-4 overflow-y-auto">
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={order} strategy={verticalListSortingStrategy}>
+              {order.map((id) => (
+                <SortableGadgetCard key={id} id={id} />
+              ))}
+            </SortableContext>
+          </DndContext>
 
           <GadgetSlot />
         </div>
