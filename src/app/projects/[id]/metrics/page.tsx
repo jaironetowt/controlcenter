@@ -7,7 +7,8 @@ import { IconRefresh, IconBrandJira, IconExternalLink } from '@tabler/icons-reac
 import { ProjectHeader } from '@/components/layout/ProjectHeader';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { usePMToolStore } from '@/stores/usePMToolStore';
-import { buildSlugMap } from '@/lib/slugify';
+import Link from 'next/link';
+import { buildSlugMap, projectSlugPath } from '@/lib/slugify';
 import type { PMProjectData } from '@/integrations/types';
 import type { VelocitySprint } from '@/app/api/pm/jira/velocity/route';
 
@@ -532,7 +533,11 @@ export default function ProjectSprintPage({ params }: { params: Promise<{ id: st
               <div>
                 <p className="text-[13px] text-zinc-500 font-medium">Jira not connected</p>
                 <p className="text-[12px] text-zinc-400 mt-1">
-                  Go to <strong>Settings → Integrations</strong> to connect your Jira project.
+                  Go to{' '}
+                  <Link href={projectSlugPath(slugMap[p.id] ?? id, '/settings')} className="font-semibold text-zinc-600 hover:underline">
+                    Settings → Integrations
+                  </Link>
+                  {' '}to connect your Jira project.
                 </p>
               </div>
             </div>
