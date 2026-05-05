@@ -7,10 +7,13 @@ import {
   IconChevronRight,
   IconExternalLink,
   IconCloudDown,
+  IconUsersPlus,
 } from '@tabler/icons-react';
 import { type Project } from '@/stores/useProjectsStore';
 import { usePMToolStore } from '@/stores/usePMToolStore';
+import { useStakeholdersStore } from '@/stores/useStakeholdersStore';
 import { PMToolConfig } from '@/components/integrations/PMToolConfig';
+import type { SFStakeholder } from '@/app/api/salesforce/stakeholders/route';
 
 // ─── Integration row ──────────────────────────────────────────────────────────
 
@@ -110,11 +113,50 @@ interface IntegrationsPanelProps {
 }
 
 export function IntegrationsPanel({ project }: IntegrationsPanelProps) {
-  const pmConfigs  = usePMToolStore((s) => s.configs);
-  const jiraConfig = pmConfigs[project.id] ?? null;
+  const pmConfigs      = usePMToolStore((s) => s.configs);
+  const jiraConfig     = pmConfigs[project.id] ?? null;
+  const addStakeholder = useStakeholdersStore((s) => s.addStakeholder);
+  const stakeholders   = useStakeholdersStore((s) => s.stakeholders);
+
+  const [sfImporting, setSfImporting] = useState(false);
+  const [sfImportMsg, setSfImportMsg] = useState<string | null>(null);
 
   const sfConnected   = !!project.salesforceId;
   const jiraConnected = !!jiraConfig;
+
+  async function handleImportStakeholders() {
+    if (!project.salesforceId) return;
+    setSfImporting(true);
+    setSfImportMsg(null);
+    try {
+      const res  = await fetch('/api/salesforce/stakeholders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ salesforceId: project.salesforceId }),
+      });
+      const data = await res.json() as { stakeholders?: SFStakeholder[]; error?: string };
+      if (!res.ok || data.error) { setSfImportMsg(`Error: ${data.error ?? 'Unknown'}`); return; }
+
+      const existing = new Set(stakeholders.filter((s) => s.projectId === project.id).map((s) => s.name.toLowerCase()));
+      const toAdd    = (data.stakeholders ?? []).filter((s) => !existing.has(s.name.toLowerCase()));
+
+      await Promise.all(toAdd.map((s) => addStakeholder({
+        projectId: project.id,
+        name:      s.name,
+        role:      s.role,
+        company:   s.company,
+        influence: 'Low',
+        interest:  'Low',
+        notes:     '',
+      })));
+
+      setSfImportMsg(toAdd.length > 0 ? `${toAdd.length} stakeholder(s) imported.` : 'All already imported.');
+    } catch (err) {
+      setSfImportMsg(`Error: ${err instanceof Error ? err.message : 'Unknown'}`);
+    } finally {
+      setSfImporting(false);
+    }
+  }
 
   return (
     <Stack gap="sm">
@@ -124,21 +166,38 @@ export function IntegrationsPanel({ project }: IntegrationsPanelProps) {
         name="Salesforce"
         status={sfConnected ? 'connected' : 'not-connected'}
         summary={sfConnected ? (
-          <div className="flex items-center gap-1">
-            <IconCloudDown size={11} className="text-zinc-400 flex-shrink-0" />
-            <a
-              href={`https://willowtree.lightning.force.com/lightning/r/pse__Proj__c/${project.salesforceId}/view`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-0.5"
-              style={{ color: '#0070a8', textDecoration: 'none', fontSize: 12 }}
-              onClick={(e) => e.stopPropagation()}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'underline'; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'none'; }}
-            >
-              {project.sfName ?? 'View in Salesforce'}
-              <IconExternalLink size={10} />
-            </a>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-1">
+              <IconCloudDown size={11} className="text-zinc-400 flex-shrink-0" />
+              <a
+                href={`https://willowtree.lightning.force.com/lightning/r/pse__Proj__c/${project.salesforceId}/view`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-0.5"
+                style={{ color: '#0070a8', textDecoration: 'none', fontSize: 12 }}
+                onClick={(e) => e.stopPropagation()}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'underline'; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'none'; }}
+              >
+                {project.sfName ?? 'View in Salesforce'}
+                <IconExternalLink size={10} />
+              </a>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); void handleImportStakeholders(); }}
+                disabled={sfImporting}
+                className="flex items-center gap-1 text-[11px] text-zinc-500 hover:text-zinc-800 transition-colors disabled:opacity-40"
+              >
+                <IconUsersPlus size={11} />
+                {sfImporting ? 'Importing…' : 'Import stakeholders'}
+              </button>
+              {sfImportMsg && (
+                <span className={`text-[11px] ${sfImportMsg.startsWith('Error') ? 'text-red-500' : 'text-green-600'}`}>
+                  {sfImportMsg}
+                </span>
+              )}
+            </div>
           </div>
         ) : (
           <Text size="xs" c="dimmed">Import a project via "New Project → Import from Salesforce"</Text>
