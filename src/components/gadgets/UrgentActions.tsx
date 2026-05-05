@@ -6,7 +6,7 @@ import { IconChecklist, IconSettings, IconCircle, IconCircleHalf2, IconX } from 
 import { useActionItemsStore, type ActionStatus } from '@/stores/useActionItemsStore';
 import { PriorityIcon } from '@/components/ui/PriorityIcon';
 import { useProjectsStore } from '@/stores/useProjectsStore';
-import { projectPath } from '@/lib/slugify';
+import { buildSlugMap, projectSlugPath } from '@/lib/slugify';
 
 const STORAGE_KEY = 'hd-urgent-days';
 const DEFAULT_DAYS = 3;
@@ -49,6 +49,7 @@ export function UrgentActions() {
   const rawItems = useActionItemsStore((s) => s.items);
   const projects = useProjectsStore((s) => s.projects);
   const projectMap = Object.fromEntries(projects.map((p) => [p.id, p]));
+  const slugMap = buildSlugMap(projects);
 
   if (!mounted) return null;
 
@@ -120,7 +121,7 @@ export function UrgentActions() {
             return (
               <Link
                 key={item.id}
-                href={proj ? projectPath(proj.name, '/actions') : `/projects/${item.projectId}/actions`}
+                href={proj ? projectSlugPath(slugMap[proj.id] ?? proj.id, '/actions') : `/projects/${item.projectId}/actions`}
                 className="flex flex-col gap-0.5 group"
               >
                 {/* Title row: radio centered on 1-2 lines */}

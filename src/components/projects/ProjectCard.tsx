@@ -2,18 +2,19 @@ import Link from 'next/link';
 import { type Project } from '@/stores/useProjectsStore';
 import { ExternalHealthBadge } from '@/components/ui/ExternalHealthBadge';
 import { InternalHealthBadge } from '@/components/ui/InternalHealthBadge';
-import { projectPath } from '@/lib/slugify';
+import { projectSlugPath } from '@/lib/slugify';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface ProjectCardProps {
   project: Project;
+  slug: string;
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, slug }: ProjectCardProps) {
   return (
     <Link
-      href={projectPath(project.name)}
+      href={projectSlugPath(slug)}
       className="block bg-white rounded-xl border border-zinc-200 hover:shadow-md transition-all cursor-pointer relative overflow-hidden"
     >
       {/* Color bar — left side */}

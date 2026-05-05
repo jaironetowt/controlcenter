@@ -30,7 +30,7 @@ import { useState, useEffect } from 'react';
 import { create } from 'zustand';
 import { useProjectsStore, type Project } from '@/stores/useProjectsStore';
 import { ProjectModal } from '@/components/projects/ProjectModal';
-import { slugify, projectPath } from '@/lib/slugify';
+import { buildSlugMap, projectSlugPath } from '@/lib/slugify';
 
 // ─── Zustand store ────────────────────────────────────────────────────────────
 interface SidebarStore {
@@ -45,19 +45,19 @@ const useSidebarStore = create<SidebarStore>()((set) => ({
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
-function getModuleItems(projectName: string) {
+function getModuleItems(slug: string) {
   return [
-    { label: 'Dashboard',    href: projectPath(projectName),                   icon: IconLayoutDashboard },
-    { label: 'Risks',        href: projectPath(projectName, '/risks'),         icon: IconAlertTriangle   },
-    { label: 'Decisions',    href: projectPath(projectName, '/decisions'),     icon: IconNotes           },
-    { label: 'Action Items', href: projectPath(projectName, '/actions'),       icon: IconChecklist       },
-    { label: 'Stakeholders', href: projectPath(projectName, '/stakeholders'),  icon: IconUsers           },
-    { label: 'Milestones',   href: null,                                        icon: IconFlag            },
-    { label: 'Timecards',    href: projectPath(projectName, '/timecards'),     icon: IconClock           },
-    { label: 'Metrics',      href: null,                                        icon: IconChartBar        },
-    { label: 'Knowledge',    href: null,                                        icon: IconBook            },
-    { label: 'Reports',      href: null,                                        icon: IconFileText        },
-    { label: 'Settings',     href: projectPath(projectName, '/settings'),      icon: IconSettings2       },
+    { label: 'Dashboard',    href: projectSlugPath(slug),                   icon: IconLayoutDashboard },
+    { label: 'Risks',        href: projectSlugPath(slug, '/risks'),         icon: IconAlertTriangle   },
+    { label: 'Decisions',    href: projectSlugPath(slug, '/decisions'),     icon: IconNotes           },
+    { label: 'Action Items', href: projectSlugPath(slug, '/actions'),       icon: IconChecklist       },
+    { label: 'Stakeholders', href: projectSlugPath(slug, '/stakeholders'),  icon: IconUsers           },
+    { label: 'Milestones',   href: null,                                     icon: IconFlag            },
+    { label: 'Timecards',    href: projectSlugPath(slug, '/timecards'),     icon: IconClock           },
+    { label: 'Metrics',      href: null,                                     icon: IconChartBar        },
+    { label: 'Knowledge',    href: null,                                     icon: IconBook            },
+    { label: 'Reports',      href: null,                                     icon: IconFileText        },
+    { label: 'Settings',     href: projectSlugPath(slug, '/settings'),      icon: IconSettings2       },
   ];
 }
 
@@ -77,10 +77,14 @@ export function Sidebar() {
 
   const storeProjects = useProjectsStore((s) => s.projects);
   const projects = mounted ? storeProjects.filter((p) => !p.archived) : [];
+  const slugMap  = mounted ? buildSlugMap(storeProjects) : {};
 
   const urlProjectSlug = pathname.match(/^\/projects\/([^/]+)/)?.[1] ?? null;
+  const activeProjectId = mounted && urlProjectSlug
+    ? (Object.entries(slugMap).find(([, s]) => s === urlProjectSlug)?.[0] ?? null)
+    : null;
   const activeProject = mounted
-    ? (urlProjectSlug ? projects.find((p) => slugify(p.name) === urlProjectSlug || p.id === urlProjectSlug) ?? null : null)
+    ? (activeProjectId ? storeProjects.find((p) => p.id === activeProjectId) ?? null : null)
     : null;
 
   // Which projects have their sub-menu expanded
@@ -102,7 +106,7 @@ export function Sidebar() {
       });
     });
     requestAnimationFrame(() => {
-      router.push(projectPath(project.name));
+      router.push(projectSlugPath(slugMap[project.id] ?? project.id));
     });
   }
 
@@ -208,7 +212,7 @@ export function Sidebar() {
           {projects.map((project) => {
             const isActive = activeProject?.id === project.id;
             const menuOpen = isMenuOpen(project);
-            const moduleItems = getModuleItems(project.name);
+            const moduleItems = getModuleItems(slugMap[project.id] ?? project.id);
 
             const projectBtn = (
               <ProjectRow

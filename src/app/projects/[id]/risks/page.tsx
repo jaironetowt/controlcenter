@@ -8,7 +8,7 @@ import { RiskMatrix } from '@/components/risks/RiskMatrix';
 import { MitigatedRisks } from '@/components/risks/MitigatedRisks';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { useFeaturesStore, DEFAULT_FEATURES } from '@/stores/useFeaturesStore';
-import { slugify } from '@/lib/slugify';
+import { buildSlugMap } from '@/lib/slugify';
 
 export default function ProjectRisksPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -17,7 +17,9 @@ export default function ProjectRisksPage({ params }: { params: Promise<{ id: str
 
   const storeProjects   = useProjectsStore((s) => s.projects);
   const projectsLoading = useProjectsStore((s) => s.loading);
-  const project = mounted ? storeProjects.find((p) => (slugify(p.name) === id || p.id === id) && !p.archived) ?? storeProjects.find((p) => slugify(p.name) === id || p.id === id) : null;
+  const slugMap = mounted ? buildSlugMap(storeProjects) : {};
+  const matchedId = mounted ? (Object.entries(slugMap).find(([, s]) => s === id)?.[0] ?? id) : null;
+  const project = mounted ? storeProjects.find((p) => p.id === matchedId) ?? null : null;
 
   const rawFeatures = useFeaturesStore((s) => s.features);
   const features = mounted ? rawFeatures : DEFAULT_FEATURES;

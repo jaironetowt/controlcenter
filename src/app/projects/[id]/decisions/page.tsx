@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { ProjectHeader } from '@/components/layout/ProjectHeader';
 import { DecisionLog } from '@/components/decisions/DecisionLog';
 import { useProjectsStore } from '@/stores/useProjectsStore';
-import { slugify } from '@/lib/slugify';
+import { buildSlugMap } from '@/lib/slugify';
 
 export default function ProjectDecisionsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -14,7 +14,9 @@ export default function ProjectDecisionsPage({ params }: { params: Promise<{ id:
 
   const storeProjects   = useProjectsStore((s) => s.projects);
   const projectsLoading = useProjectsStore((s) => s.loading);
-  const project = mounted ? storeProjects.find((p) => (slugify(p.name) === id || p.id === id) && !p.archived) ?? storeProjects.find((p) => slugify(p.name) === id || p.id === id) : null;
+  const slugMap = mounted ? buildSlugMap(storeProjects) : {};
+  const matchedId = mounted ? (Object.entries(slugMap).find(([, s]) => s === id)?.[0] ?? id) : null;
+  const project = mounted ? storeProjects.find((p) => p.id === matchedId) ?? null : null;
 
   if (mounted && !projectsLoading && !project) return notFound();
   const p = project ?? { id, name: '…', color: '#3E77FC', client: '…', phase: '…', dateRange: '…', archived: false };

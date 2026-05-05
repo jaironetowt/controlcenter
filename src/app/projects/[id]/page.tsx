@@ -13,7 +13,7 @@ import {
 } from '@tabler/icons-react';
 import { ProjectHeader } from '@/components/layout/ProjectHeader';
 import { useProjectsStore, Project } from '@/stores/useProjectsStore';
-import { slugify, projectPath } from '@/lib/slugify';
+import { buildSlugMap, projectSlugPath } from '@/lib/slugify';
 import { useRisksStore } from '@/stores/useRisksStore';
 import { useDecisionsStore } from '@/stores/useDecisionsStore';
 import { useActionItemsStore } from '@/stores/useActionItemsStore';
@@ -72,12 +72,15 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const storeItems        = useActionItemsStore((s) => s.items);
   const storeStakeholders = useStakeholdersStore((s) => s.stakeholders);
 
-  const project = mounted ? storeProjects.find((p) => (slugify(p.name) === id || p.id === id) && !p.archived) ?? storeProjects.find((p) => slugify(p.name) === id || p.id === id) : null;
+  const slugMap = mounted ? buildSlugMap(storeProjects) : {};
+  const matchedId = mounted ? (Object.entries(slugMap).find(([, s]) => s === id)?.[0] ?? id) : null;
+  const project = mounted ? storeProjects.find((p) => p.id === matchedId) ?? null : null;
 
   if (mounted && !projectsLoading && !project) return notFound();
 
   const p: Project = project ?? { id, name: '…', color: '#3E77FC', client: '…', phase: '…', dateRange: '…', archived: false, createdAt: 0 };
   const projectId = p.id;
+  const projectSlug = slugMap[p.id] ?? id;
 
   const openRisks    = mounted ? storeRisks.filter((r) => r.projectId === projectId && r.status === 'Open').length : 0;
   const totalRisks   = mounted ? storeRisks.filter((r) => r.projectId === projectId).length : 0;
@@ -121,7 +124,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             label="Risks"
             count={openRisks}
             sub={`${totalRisks} total · ${openRisks} open`}
-            href={projectPath(p.name, '/risks')}
+            href={projectSlugPath(projectSlug, '/risks')}
             color="#EF4444"
           />
           <ModuleCard
@@ -129,7 +132,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             label="Decisions"
             count={decisions}
             sub="registered decisions"
-            href={projectPath(p.name, '/decisions')}
+            href={projectSlugPath(projectSlug, '/decisions')}
             color="#8B56FC"
           />
           <ModuleCard
@@ -137,7 +140,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             label="Action Items"
             count={openActions}
             sub={`${totalActions} total · ${openActions} open`}
-            href={projectPath(p.name, '/actions')}
+            href={projectSlugPath(projectSlug, '/actions')}
             color="#3E77FC"
           />
           <ModuleCard
@@ -145,7 +148,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             label="Stakeholders"
             count={stakeholders}
             sub="mapped stakeholders"
-            href={projectPath(p.name, '/stakeholders')}
+            href={projectSlugPath(projectSlug, '/stakeholders')}
             color="#F59E0B"
           />
           {p.salesforceId && (
@@ -154,7 +157,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               label="Timecards"
               count={timecardCount}
               sub="missing timecards"
-              href={projectPath(p.name, '/timecards')}
+              href={projectSlugPath(projectSlug, '/timecards')}
               color="#06B6D4"
             />
           )}

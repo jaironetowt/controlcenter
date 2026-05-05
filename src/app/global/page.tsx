@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { IconChevronDown, IconChevronRight, IconArchive } from '@tabler/icons-react';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { ProjectCard } from '@/components/projects/ProjectCard';
+import { buildSlugMap } from '@/lib/slugify';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -17,6 +18,7 @@ export default function GlobalPage() {
 
   const active   = mounted ? storeProjects.filter((p) => !p.archived) : [];
   const archived = mounted ? storeProjects.filter((p) => p.archived)  : [];
+  const slugMap  = mounted ? buildSlugMap(storeProjects) : {};
 
   return (
     <div className="flex-1 overflow-y-auto pt-6 px-10 pb-10">
@@ -25,7 +27,7 @@ export default function GlobalPage() {
       {/* Active projects */}
       <div className="grid grid-cols-3 gap-4">
         {active.map((project) => (
-          <ProjectCard key={project.id} project={project} />
+          <ProjectCard key={project.id} project={project} slug={slugMap[project.id] ?? project.id} />
         ))}
       </div>
 
@@ -45,7 +47,7 @@ export default function GlobalPage() {
             <div className="grid grid-cols-3 gap-4">
               {archived.map((project) => (
                 <div key={project.id} className="opacity-50 hover:opacity-80 transition-opacity">
-                  <ProjectCard project={project} />
+                  <ProjectCard project={project} slug={slugMap[project.id] ?? project.id} />
                   {project.archivedAt && (
                     <p className="mt-1 px-1 text-[11px] text-zinc-400">
                       Archived {new Date(project.archivedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
