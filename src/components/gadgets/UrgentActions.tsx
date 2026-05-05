@@ -138,7 +138,10 @@ export function UrgentActions() {
                 <div className="flex items-center gap-1.5 flex-wrap" style={{ marginLeft: 21 }}>
                   {proj && (
                     <>
-                      <span className="text-[11px] text-zinc-500 font-medium">{proj.name}</span>
+                      <span className="flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: proj.color }} />
+                        <span className="text-[11px] text-zinc-500 font-medium">{proj.name}</span>
+                      </span>
                       <span className="text-zinc-300 text-[10px]">·</span>
                     </>
                   )}
