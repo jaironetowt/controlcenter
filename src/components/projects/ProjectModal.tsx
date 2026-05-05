@@ -6,7 +6,7 @@ import { Modal, TextInput, Button, Group, Stack, Text, Divider, Loader } from '@
 import { IconCloudDown } from '@tabler/icons-react';
 import { toast } from '@/components/ui/Toast';
 import { useProjectsStore, type Project } from '@/stores/useProjectsStore';
-import { DateRangeFields, parseDateRange, buildDateRange } from '@/components/projects/DateRangeFields';
+import { DateRangeFields, parseDateRange, buildDateRange, monthToLabel } from '@/components/projects/DateRangeFields';
 
 // ─── Salesforce helpers ───────────────────────────────────────────────────────
 
@@ -114,6 +114,7 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
   const [sfLoading, setSfLoading]     = useState(false);
   const [sfError, setSfError]         = useState('');
   const [sfImportedId, setSfImportedId] = useState('');
+  const [sfOriginalDates, setSfOriginalDates] = useState<{ start: string; end: string } | null>(null);
 
   // Reset form whenever the modal opens (or the project changes)
   useEffect(() => {
@@ -133,6 +134,7 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
       setSfError('');
       setSfLoading(false);
       setSfImportedId('');
+      setSfOriginalDates(null);
     }
   }, [opened, project]);
 
@@ -188,6 +190,7 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
       const imported = await fetchSalesforceProject(sfUrl.trim());
       setSfImportedId(imported.salesforceId);
       const importedDates = parseDateRange(imported.dateRange);
+      setSfOriginalDates(importedDates.start || importedDates.end ? importedDates : null);
       setForm((prev) => ({
         ...prev,
         name:      imported.name   || prev.name,
@@ -359,6 +362,12 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
             end={form.endDate}
             onChange={(s, e) => { setField('startDate', s); setField('endDate', e); }}
           />
+          {sfOriginalDates && (form.startDate !== sfOriginalDates.start || form.endDate !== sfOriginalDates.end) && (
+            <Text size="xs" c="orange">
+              Original date from Salesforce:{' '}
+              {[sfOriginalDates.start && monthToLabel(sfOriginalDates.start), sfOriginalDates.end && monthToLabel(sfOriginalDates.end)].filter(Boolean).join(' – ')}
+            </Text>
+          )}
 
           {/* Actions */}
           <Group justify="space-between" mt="xs">
