@@ -109,6 +109,11 @@ Objetivo: substituir localStorage/Zustand persist por Supabase (Postgres). Auth 
 | CC-84 | [INTEGRATION] | useFeaturesStore — migrar para user_settings no Supabase | ✅ Feito |
 | CC-85 | [INTEGRATION] | Auth — página de login + middleware de proteção de rotas + src/lib/auth.ts | ✅ Feito |
 | CC-86 | [INTEGRATION] | StoreInitializer — componente que dispara fetchAll de todos os stores Supabase no mount | ✅ Feito |
+| CC-87 | [BUG] | Migrate page — setup check dava falso positivo (PGRST205 ≠ 42P01); corrigido para detectar tabelas inexistentes corretamente; user_settings usava `user_id` não `id` | ✅ Feito |
+| CC-88 | [POLISH] | Migrate page — scroll quebrado por `overflow: hidden` no html/body; corrigido com `fixed inset-0 overflow-y-auto`; auto-scroll para resultado; erros visíveis sem rolar | ✅ Feito |
+| CC-89 | [BUG] | Feature flags — `internalHealth` defaultava `true`; corrigido para `false` (comingSoon); user_settings resetado via API | ✅ Feito |
+| CC-90 | [FEATURE] | Timecards — ordenação por end date ascending, desempate por resource A-Z | ✅ Feito |
+| CC-91 | [FEATURE] | Project modal + Project settings — date range substituído por dois date pickers (mês/ano) start e end; abre ao clicar em qualquer parte do campo; compatível com import Salesforce | ✅ Feito |
 
 > ⚠️ **Próximo passo obrigatório antes de usar:**
 > 1. Criar projeto no [Supabase](https://app.supabase.com)

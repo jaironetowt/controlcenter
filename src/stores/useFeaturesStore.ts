@@ -30,7 +30,7 @@ export const FEATURE_META: Record<FeatureKey, FeatureMeta> = {
 export type FeaturesMap = Record<FeatureKey, boolean>;
 
 export const DEFAULT_FEATURES: FeaturesMap = {
-  internalHealth:  true,
+  internalHealth:  false,
   riskMatrix:      true,
   stakeholderGrid: true,
 };

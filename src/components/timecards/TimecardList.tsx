@@ -50,7 +50,13 @@ export function TimecardList({ projectId, salesforceId }: TimecardListProps) {
       });
       const data = await res.json() as { timecards?: Timecard[]; error?: string };
       if (!res.ok) throw new Error(data.error ?? 'Failed to fetch timecards');
-      const list = data.timecards ?? [];
+      const list = (data.timecards ?? []).sort((a, b) => {
+        if (!a.endDate) return 1;
+        if (!b.endDate) return -1;
+        const byDate = a.endDate.localeCompare(b.endDate);
+        if (byDate !== 0) return byDate;
+        return a.resourceName.localeCompare(b.resourceName);
+      });
       setTimecards(list);
       setLastFetched(new Date());
       localStorage.setItem(DATA_KEY(projectId), JSON.stringify(list));
@@ -68,7 +74,14 @@ export function TimecardList({ projectId, salesforceId }: TimecardListProps) {
     const cached = localStorage.getItem(DATA_KEY(projectId));
     const ts     = Number(localStorage.getItem(TS_KEY(projectId)) ?? 0);
     if (cached) {
-      setTimecards(JSON.parse(cached) as Timecard[]);
+      const parsed = (JSON.parse(cached) as Timecard[]).sort((a, b) => {
+        if (!a.endDate) return 1;
+        if (!b.endDate) return -1;
+        const byDate = a.endDate.localeCompare(b.endDate);
+        if (byDate !== 0) return byDate;
+        return a.resourceName.localeCompare(b.resourceName);
+      });
+      setTimecards(parsed);
       setLastFetched(new Date(ts));
     }
     // Fetch only if stale

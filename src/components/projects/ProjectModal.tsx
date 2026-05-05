@@ -6,6 +6,7 @@ import { Modal, TextInput, Button, Group, Stack, Text, Divider, Loader } from '@
 import { IconCloudDown } from '@tabler/icons-react';
 import { toast } from '@/components/ui/Toast';
 import { useProjectsStore, type Project } from '@/stores/useProjectsStore';
+import { DateRangeFields, parseDateRange, buildDateRange } from '@/components/projects/DateRangeFields';
 
 // ─── Salesforce helpers ───────────────────────────────────────────────────────
 
@@ -69,7 +70,8 @@ interface FormState {
   color: string;
   client: string;
   phase: string;
-  dateRange: string;
+  startDate: string;
+  endDate: string;
 }
 
 interface FormErrors {
@@ -92,12 +94,14 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
   const archiveProject = useProjectsStore((s) => s.archiveProject);
 
   // ── Form state ──────────────────────────────────────────────────────────────
+  const initDates = parseDateRange(project?.dateRange ?? '');
   const [form, setForm] = useState<FormState>({
-    name:      project?.name      ?? '',
-    color:     project?.color     ?? COLORS[0],
-    client:    project?.client    ?? '',
-    phase:     project?.phase     ?? '',
-    dateRange: project?.dateRange ?? '',
+    name:      project?.name  ?? '',
+    color:     project?.color ?? COLORS[0],
+    client:    project?.client ?? '',
+    phase:     project?.phase  ?? '',
+    startDate: initDates.start,
+    endDate:   initDates.end,
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -114,12 +118,14 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
   // Reset form whenever the modal opens (or the project changes)
   useEffect(() => {
     if (opened) {
+      const dates = parseDateRange(project?.dateRange ?? '');
       setForm({
-        name:      project?.name      ?? '',
-        color:     project?.color     ?? COLORS[0],
-        client:    project?.client    ?? '',
-        phase:     project?.phase     ?? '',
-        dateRange: project?.dateRange ?? '',
+        name:      project?.name  ?? '',
+        color:     project?.color ?? COLORS[0],
+        client:    project?.client ?? '',
+        phase:     project?.phase  ?? '',
+        startDate: dates.start,
+        endDate:   dates.end,
       });
       setErrors({});
       setConfirmingArchive(false);
@@ -158,7 +164,7 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
         color:     form.color,
         client:    form.client.trim(),
         phase:     form.phase.trim(),
-        dateRange: form.dateRange.trim(),
+        dateRange: buildDateRange(form.startDate, form.endDate),
       });
     } else {
       addProject({
@@ -166,7 +172,7 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
         color:       form.color,
         client:      form.client.trim(),
         phase:       form.phase.trim(),
-        dateRange:   form.dateRange.trim(),
+        dateRange:   buildDateRange(form.startDate, form.endDate),
         salesforceId: sfImportedId || undefined,
       });
     }
@@ -181,11 +187,13 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
     try {
       const imported = await fetchSalesforceProject(sfUrl.trim());
       setSfImportedId(imported.salesforceId);
+      const importedDates = parseDateRange(imported.dateRange);
       setForm((prev) => ({
         ...prev,
-        name:      imported.name      || prev.name,
-        dateRange: imported.dateRange || prev.dateRange,
-        client:    imported.client    || prev.client,
+        name:      imported.name   || prev.name,
+        client:    imported.client || prev.client,
+        startDate: importedDates.start || prev.startDate,
+        endDate:   importedDates.end   || prev.endDate,
       }));
       setErrors((prev) => ({ ...prev, name: undefined }));
     } catch (err) {
@@ -346,11 +354,10 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
           />
 
           {/* Date range */}
-          <TextInput
-            label="Date range"
-            placeholder="Jan – Jun 2026"
-            value={form.dateRange}
-            onChange={(e) => setField('dateRange', e.currentTarget.value)}
+          <DateRangeFields
+            start={form.startDate}
+            end={form.endDate}
+            onChange={(s, e) => { setField('startDate', s); setField('endDate', e); }}
           />
 
           {/* Actions */}

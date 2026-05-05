@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -84,6 +84,7 @@ export default function MigratePage() {
   const [checkingSetup, setCheckingSetup] = useState(false);
   const [migrating, setMigrating]       = useState(false);
   const [copied, setCopied]             = useState(false);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -122,6 +123,7 @@ export default function MigratePage() {
       });
       const json = await res.json() as MigrateResult;
       setMigrateResult(json);
+      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     } catch (e) {
       setMigrateResult({ ok: false, error: String(e) });
     } finally {
@@ -139,7 +141,8 @@ export default function MigratePage() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-zinc-50 py-12 px-4">
+    <div className="fixed inset-0 overflow-y-auto bg-zinc-50">
+    <div className="py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* Header */}
@@ -303,7 +306,7 @@ export default function MigratePage() {
           )}
 
           {migrateResult && (
-            <div className={`rounded-lg border px-4 py-4 space-y-3 ${migrateResult.ok ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+            <div ref={resultRef} className={`rounded-lg border px-4 py-4 space-y-3 ${migrateResult.ok ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
               {migrateResult.error ? (
                 <p className="text-sm text-red-700 font-medium">Erro: {migrateResult.error}</p>
               ) : (
@@ -327,13 +330,10 @@ export default function MigratePage() {
 
                   {migrateResult.errors && Object.keys(migrateResult.errors).length > 0 && (
                     <div className="space-y-1">
-                      <p className="text-xs font-medium text-red-700">Erros detalhados:</p>
+                      <p className="text-xs font-medium text-red-700">Primeiro erro de cada tabela:</p>
                       {Object.entries(migrateResult.errors).map(([table, errs]) => (
-                        <div key={table} className="text-xs text-red-600">
-                          <strong>{table}:</strong>
-                          <ul className="list-disc ml-4 mt-0.5">
-                            {errs.map((e, i) => <li key={i}>{e}</li>)}
-                          </ul>
+                        <div key={table} className="text-xs text-red-600 bg-red-100 rounded px-2 py-1">
+                          <strong>{table}:</strong> {errs[0]}
                         </div>
                       ))}
                     </div>
@@ -365,6 +365,7 @@ export default function MigratePage() {
           Após a migração, esta página pode ser removida.
         </p>
       </div>
+    </div>
     </div>
   );
 }

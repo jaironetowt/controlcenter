@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { TextInput, Button, Group, Text } from '@mantine/core';
 import { useProjectsStore, type Project } from '@/stores/useProjectsStore';
+import { DateRangeFields, parseDateRange, buildDateRange } from '@/components/projects/DateRangeFields';
 
 // ─── Color palette ────────────────────────────────────────────────────────────
 
@@ -29,7 +30,8 @@ interface FormState {
   color: string;
   client: string;
   phase: string;
-  dateRange: string;
+  startDate: string;
+  endDate: string;
 }
 
 interface FormErrors {
@@ -40,24 +42,28 @@ interface FormErrors {
 export function ProjectInfoForm({ project, onSaved }: ProjectInfoFormProps) {
   const updateProject = useProjectsStore((s) => s.updateProject);
 
+  const initDates = parseDateRange(project.dateRange);
   const [form, setForm] = useState<FormState>({
     name:      project.name,
     color:     project.color,
     client:    project.client,
     phase:     project.phase,
-    dateRange: project.dateRange,
+    startDate: initDates.start,
+    endDate:   initDates.end,
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [saved, setSaved] = useState(false);
 
   // Keep form in sync if project changes externally
   useEffect(() => {
+    const dates = parseDateRange(project.dateRange);
     setForm({
       name:      project.name,
       color:     project.color,
       client:    project.client,
       phase:     project.phase,
-      dateRange: project.dateRange,
+      startDate: dates.start,
+      endDate:   dates.end,
     });
   }, [project.id]);
 
@@ -83,7 +89,7 @@ export function ProjectInfoForm({ project, onSaved }: ProjectInfoFormProps) {
       color:     form.color,
       client:    form.client.trim(),
       phase:     form.phase.trim(),
-      dateRange: form.dateRange.trim(),
+      dateRange: buildDateRange(form.startDate, form.endDate),
     });
     setSaved(true);
     onSaved?.();
@@ -147,11 +153,10 @@ export function ProjectInfoForm({ project, onSaved }: ProjectInfoFormProps) {
       />
 
       {/* Date range */}
-      <TextInput
-        label="Date range"
-        placeholder="Jan – Jun 2026"
-        value={form.dateRange}
-        onChange={(e) => setField('dateRange', e.currentTarget.value)}
+      <DateRangeFields
+        start={form.startDate}
+        end={form.endDate}
+        onChange={(s, e) => { setField('startDate', s); setField('endDate', e); }}
       />
 
       <Group justify="flex-end" mt="xs">

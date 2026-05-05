@@ -27,9 +27,9 @@ export async function GET(): Promise<Response> {
   // Verifica existência de cada tabela tentando fazer um SELECT limitado
   const tableStatus: Record<string, boolean> = {};
   for (const table of TABLES) {
-    const { error } = await supabase.from(table).select('id').limit(1);
-    // Se a tabela não existe, o error.code será '42P01' (undefined_table)
-    tableStatus[table] = !error || error.code !== '42P01';
+    const col = table === 'user_settings' ? 'user_id' : 'id';
+    const { error } = await supabase.from(table).select(col).limit(1);
+    tableStatus[table] = !error;
   }
 
   const allTablesExist = Object.values(tableStatus).every(Boolean);

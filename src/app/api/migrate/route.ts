@@ -172,8 +172,10 @@ export async function POST(request: Request): Promise<Response> {
       created_at:    msToIso(p.createdAt) ?? new Date().toISOString(),
     }, { onConflict: 'id' });
 
-    if (error) results.projects.errors.push(`"${p.name}": ${error.message}`);
-    else results.projects.ok++;
+    if (error) {
+      console.error('[migrate] project error:', p.name, error.code, error.message, error.details, error.hint);
+      results.projects.errors.push(`"${p.name}": [${error.code}] ${error.message}`);
+    } else results.projects.ok++;
   }
 
   // ─── Risks ─────────────────────────────────────────────────────────────────
@@ -194,8 +196,10 @@ export async function POST(request: Request): Promise<Response> {
       closed_at:   msToIso(r.closedAt),
     }, { onConflict: 'id' });
 
-    if (error) results.risks.errors.push(`"${r.title}": ${error.message}`);
-    else results.risks.ok++;
+    if (error) {
+      console.error('[migrate] risk error:', r.title, error.code, error.message);
+      results.risks.errors.push(`"${r.title}": [${error.code}] ${error.message}`);
+    } else results.risks.ok++;
   }
 
   // ─── Action Items ──────────────────────────────────────────────────────────
