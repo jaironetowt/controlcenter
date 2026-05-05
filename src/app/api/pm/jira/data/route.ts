@@ -133,7 +133,8 @@ export async function POST(request: Request): Promise<Response> {
       auth,
     );
 
-    const board = boardsData.values[0];
+    // Prefer scrum board (has sprints); fall back to first available
+    const board = boardsData.values.find((b) => b.type === 'scrum') ?? boardsData.values[0];
     if (!board) {
       return Response.json({ error: `No board found for project ${projectKey}` }, { status: 404 });
     }
