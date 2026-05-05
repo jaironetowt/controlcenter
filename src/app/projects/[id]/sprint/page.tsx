@@ -9,6 +9,7 @@ import { useProjectsStore } from '@/stores/useProjectsStore';
 import { usePMToolStore } from '@/stores/usePMToolStore';
 import { buildSlugMap } from '@/lib/slugify';
 import type { PMProjectData } from '@/integrations/types';
+import type { VelocitySprint } from '@/app/api/pm/jira/velocity/route';
 
 // ─── Cache keys ───────────────────────────────────────────────────────────────
 
@@ -43,6 +44,96 @@ function priorityColor(priority: string | null): string {
   }
 }
 
+// ─── Velocity Chart ───────────────────────────────────────────────────────────
+
+function VelocityChart({ sprints }: { sprints: VelocitySprint[] }) {
+  const hasSP = sprints.some((s) => s.committedSP > 0);
+  const [mode, setMode] = useState<'sp' | 'issues'>(hasSP ? 'sp' : 'issues');
+
+  const committed = (s: VelocitySprint) => mode === 'sp' ? s.committedSP : s.committed;
+  const done      = (s: VelocitySprint) => mode === 'sp' ? s.doneSP      : s.done;
+
+  const max = Math.max(...sprints.flatMap((s) => [committed(s), done(s)]), 1);
+  const H = 130;
+  const barW = 22;
+  const gap = 8;
+  const groupW = barW * 2 + gap;
+  const groupGap = 40;
+  const padL = 40;
+  const padB = 36;
+  const totalW = padL + sprints.length * (groupW + groupGap) - groupGap + 16;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wide">
+          Velocity — last {sprints.length} sprints
+        </p>
+        {hasSP && (
+          <div className="flex rounded-md overflow-hidden border border-zinc-200 text-[11px]">
+            {(['sp', 'issues'] as const).map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={`px-2 py-0.5 transition-colors ${mode === m ? 'bg-zinc-800 text-white' : 'bg-white text-zinc-500 hover:bg-zinc-50'}`}
+              >
+                {m === 'sp' ? 'Story Points' : 'Issues'}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <svg width={totalW} height={H + padB} className="overflow-visible">
+        {[0, 0.25, 0.5, 0.75, 1].map((pct) => {
+          const y = H - pct * H;
+          return (
+            <g key={pct}>
+              <line x1={padL} x2={totalW} y1={y} y2={y} stroke="#e4e4e7" strokeWidth={1} />
+              <text x={padL - 5} y={y + 4} textAnchor="end" fontSize={10} fill="#a1a1aa">
+                {Math.round(pct * max)}
+              </text>
+            </g>
+          );
+        })}
+
+        {sprints.map((s, i) => {
+          const x = padL + i * (groupW + groupGap);
+          const cH = (committed(s) / max) * H;
+          const dH = (done(s) / max) * H;
+          const rate = committed(s) > 0 ? Math.round((done(s) / committed(s)) * 100) : 0;
+          return (
+            <g key={s.id}>
+              <rect x={x} y={H - cH} width={barW} height={cH} rx={3} fill="#e4e4e7" />
+              <text x={x + barW / 2} y={H - cH - 4} textAnchor="middle" fontSize={10} fill="#71717a">{committed(s)}</text>
+
+              <rect x={x + barW + gap} y={H - dH} width={barW} height={dH} rx={3} fill="#3b82f6" />
+              <text x={x + barW + gap + barW / 2} y={H - dH - 4} textAnchor="middle" fontSize={10} fill="#3b82f6">{done(s)}</text>
+
+              <text x={x + groupW / 2} y={H + 14} textAnchor="middle" fontSize={10} fill="#71717a">{s.shortName}</text>
+              <text x={x + groupW / 2} y={H + 26} textAnchor="middle" fontSize={10} fontWeight={600}
+                fill={rate >= 80 ? '#22c55e' : rate >= 60 ? '#f59e0b' : '#ef4444'}>
+                {rate}%
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+
+      <div className="flex items-center gap-4 mt-1">
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-zinc-200" />
+          <span className="text-[11px] text-zinc-500">Committed</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-sm bg-blue-500" />
+          <span className="text-[11px] text-zinc-500">Done</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Sprint Board ─────────────────────────────────────────────────────────────
 
 interface SprintBoardProps {
@@ -60,6 +151,7 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
   );
   const [error, setError]             = useState('');
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
+  const [velocity, setVelocity]       = useState<VelocitySprint[]>([]);
 
   const fetchData = useCallback(async (force = false) => {
     const ts = Number(localStorage.getItem(TS_KEY(projectId)) ?? 0);
@@ -79,6 +171,16 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
       setLastFetched(new Date());
       localStorage.setItem(DATA_KEY(projectId), JSON.stringify(json));
       localStorage.setItem(TS_KEY(projectId), String(Date.now()));
+
+      // Fetch velocity in parallel (best-effort, no cache)
+      fetch('/api/pm/jira/velocity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ baseUrl, email, apiToken, projectKey, limit: 3 }),
+      })
+        .then((r) => r.json())
+        .then((v: { sprints?: VelocitySprint[] }) => { if (v.sprints) setVelocity(v.sprints); })
+        .catch(() => undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -163,6 +265,13 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
               <span className="text-[11px] font-medium">{label}</span>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Velocity chart */}
+      {velocity.length > 0 && (
+        <div className="mb-6">
+          <VelocityChart sprints={velocity} />
         </div>
       )}
 
