@@ -60,7 +60,7 @@ function makeAuth(email: string, apiToken: string): string {
   return `Basic ${Buffer.from(`${email}:${apiToken}`).toString('base64')}`;
 }
 
-async function jiraFetch<T>(url: string, auth: string): Promise<T> {
+async function jiraFetch<T>(url: string, auth: string): Promise<{ data: T; status: number }> {
   const res = await fetch(url, {
     method: 'GET',
     headers: {
@@ -72,15 +72,17 @@ async function jiraFetch<T>(url: string, auth: string): Promise<T> {
   if (!res.ok) {
     let msg = `Jira API error: ${res.status}`;
     try {
-      const body = await res.json() as { message?: string };
-      if (body.message) msg = body.message;
+      const body = await res.json() as { message?: string; errorMessages?: string[] };
+      msg = body.message ?? body.errorMessages?.[0] ?? msg;
     } catch {
       // ignore
     }
-    throw new Error(msg);
+    const err = new Error(msg) as Error & { status: number };
+    err.status = res.status;
+    throw err;
   }
 
-  return res.json() as Promise<T>;
+  return { data: await res.json() as T, status: res.status };
 }
 
 function normalisePriority(
@@ -126,7 +128,7 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     // 1. Find the board for the project
-    const boardsData = await jiraFetch<JiraBoardsResponse>(
+    const { data: boardsData } = await jiraFetch<JiraBoardsResponse>(
       `${baseUrl}/rest/agile/1.0/board?projectKeyOrId=${encodeURIComponent(projectKey)}`,
       auth,
     );
@@ -136,42 +138,48 @@ export async function POST(request: Request): Promise<Response> {
       return Response.json({ error: `No board found for project ${projectKey}` }, { status: 404 });
     }
 
-    // 2. Get the active sprint for the board
-    const sprintsData = await jiraFetch<JiraSprintsResponse>(
-      `${baseUrl}/rest/agile/1.0/board/${board.id}/sprint?state=active`,
-      auth,
-    );
-
-    const rawSprint = sprintsData.values[0] ?? null;
-
     let activeSprint: PMSprint | null = null;
     let issues: PMIssue[] = [];
 
-    if (rawSprint) {
-      activeSprint = {
-        id: String(rawSprint.id),
-        name: rawSprint.name,
-        state: normaliseSprintState(rawSprint.state),
-        startDate: rawSprint.startDate ?? null,
-        endDate: rawSprint.endDate ?? null,
-      };
-
-      // 3. Fetch issues in the active sprint
-      const issuesData = await jiraFetch<JiraIssuesResponse>(
-        `${baseUrl}/rest/agile/1.0/sprint/${rawSprint.id}/issue`,
+    // 2. Get the active sprint — 400 means Kanban board (no sprints), treat as none
+    try {
+      const { data: sprintsData } = await jiraFetch<JiraSprintsResponse>(
+        `${baseUrl}/rest/agile/1.0/board/${board.id}/sprint?state=active`,
         auth,
       );
 
-      issues = issuesData.issues.map((issue): PMIssue => ({
-        id: issue.id,
-        key: issue.key,
-        title: issue.fields.summary,
-        status: issue.fields.status.name,
-        assignee: issue.fields.assignee?.displayName ?? null,
-        priority: normalisePriority(issue.fields.priority?.name),
-        type: issue.fields.issuetype.name,
-        url: `${baseUrl}/browse/${issue.key}`,
-      }));
+      const rawSprint = sprintsData.values[0] ?? null;
+
+      if (rawSprint) {
+        activeSprint = {
+          id: String(rawSprint.id),
+          name: rawSprint.name,
+          state: normaliseSprintState(rawSprint.state),
+          startDate: rawSprint.startDate ?? null,
+          endDate: rawSprint.endDate ?? null,
+        };
+
+        // 3. Fetch issues in the active sprint
+        const { data: issuesData } = await jiraFetch<JiraIssuesResponse>(
+          `${baseUrl}/rest/agile/1.0/sprint/${rawSprint.id}/issue?maxResults=200&fields=summary,status,assignee,priority,issuetype`,
+          auth,
+        );
+
+        issues = issuesData.issues.map((issue): PMIssue => ({
+          id: issue.id,
+          key: issue.key,
+          title: issue.fields.summary,
+          status: issue.fields.status.name,
+          assignee: issue.fields.assignee?.displayName ?? null,
+          priority: normalisePriority(issue.fields.priority?.name),
+          type: issue.fields.issuetype.name,
+          url: `${baseUrl}/browse/${issue.key}`,
+        }));
+      }
+    } catch (sprintErr) {
+      const status = (sprintErr as Error & { status?: number }).status;
+      // 400 = board doesn't support sprints (Kanban) — not a real error
+      if (status !== 400) throw sprintErr;
     }
 
     const closedStatuses = new Set(['Done', 'Closed', 'Resolved']);
