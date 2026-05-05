@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Modal, TextInput, Textarea, Select, Button, Group, Stack, Text } from '@mantine/core';
 import { useRisksStore, type Risk, type Probability, type Impact, type RiskStatus } from '@/stores/useRisksStore';
 
@@ -21,6 +21,7 @@ interface FormState {
   impact: Impact;
   status: RiskStatus;
   owner: string;
+  openedAt: Date;
 }
 
 interface FormErrors {
@@ -47,8 +48,10 @@ export function RiskModal({ opened, onClose, projectId, risk }: RiskModalProps) 
     impact:      risk?.impact      ?? 'Medium',
     status:      risk?.status      ?? 'Open',
     owner:       risk?.owner       ?? '',
+    openedAt:    risk?.createdAt ? new Date(risk.createdAt) : new Date(),
   });
 
+  const dateInputRef = useRef<HTMLInputElement>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
@@ -62,6 +65,7 @@ export function RiskModal({ opened, onClose, projectId, risk }: RiskModalProps) 
         impact:      risk?.impact      ?? 'Medium',
         status:      risk?.status      ?? 'Open',
         owner:       risk?.owner       ?? '',
+        openedAt:    risk?.createdAt ? new Date(risk.createdAt) : new Date(),
       });
       setErrors({});
       setConfirmingDelete(false);
@@ -105,6 +109,7 @@ export function RiskModal({ opened, onClose, projectId, risk }: RiskModalProps) 
         impact:      form.impact,
         status:      form.status,
         owner:       form.owner.trim(),
+        createdAt:   form.openedAt.getTime(),
       });
     }
 
@@ -198,6 +203,38 @@ export function RiskModal({ opened, onClose, projectId, risk }: RiskModalProps) 
             value={form.owner}
             onChange={(e) => setField('owner', e.currentTarget.value)}
           />
+
+          <div>
+            <label className="block text-[13px] font-medium text-zinc-700 mb-1">Opened</label>
+            <div className="relative">
+              {/* Visible display field */}
+              <div
+                onClick={() => dateInputRef.current?.showPicker?.()}
+                className="w-full rounded-md border border-zinc-300 px-3 py-1.5 text-[13px] text-zinc-800 cursor-pointer flex items-center justify-between hover:border-zinc-400 transition-colors"
+              >
+                <span>
+                  {form.openedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </span>
+                <svg className="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              {/* Hidden native date input that drives the picker */}
+              <input
+                ref={dateInputRef}
+                type="date"
+                value={form.openedAt.toISOString().slice(0, 10)}
+                max={new Date().toISOString().slice(0, 10)}
+                onChange={(e) => {
+                  const [y, m, d] = e.currentTarget.value.split('-').map(Number);
+                  const date = new Date(y, m - 1, d);
+                  if (!isNaN(date.getTime())) setField('openedAt', date);
+                }}
+                className="absolute inset-0 opacity-0 pointer-events-none"
+                tabIndex={-1}
+              />
+            </div>
+          </div>
 
           <Group justify="space-between" mt="xs">
             {isEditMode ? (

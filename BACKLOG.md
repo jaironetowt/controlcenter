@@ -86,9 +86,43 @@ Objetivo: Risk log, decision log, action items e stakeholder map funcionando.
 | CC-73 | [FEATURE] | Quick Actions gadget — Add Risk (título + descrição + probability/impact), Add Action Item (priority), Reminder placeholder; OwnerChip com portal; selecionar projeto com último usado | ✅ Feito |
 | CC-74 | [FEATURE] | Quick Actions FAB — ícone de raio flutuante (bottom-right relativo ao right panel); pulso animado; expande painel flutuante com QuickActions; fecha ao clicar fora da zona de sombra; removido do Hot Desk | ✅ Feito |
 | CC-75 | [BUG] | Sidebar — projeto ficava destacado em /global e /actions por fallback incorreto para projects[0] quando URL não contém /projects/:id | ✅ Feito |
+| CC-76 | [POLISH] | Risk Matrix — duas swimlanes (Open / Mitigated) em vez de filtro só por Open | ✅ Feito |
 | CC-68 | [FEATURE] | Hot Desk — gadget Upcoming conectado a dados reais (hoje hardcoded) | Pendente |
 | CC-69 | [FEATURE] | Hot Desk — GadgetSlot "Add gadget" funcional (hoje é placeholder) | Pendente |
 | CC-70 | [FEATURE] | Global Action Items — botão "New item" com seletor de projeto no modal | Pendente |
+
+---
+
+## Fase 2.5 — Persistência (Supabase)
+
+Objetivo: substituir localStorage/Zustand persist por Supabase (Postgres). Auth desde o início para preparar multi-usuário.
+
+| ID | Tipo | Ticket | Status |
+|----|------|--------|--------|
+| CC-77 | [INTEGRATION] | Supabase — DDL completo (projects, risks, action_items, decisions, stakeholders, user_settings) + RLS policies + auth email/password | ✅ Feito |
+| CC-78 | [INTEGRATION] | Script de migração one-shot — lê localStorage dump JSON e faz INSERT no Supabase via API | ✅ Feito |
+| CC-79 | [INTEGRATION] | Substituir useProjectsStore (persist) por Supabase client | ✅ Feito |
+| CC-80 | [INTEGRATION] | Substituir useRisksStore (persist) por Supabase client | ✅ Feito |
+| CC-81 | [INTEGRATION] | Substituir useActionItemsStore (persist) por Supabase client | ✅ Feito |
+| CC-82 | [INTEGRATION] | Substituir useDecisionsStore (persist) por Supabase client | ✅ Feito |
+| CC-83 | [INTEGRATION] | Substituir useStakeholdersStore (persist) por Supabase client | ✅ Feito |
+| CC-84 | [INTEGRATION] | useFeaturesStore — migrar para user_settings no Supabase | ✅ Feito |
+| CC-85 | [INTEGRATION] | Auth — página de login + middleware de proteção de rotas + src/lib/auth.ts | ✅ Feito |
+| CC-86 | [INTEGRATION] | StoreInitializer — componente que dispara fetchAll de todos os stores Supabase no mount | ✅ Feito |
+
+> ⚠️ **Próximo passo obrigatório antes de usar:**
+> 1. Criar projeto no [Supabase](https://app.supabase.com)
+> 2. Rodar `supabase/migrations/001_initial.sql` no SQL Editor do Supabase
+> 3. Criar usuário em Authentication → Users (email/password)
+> 4. Copiar `.env.local.example` para `.env.local` e preencher as vars
+> 5. Para migrar dados existentes: `npx tsx scripts/migrate-from-localstorage.ts <dump.json>`
+>    (usar SERVICE_ROLE key para bypassar RLS durante migração)
+
+> ⚠️ **Decisões fixadas**
+> - Auth: email/password desde o início (prepara CC-40 multi-usuário)
+> - IDs: manter `crypto.randomUUID()` — compatível com Supabase
+> - Dados locais: migrar via script (CC-78) antes de desligar o localStorage
+> - Credenciais sensíveis (Jira, Salesforce): permanecem em env vars / localStorage, fora do Supabase
 
 ---
 

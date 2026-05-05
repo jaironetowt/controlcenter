@@ -12,7 +12,7 @@ import {
   IconChevronRight,
 } from '@tabler/icons-react';
 import { ProjectHeader } from '@/components/layout/ProjectHeader';
-import { useProjectsStore } from '@/stores/useProjectsStore';
+import { useProjectsStore, Project } from '@/stores/useProjectsStore';
 import { useRisksStore } from '@/stores/useRisksStore';
 import { useDecisionsStore } from '@/stores/useDecisionsStore';
 import { useActionItemsStore } from '@/stores/useActionItemsStore';
@@ -74,7 +74,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
   if (mounted && !project) return notFound();
 
-  const p = project ?? { id, name: '…', color: '#3E77FC', client: '…', phase: '…', dateRange: '…', archived: false };
+  const p: Project = project ?? { id, name: '…', color: '#3E77FC', client: '…', phase: '…', dateRange: '…', archived: false, createdAt: 0 };
 
   const openRisks    = mounted ? storeRisks.filter((r) => r.projectId === id && r.status === 'Open').length : 0;
   const totalRisks   = mounted ? storeRisks.filter((r) => r.projectId === id).length : 0;

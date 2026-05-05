@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { supabase } from '@/lib/supabase';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -17,92 +17,136 @@ export interface Risk {
   status: RiskStatus;
   owner: string;
   createdAt: number;
+  closedAt?: number;
 }
 
 interface RisksStore {
   risks: Risk[];
-  addRisk: (data: Omit<Risk, 'id' | 'createdAt'>) => void;
-  updateRisk: (id: string, updates: Partial<Omit<Risk, 'id' | 'createdAt'>>) => void;
-  deleteRisk: (id: string) => void;
+  loading: boolean;
+  error: string | null;
+  fetchRisks: () => Promise<void>;
+  addRisk: (data: Omit<Risk, 'id' | 'closedAt'> & { createdAt?: number }) => Promise<void>;
+  updateRisk: (id: string, updates: Partial<Omit<Risk, 'id' | 'createdAt'>>) => Promise<void>;
+  deleteRisk: (id: string) => Promise<void>;
 }
 
-// ─── Seed data ────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const SEED: Risk[] = [
-  {
-    id: 'risk-seed-1',
-    projectId: 'mosaic',
-    title: 'Third-party API rate limits',
-    description: 'External data provider may throttle API calls during peak usage, affecting real-time sync.',
-    probability: 'High',
-    impact: 'High',
-    status: 'Open',
-    owner: 'Jairo Neto',
-    createdAt: 1,
-  },
-  {
-    id: 'risk-seed-2',
-    projectId: 'mosaic',
-    title: 'Key engineer availability',
-    description: 'Lead backend engineer has a planned leave in May that may delay sprint delivery.',
-    probability: 'Medium',
-    impact: 'High',
-    status: 'Mitigated',
-    owner: 'Jairo Neto',
-    createdAt: 2,
-  },
-  {
-    id: 'risk-seed-3',
-    projectId: 'mosaic',
-    title: 'Design system inconsistencies',
-    description: 'Component library updates may introduce visual regressions across pages.',
-    probability: 'Low',
-    impact: 'Medium',
-    status: 'Open',
-    owner: 'Jairo Neto',
-    createdAt: 3,
-  },
-];
+function fromDb(row: Record<string, unknown>): Risk {
+  return {
+    id:          row.id as string,
+    projectId:   row.project_id as string,
+    title:       row.title as string,
+    description: row.description as string,
+    probability: row.probability as Probability,
+    impact:      row.impact as Impact,
+    status:      row.status as RiskStatus,
+    owner:       row.owner as string,
+    createdAt:   new Date(row.created_at as string).getTime(),
+    closedAt:    row.closed_at ? new Date(row.closed_at as string).getTime() : undefined,
+  };
+}
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 
-export const useRisksStore = create<RisksStore>()(
-  persist(
-    (set) => ({
-      risks: SEED,
+export const useRisksStore = create<RisksStore>()((set, get) => ({
+  risks:   [],
+  loading: false,
+  error:   null,
 
-      addRisk: (data) =>
-        set((s) => ({
-          risks: [
-            ...s.risks,
-            {
-              ...data,
-              id: crypto.randomUUID(),
-              createdAt: Date.now(),
-            },
-          ],
-        })),
+  fetchRisks: async () => {
+    set({ loading: true, error: null });
+    const { data, error } = await supabase
+      .from('risks')
+      .select('*')
+      .order('created_at', { ascending: true });
 
-      updateRisk: (id, updates) =>
-        set((s) => ({
-          risks: s.risks.map((r) =>
-            r.id === id ? { ...r, ...updates } : r,
-          ),
-        })),
+    if (error) {
+      set({ loading: false, error: error.message });
+      return;
+    }
+    set({ risks: (data ?? []).map(fromDb), loading: false });
+  },
 
-      deleteRisk: (id) =>
-        set((s) => ({
-          risks: s.risks.filter((r) => r.id !== id),
-        })),
-    }),
-    {
-      name: 'cc-risks',
-      // Merge persisted state but keep SEED as fallback when storage is empty
-      merge: (persisted, current) => {
-        const p = persisted as Partial<RisksStore>;
-        if (!p.risks || p.risks.length === 0) return current;
-        return { ...current, ...p };
-      },
-    },
-  ),
-);
+  addRisk: async (input) => {
+    const id = crypto.randomUUID();
+    const createdAt = input.createdAt ?? Date.now();
+
+    const newRisk: Risk = {
+      ...input,
+      id,
+      createdAt,
+      closedAt: undefined,
+    };
+
+    set((s) => ({ risks: [...s.risks, newRisk] }));
+
+    const { error } = await supabase.from('risks').insert({
+      id,
+      project_id:  input.projectId,
+      title:       input.title,
+      description: input.description,
+      probability: input.probability,
+      impact:      input.impact,
+      status:      input.status,
+      owner:       input.owner,
+      created_at:  new Date(createdAt).toISOString(),
+      closed_at:   null,
+    });
+
+    if (error) {
+      set((s) => ({ risks: s.risks.filter((r) => r.id !== id), error: error.message }));
+    }
+  },
+
+  updateRisk: async (id, updates) => {
+    set((s) => ({
+      risks: s.risks.map((r) => {
+        if (r.id !== id) return r;
+        const next = { ...r, ...updates };
+        if (updates.status && updates.status !== 'Open' && r.status === 'Open') {
+          next.closedAt = Date.now();
+        }
+        if (updates.status === 'Open') {
+          next.closedAt = undefined;
+        }
+        return next;
+      }),
+    }));
+
+    // Calcular closedAt para persistir
+    const current = get().risks.find((r) => r.id === id);
+    const dbUpdates: Record<string, unknown> = {};
+    if (updates.title       !== undefined) dbUpdates.title       = updates.title;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.probability !== undefined) dbUpdates.probability = updates.probability;
+    if (updates.impact      !== undefined) dbUpdates.impact      = updates.impact;
+    if (updates.owner       !== undefined) dbUpdates.owner       = updates.owner;
+    if (updates.status !== undefined) {
+      dbUpdates.status = updates.status;
+      if (updates.status !== 'Open' && current?.status === 'Open') {
+        dbUpdates.closed_at = new Date().toISOString();
+      } else if (updates.status === 'Open') {
+        dbUpdates.closed_at = null;
+      }
+    }
+
+    const { error } = await supabase.from('risks').update(dbUpdates).eq('id', id);
+
+    if (error) {
+      set({ error: error.message });
+      get().fetchRisks();
+    }
+  },
+
+  deleteRisk: async (id) => {
+    set((s) => ({ risks: s.risks.filter((r) => r.id !== id) }));
+
+    const { error } = await supabase.from('risks').delete().eq('id', id);
+
+    if (error) {
+      set({ error: error.message });
+      get().fetchRisks();
+    }
+  },
+}));

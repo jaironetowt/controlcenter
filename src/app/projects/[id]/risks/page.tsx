@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { ProjectHeader } from '@/components/layout/ProjectHeader';
 import { RiskLog } from '@/components/risks/RiskLog';
 import { RiskMatrix } from '@/components/risks/RiskMatrix';
+import { MitigatedRisks } from '@/components/risks/MitigatedRisks';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { useFeaturesStore, DEFAULT_FEATURES } from '@/stores/useFeaturesStore';
 
@@ -29,6 +30,7 @@ export default function ProjectRisksPage({ params }: { params: Promise<{ id: str
         <div className="bg-white rounded-xl border border-zinc-200 p-6 shadow-sm">
           <RiskLog projectId={id} />
           {features.riskMatrix && <RiskMatrix projectId={id} />}
+          {features.riskMatrix && <MitigatedRisks projectId={id} />}
         </div>
       </div>
     </>

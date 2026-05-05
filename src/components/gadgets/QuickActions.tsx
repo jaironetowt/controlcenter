@@ -18,7 +18,7 @@ const OWNER_KEY = 'hd-qa-owner';
 const LEVELS: ('High' | 'Medium' | 'Low')[] = ['High', 'Medium', 'Low'];
 
 function nextLevel<T extends string>(v: T): T {
-  return LEVELS[(LEVELS.indexOf(v as string) + 1) % 3] as T;
+  return LEVELS[(LEVELS.indexOf(v as 'High' | 'Medium' | 'Low') + 1) % 3] as unknown as T;
 }
 
 const ACTIONS: { key: FormType; label: string; icon: React.ReactNode }[] = [
@@ -180,6 +180,8 @@ export function QuickActions() {
   const [probability, setProbability] = useState<Probability>('Medium');
   const [priority, setPriority]     = useState<Priority>('Medium');
   const [owner, setOwner]           = useState('');
+  const [openedAt, setOpenedAt]     = useState(() => new Date());
+  const dateInputRef                = useRef<HTMLInputElement>(null);
 
   const allProjects = useProjectsStore((s) => s.projects).filter((p) => !p.archived);
   const addRisk     = useRisksStore((s) => s.addRisk);
@@ -251,13 +253,16 @@ if (!mounted) return null;
         <CaptureCard
           placeholder="Risk title…"
           descriptionPlaceholder="Describe the risk…"
-          onSave={(title, description) => addRisk({ projectId, title, description, impact, probability, status: 'Open', owner })}
+          onSave={(title, description) => {
+            addRisk({ projectId, title, description, impact, probability, status: 'Open', owner, createdAt: openedAt.getTime() });
+            setOpenedAt(new Date());
+          }}
           meta={
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <span className="text-zinc-500 text-[10px] w-[60px]">Probability</span>
                 <button
-                  onClick={() => setProbability(nextLevel)}
+                  onClick={() => setProbability((p) => nextLevel(p))}
                   className="flex items-center gap-1 px-1.5 py-px rounded-md bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-[76px]"
                 >
                   <PriorityIcon priority={probability as Priority} />
@@ -267,12 +272,41 @@ if (!mounted) return null;
               <div className="flex items-center gap-2">
                 <span className="text-zinc-500 text-[10px] w-[60px]">Impact</span>
                 <button
-                  onClick={() => setImpact(nextLevel)}
+                  onClick={() => setImpact((p) => nextLevel(p))}
                   className="flex items-center gap-1 px-1.5 py-px rounded-md bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-[76px]"
                 >
                   <PriorityIcon priority={impact as Priority} />
                   <span className="text-zinc-400 text-[10px] ml-auto">{impact}</span>
                 </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-zinc-500 text-[10px] w-[60px]">Opened</span>
+                <div className="relative w-[98px]">
+                  <div
+                    onClick={() => dateInputRef.current?.showPicker?.()}
+                    className="flex items-center gap-1 px-1.5 py-px rounded-md bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors cursor-pointer w-full"
+                  >
+                    <svg className="w-2.5 h-2.5 text-zinc-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-zinc-400 text-[10px] ml-auto truncate">
+                      {openedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                  </div>
+                  <input
+                    ref={dateInputRef}
+                    type="date"
+                    value={openedAt.toISOString().slice(0, 10)}
+                    max={new Date().toISOString().slice(0, 10)}
+                    onChange={(e) => {
+                      const [y, m, d] = e.currentTarget.value.split('-').map(Number);
+                      const date = new Date(y, m - 1, d);
+                      if (!isNaN(date.getTime())) setOpenedAt(date);
+                    }}
+                    className="absolute inset-0 opacity-0 pointer-events-none"
+                    tabIndex={-1}
+                  />
+                </div>
               </div>
             </div>
           }
@@ -288,7 +322,7 @@ if (!mounted) return null;
             <div className="flex items-center gap-2">
               <span className="text-zinc-500 text-[10px] w-[60px]">Priority</span>
               <button
-                onClick={() => setPriority(nextLevel)}
+                onClick={() => setPriority((p) => nextLevel(p))}
                 className="flex items-center gap-1 px-1.5 py-px rounded-md bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-[76px]"
               >
                 <PriorityIcon priority={priority} />

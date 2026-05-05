@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { supabase } from '@/lib/supabase';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -30,8 +30,8 @@ export const FEATURE_META: Record<FeatureKey, FeatureMeta> = {
 export type FeaturesMap = Record<FeatureKey, boolean>;
 
 export const DEFAULT_FEATURES: FeaturesMap = {
-  internalHealth: true,
-  riskMatrix: true,
+  internalHealth:  true,
+  riskMatrix:      true,
   stakeholderGrid: true,
 };
 
@@ -39,26 +39,69 @@ export const DEFAULT_FEATURES: FeaturesMap = {
 
 interface FeaturesStore {
   features: FeaturesMap;
-  setFeature: (key: FeatureKey, enabled: boolean) => void;
+  loading: boolean;
+  error: string | null;
+  fetchFeatures: () => Promise<void>;
+  setFeature: (key: FeatureKey, enabled: boolean) => Promise<void>;
 }
 
-export const useFeaturesStore = create<FeaturesStore>()(
-  persist(
-    (set) => ({
-      features: DEFAULT_FEATURES,
-      setFeature: (key, enabled) =>
-        set((s) => ({ features: { ...s.features, [key]: enabled } })),
-    }),
-    {
-      name: 'cc-features',
-      merge: (persisted, current) => ({
-        ...current,
-        ...(persisted as Partial<FeaturesStore>),
-        features: {
-          ...DEFAULT_FEATURES,
-          ...((persisted as Partial<FeaturesStore>)?.features ?? {}),
-        },
-      }),
-    },
-  ),
-);
+export const useFeaturesStore = create<FeaturesStore>()((set, get) => ({
+  features: DEFAULT_FEATURES,
+  loading:  false,
+  error:    null,
+
+  fetchFeatures: async () => {
+    set({ loading: true, error: null });
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      // Não autenticado — usar defaults sem erro
+      set({ loading: false });
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('user_settings')
+      .select('features')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      set({ loading: false, error: error.message });
+      return;
+    }
+
+    if (data?.features) {
+      set({
+        features: { ...DEFAULT_FEATURES, ...(data.features as Partial<FeaturesMap>) },
+        loading:  false,
+      });
+    } else {
+      // Primeira vez — criar registro com defaults
+      await supabase.from('user_settings').upsert({
+        user_id:  user.id,
+        features: DEFAULT_FEATURES,
+      });
+      set({ features: DEFAULT_FEATURES, loading: false });
+    }
+  },
+
+  setFeature: async (key, enabled) => {
+    const next = { ...get().features, [key]: enabled };
+
+    // Optimistic
+    set({ features: next });
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('user_settings')
+      .upsert({ user_id: user.id, features: next });
+
+    if (error) {
+      set({ error: error.message });
+      get().fetchFeatures();
+    }
+  },
+}));
