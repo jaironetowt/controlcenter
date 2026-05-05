@@ -5,7 +5,7 @@ import { Pagination } from '@mantine/core';
 import { IconRefresh } from '@tabler/icons-react';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 30;
 
 interface Timecard {
   resourceName: string;
@@ -174,7 +174,10 @@ export function TimecardList({ projectId, salesforceId }: TimecardListProps) {
       )}
 
       {totalPages > 1 && (
-        <div className="flex justify-center mt-4">
+        <div className="flex items-center justify-between mt-4">
+          <span className="text-[12px] text-zinc-400">
+            {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, timecards.length)} de {timecards.length}
+          </span>
           <Pagination value={page} onChange={setPage} total={totalPages} size="sm" />
         </div>
       )}
