@@ -124,7 +124,7 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
             <g key={pct}>
               <line x1={padL} x2={totalW - padR} y1={y} y2={y}
                 stroke={pct === 0 ? '#d4d4d8' : '#f4f4f5'} strokeWidth={pct === 0 ? 1.5 : 1} />
-              <text x={padL - 6} y={y + 4} textAnchor="end" fontSize={11} fill="#a1a1aa" fontFamily="sans-serif">
+              <text x={padL - 6} y={y + 4} textAnchor="end" fontSize={9} fill="#a1a1aa" fontFamily="sans-serif">
                 {val}{unit}
               </text>
             </g>
@@ -146,12 +146,12 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
               {/* Committed */}
               <rect x={x} y={H - cH} width={barW} height={cH} rx={4} fill="#e4e4e7" />
               {cH > 16 && (
-                <text x={x + barW / 2} y={H - cH + 14} textAnchor="middle" fontSize={11} fill="#71717a" fontWeight={600}>
+                <text x={x + barW / 2} y={H - cH + 14} textAnchor="middle" fontSize={9} fill="#71717a" fontWeight={600}>
                   {cVal}
                 </text>
               )}
               {cH <= 16 && (
-                <text x={x + barW / 2} y={H - cH - 5} textAnchor="middle" fontSize={11} fill="#71717a">
+                <text x={x + barW / 2} y={H - cH - 5} textAnchor="middle" fontSize={9} fill="#71717a">
                   {cVal}
                 </text>
               )}
@@ -159,22 +159,22 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
               {/* Done */}
               <rect x={x + barW + gap} y={H - dH} width={barW} height={dH} rx={4} fill="#3b82f6" />
               {dH > 16 && (
-                <text x={x + barW + gap + barW / 2} y={H - dH + 14} textAnchor="middle" fontSize={11} fill="white" fontWeight={600}>
+                <text x={x + barW + gap + barW / 2} y={H - dH + 14} textAnchor="middle" fontSize={9} fill="white" fontWeight={600}>
                   {dVal}
                 </text>
               )}
               {dH <= 16 && (
-                <text x={x + barW + gap + barW / 2} y={H - dH - 5} textAnchor="middle" fontSize={11} fill="#3b82f6">
+                <text x={x + barW + gap + barW / 2} y={H - dH - 5} textAnchor="middle" fontSize={9} fill="#3b82f6">
                   {dVal}
                 </text>
               )}
 
               {/* Sprint label */}
-              <text x={x + groupW / 2} y={H + 18} textAnchor="middle" fontSize={11} fill="#71717a" fontFamily="sans-serif">
+              <text x={x + groupW / 2} y={H + 18} textAnchor="middle" fontSize={9} fill="#71717a" fontFamily="sans-serif">
                 {s.shortName}
               </text>
               {/* Rate */}
-              <text x={x + groupW / 2} y={H + 34} textAnchor="middle" fontSize={12} fontWeight={700} fill={rateColor} fontFamily="sans-serif">
+              <text x={x + groupW / 2} y={H + 34} textAnchor="middle" fontSize={10} fontWeight={700} fill={rateColor} fontFamily="sans-serif">
                 {rate}%
               </text>
             </g>
@@ -197,7 +197,7 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
               {pts.map((p, i) => (
                 <g key={i}>
                   <circle cx={p.x} cy={p.y} r={4} fill="white" stroke="#f59e0b" strokeWidth={2} />
-                  <text x={p.x} y={p.y - 10} textAnchor="middle" fontSize={10} fill="#b45309" fontWeight={700} fontFamily="sans-serif">
+                  <text x={p.x} y={p.y - 10} textAnchor="middle" fontSize={9} fill="#b45309" fontWeight={700} fontFamily="sans-serif">
                     {Math.round(p.avg)}{unit}
                   </text>
                 </g>
