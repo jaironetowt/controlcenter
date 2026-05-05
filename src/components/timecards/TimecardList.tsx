@@ -174,11 +174,11 @@ export function TimecardList({ projectId, salesforceId }: TimecardListProps) {
       )}
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex flex-col items-center gap-2 mt-4">
+          <Pagination value={page} onChange={setPage} total={totalPages} size="sm" />
           <span className="text-[12px] text-zinc-400">
             {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, timecards.length)} de {timecards.length}
           </span>
-          <Pagination value={page} onChange={setPage} total={totalPages} size="sm" />
         </div>
       )}
     </>
