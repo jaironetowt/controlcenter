@@ -46,14 +46,24 @@ function priorityColor(priority: string | null): string {
 
 // ─── Velocity Chart ───────────────────────────────────────────────────────────
 
-function VelocityChart({ sprints }: { sprints: VelocitySprint[] }) {
-  const hasSP = sprints.some((s) => s.committedSP > 0);
+function VelocityChart({ allSprints, displayFrom }: { allSprints: VelocitySprint[]; displayFrom: number }) {
+  const sprints = allSprints.slice(displayFrom); // bars to render
+  const hasSP = allSprints.some((s) => s.committedSP > 0);
   const [mode, setMode] = useState<'sp' | 'issues'>(hasSP ? 'sp' : 'issues');
 
+  const doneVal = (s: VelocitySprint) => mode === 'sp' ? s.doneSP : s.done;
   const committed = (s: VelocitySprint) => mode === 'sp' ? s.committedSP : s.committed;
-  const done      = (s: VelocitySprint) => mode === 'sp' ? s.doneSP      : s.done;
+  const done      = doneVal;
 
-  const max = Math.max(...sprints.flatMap((s) => [committed(s), done(s)]), 1);
+  // 3-sprint MA at display index i = avg of allSprints[displayFrom+i-2 .. displayFrom+i]
+  const MA_WINDOW = 3;
+  const maValues = sprints.map((_, i) => {
+    const absIdx = displayFrom + i;
+    const slice = allSprints.slice(Math.max(0, absIdx - MA_WINDOW + 1), absIdx + 1);
+    return slice.reduce((sum, s) => sum + doneVal(s), 0) / slice.length;
+  });
+
+  const max = Math.max(...sprints.flatMap((s) => [committed(s), done(s)]), ...maValues, 1);
   const H = 130;
   const barW = 22;
   const gap = 8;
@@ -120,18 +130,19 @@ function VelocityChart({ sprints }: { sprints: VelocitySprint[] }) {
           );
         })}
 
-        {/* Moving average line — center of each "done" bar */}
+        {/* Moving average line */}
         {(() => {
-          const maPoints = sprints.map((_, i) => {
-            const avg = sprints.slice(0, i + 1).reduce((sum, s) => sum + done(s), 0) / (i + 1);
-            const x = padL + i * (groupW + groupGap) + barW + gap + barW / 2;
-            const y = H - (avg / max) * H;
-            return { x, y, avg };
-          });
-          const polyline = maPoints.map((p) => `${p.x},${p.y}`).join(' ');
+          const maPoints = maValues.map((avg, i) => ({
+            x: padL + i * (groupW + groupGap) + barW + gap + barW / 2,
+            y: H - (avg / max) * H,
+            avg,
+          }));
           return (
             <g>
-              <polyline points={polyline} fill="none" stroke="#f59e0b" strokeWidth={2} strokeDasharray="4 3" strokeLinejoin="round" />
+              <polyline
+                points={maPoints.map((p) => `${p.x},${p.y}`).join(' ')}
+                fill="none" stroke="#f59e0b" strokeWidth={2} strokeDasharray="4 3" strokeLinejoin="round"
+              />
               {maPoints.map((p, i) => (
                 <g key={i}>
                   <circle cx={p.x} cy={p.y} r={3} fill="#f59e0b" />
@@ -181,6 +192,7 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
   const [error, setError]             = useState('');
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
   const [velocity, setVelocity]       = useState<VelocitySprint[]>([]);
+  const [velDisplayFrom, setVelDisplayFrom] = useState(0);
 
   const fetchData = useCallback(async (force = false) => {
     const ts = Number(localStorage.getItem(TS_KEY(projectId)) ?? 0);
@@ -226,7 +238,9 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
       body: JSON.stringify({ baseUrl, email, apiToken, projectKey, limit: 3 }),
     })
       .then((r) => r.json())
-      .then((v: { sprints?: VelocitySprint[] }) => { if (v.sprints) setVelocity(v.sprints); })
+      .then((v: { sprints?: VelocitySprint[]; displayFrom?: number }) => {
+        if (v.sprints) { setVelocity(v.sprints); setVelDisplayFrom(v.displayFrom ?? 0); }
+      })
       .catch(() => undefined);
   }, [projectId, baseUrl, email, apiToken, projectKey]);
 
@@ -303,7 +317,7 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
       {/* Velocity chart */}
       {velocity.length > 0 && (
         <div className="mb-6">
-          <VelocityChart sprints={velocity} />
+          <VelocityChart allSprints={velocity} displayFrom={velDisplayFrom} />
         </div>
       )}
 

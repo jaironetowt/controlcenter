@@ -6,7 +6,8 @@ interface RequestBody {
   email: string;
   apiToken: string;
   projectKey: string;
-  limit?: number;
+  limit?: number;   // sprints to display
+  window?: number;  // MA window size
 }
 
 export interface VelocitySprint {
@@ -50,7 +51,8 @@ export async function POST(request: Request): Promise<Response> {
   try { body = await request.json() as RequestBody; }
   catch { return Response.json({ error: 'Invalid body' }, { status: 400 }); }
 
-  const { baseUrl, email, apiToken, projectKey, limit = 3 } = body;
+  const { baseUrl, email, apiToken, projectKey, limit = 3, window: maWindow = 3 } = body;
+  const fetchCount = limit + maWindow - 1; // extra sprints for MA context
   if (!baseUrl || !email || !apiToken || !projectKey) {
     return Response.json({ error: 'Missing required fields' }, { status: 400 });
   }
@@ -71,7 +73,7 @@ export async function POST(request: Request): Promise<Response> {
       `${baseUrl}/rest/agile/1.0/board/${board.id}/sprint?state=closed&maxResults=50`,
       a,
     );
-    const closedSprints = sprintsRes.values.slice(-limit);
+    const closedSprints = sprintsRes.values.slice(-fetchCount);
 
     // 3. For each sprint, fetch issue counts
     const results: VelocitySprint[] = await Promise.all(
@@ -97,7 +99,8 @@ export async function POST(request: Request): Promise<Response> {
       }),
     );
 
-    return Response.json({ sprints: results });
+    // Last `limit` sprints are the ones to display; all are used for MA
+    return Response.json({ sprints: results, displayFrom: Math.max(0, results.length - limit) });
   } catch (err) {
     return Response.json({ error: err instanceof Error ? err.message : 'Unknown error' }, { status: 502 });
   }
