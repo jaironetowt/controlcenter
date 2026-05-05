@@ -93,7 +93,7 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
       <div className="flex items-center justify-between mb-5">
         <div>
           <p className="text-[13px] font-semibold text-zinc-800">Velocity</p>
-          <p className="text-[11px] text-zinc-400 mt-0.5">Last {sprints.length} sprints · 3-sprint moving avg</p>
+          <p className="text-[11px] text-zinc-400 mt-0.5">Last {sprints.length} closed sprints · 3-sprint moving average</p>
         </div>
         {showIssuesToggle && (
           <div className="flex rounded-lg overflow-hidden border border-zinc-200 text-[11px] font-medium">
