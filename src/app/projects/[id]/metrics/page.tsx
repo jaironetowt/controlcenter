@@ -391,16 +391,15 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
             <>
               <div className="w-px bg-zinc-200 self-stretch mx-1" />
               <div className="flex flex-col items-center px-4 py-2 rounded-lg bg-indigo-50 text-indigo-700">
-                <span className="text-[18px] font-bold leading-tight">{spCommitted}</span>
-                <span className="text-[11px] font-medium">SP Committed</span>
+                <div className="leading-tight">
+                  <span className="text-[18px] font-bold">{spDone}</span>
+                  <span className="text-[13px] font-normal text-indigo-400"> / {spCommitted}</span>
+                </div>
+                <span className="text-[11px] font-medium">Story Points</span>
               </div>
-              <div className="flex flex-col items-center px-4 py-2 rounded-lg bg-indigo-50 text-indigo-700">
-                <span className="text-[18px] font-bold leading-tight">{spDone}</span>
-                <span className="text-[11px] font-medium">SP Done</span>
-              </div>
-              <div className="flex flex-col items-center px-4 py-2 rounded-lg bg-indigo-50 text-indigo-700">
-                <span className="text-[18px] font-bold leading-tight">{spPct}%</span>
-                <span className="text-[11px] font-medium">SP %</span>
+              <div className="flex flex-col items-center px-4 py-2 rounded-lg bg-indigo-50">
+                <span className="text-[18px] font-bold leading-tight" style={{ color: spPct >= 80 ? '#22c55e' : spPct >= 60 ? '#f59e0b' : '#ef4444' }}>{spPct}%</span>
+                <span className="text-[11px] font-medium text-indigo-700">SP Done</span>
               </div>
             </>
           )}
