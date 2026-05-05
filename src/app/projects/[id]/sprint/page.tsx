@@ -84,6 +84,7 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
   const groupW   = barW * 2 + gap;
   const groupGap = 44;
   const padL     = 40;
+  const padT     = 16;
   const padB     = 40;
   const padR     = 16;
   const totalW   = padL + sprints.length * (groupW + groupGap) - groupGap + padR;
@@ -116,12 +117,13 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
         )}
       </div>
 
-      <svg width="100%" style={{ maxWidth: totalW * 1.4 }} viewBox={`0 0 ${totalW} ${H + padB}`} className="overflow-visible">
+      <svg width="100%" style={{ maxWidth: totalW * 1.4 }} viewBox={`0 0 ${totalW} ${H + padT + padB}`} className="overflow-visible">
         {/* Y-axis label */}
-        <text x={padL - 6} y={-6} textAnchor="end" fontSize={8} fill="#a1a1aa" fontFamily="sans-serif" fontWeight={600}>
+        <text x={padL - 6} y={padT - 4} textAnchor="end" fontSize={8} fill="#a1a1aa" fontFamily="sans-serif" fontWeight={600}>
           {mode === 'sp' ? 'SP' : 'Issues'}
         </text>
 
+        <g transform={`translate(0, ${padT})`}>
         {/* Grid — subticks a cada 50 */}
         {Array.from({ length: Math.floor(max / 50) + 1 }, (_, i) => i * 50).map((val) => {
           const isMajor = tickVals.includes(val);
@@ -215,6 +217,7 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
             </g>
           );
         })()}
+        </g>
       </svg>
 
       {/* Legend */}
