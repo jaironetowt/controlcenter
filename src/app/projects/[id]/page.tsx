@@ -31,13 +31,14 @@ interface ModuleCardProps {
   sub: React.ReactNode;
   href: string;
   color: string;
+  disabled?: boolean;
 }
 
-function ModuleCard({ icon, label, count, sub, href, color }: ModuleCardProps) {
+function ModuleCard({ icon, label, count, sub, href, color, disabled = false }: ModuleCardProps) {
   return (
     <Link
       href={href}
-      className="group bg-white rounded-xl border border-zinc-200 p-5 hover:shadow-md transition-all flex flex-col gap-3"
+      className={`group bg-white rounded-xl border border-zinc-200 p-5 transition-all flex flex-col gap-3 ${disabled ? 'opacity-50 grayscale' : 'hover:shadow-md'}`}
     >
       <div className="flex items-center justify-between">
         <div
@@ -172,25 +173,24 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             href={projectSlugPath(projectSlug, '/stakeholders')}
             color="#F59E0B"
           />
-          {jiraConfig && (
-            <ModuleCard
-              icon={<IconChartBar size={18} />}
-              label="Metrics"
-              count={sprintCache?.activeSprint && spCommitted > 0
-                ? <span className="leading-none">
-                    <span className="text-[28px] font-semibold text-zinc-900">{spDone}</span>
-                    <span className="text-[18px] font-normal text-zinc-400"> / {spCommitted}</span>
-                  </span>
-                : <span className="text-[28px] font-semibold text-zinc-900">{spDone}</span>
-              }
-              sub={sprintCache?.activeSprint && spCommitted > 0
-                ? <span className="text-[12px] font-semibold" style={{ color: spPct >= 80 ? '#22c55e' : spPct >= 60 ? '#f59e0b' : '#ef4444' }}>{spPct}% SP done</span>
-                : <span className="text-[12px] text-zinc-400">Jira connected</span>
-              }
-              href={projectSlugPath(projectSlug, '/metrics')}
-              color="#6366F1"
-            />
-          )}
+          <ModuleCard
+            icon={<IconChartBar size={18} />}
+            label="Metrics"
+            count={jiraConfig && sprintCache?.activeSprint && spCommitted > 0
+              ? <span className="leading-none">
+                  <span className="text-[28px] font-semibold text-zinc-900">{spDone}</span>
+                  <span className="text-[18px] font-normal text-zinc-400"> / {spCommitted}</span>
+                </span>
+              : <span className="text-[28px] font-semibold text-zinc-900">—</span>
+            }
+            sub={jiraConfig && sprintCache?.activeSprint && spCommitted > 0
+              ? <span className="text-[12px] font-semibold" style={{ color: spPct >= 80 ? '#22c55e' : spPct >= 60 ? '#f59e0b' : '#ef4444' }}>{spPct}% SP done</span>
+              : <span className="text-[12px] text-zinc-400">{jiraConfig ? 'Jira connected' : 'Connect Jira in Settings'}</span>
+            }
+            href={jiraConfig ? projectSlugPath(projectSlug, '/metrics') : projectSlugPath(projectSlug, '/settings')}
+            color="#6366F1"
+            disabled={!jiraConfig}
+          />
           {p.salesforceId && (
             <ModuleCard
               icon={<IconStack2 size={18} />}
