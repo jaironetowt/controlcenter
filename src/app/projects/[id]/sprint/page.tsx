@@ -53,8 +53,9 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
   projectId: string;
 }) {
   const sprints = allSprints.slice(displayFrom);
-  const doneVal  = (s: VelocitySprint) => s.doneSP;
-  const commVal  = (s: VelocitySprint) => s.committedSP;
+  const [mode, setMode] = useState<'sp' | 'issues'>('sp');
+  const doneVal  = (s: VelocitySprint) => mode === 'sp' ? s.doneSP      : s.done;
+  const commVal  = (s: VelocitySprint) => mode === 'sp' ? s.committedSP : s.committed;
 
   const MA_WINDOW = 3;
   const maValues = sprints.map((_, i) => {
@@ -78,7 +79,7 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
   const max      = Math.ceil(rawMax / 50) * 50;
   const tickStep = Math.max(50, Math.ceil(max / 5 / 50) * 50);
   const tickVals = Array.from({ length: Math.floor(max / tickStep) + 1 }, (_, i) => i * tickStep);
-  const unit  = ' SP';
+  const unit  = mode === 'sp' ? ' SP' : '';
 
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-5">
@@ -88,14 +89,22 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
           <p className="text-[13px] font-semibold text-zinc-800">Velocity</p>
           <p className="text-[11px] text-zinc-400 mt-0.5">Last {sprints.length} sprints · 3-sprint moving avg</p>
         </div>
+        <div className="flex rounded-lg overflow-hidden border border-zinc-200 text-[11px] font-medium">
+          {(['sp', 'issues'] as const).map((m) => (
+            <button key={m} onClick={() => setMode(m)}
+              className={`px-3 py-1.5 transition-colors ${mode === m ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-400 hover:text-zinc-700'}`}>
+              {m === 'sp' ? 'Story Points' : 'Issues'}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div style={{ maxWidth: totalW * 1.4 }} className="mx-auto">
       <svg width="100%" viewBox={`0 0 ${totalW} ${H + padT + padB}`} className="overflow-visible">
         {/* Y-axis label */}
         <text x={padL - 6} y={padT - 4} textAnchor="end" fontSize={8} fill="#a1a1aa" fontFamily="sans-serif" fontWeight={600}>
-          SP
-        </text>
+          {mode === 'sp' ? 'SP' : 'Issues'}
+</text>
 
         <g transform={`translate(0, ${padT})`}>
         {/* Grid — subticks a cada 50 */}
