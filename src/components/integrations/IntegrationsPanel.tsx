@@ -12,6 +12,7 @@ import {
 import { type Project } from '@/stores/useProjectsStore';
 import { usePMToolStore } from '@/stores/usePMToolStore';
 import { useStakeholdersStore } from '@/stores/useStakeholdersStore';
+import { supabase } from '@/lib/supabase';
 import { PMToolConfig } from '@/components/integrations/PMToolConfig';
 import type { SFStakeholder } from '@/app/api/salesforce/stakeholders/route';
 
@@ -113,10 +114,10 @@ interface IntegrationsPanelProps {
 }
 
 export function IntegrationsPanel({ project }: IntegrationsPanelProps) {
-  const pmConfigs      = usePMToolStore((s) => s.configs);
-  const jiraConfig     = pmConfigs[project.id] ?? null;
-  const addStakeholder = useStakeholdersStore((s) => s.addStakeholder);
-  const stakeholders   = useStakeholdersStore((s) => s.stakeholders);
+  const pmConfigs         = usePMToolStore((s) => s.configs);
+  const jiraConfig        = pmConfigs[project.id] ?? null;
+  const stakeholders      = useStakeholdersStore((s) => s.stakeholders);
+  const fetchStakeholders = useStakeholdersStore((s) => s.fetchStakeholders);
 
   const [sfImporting, setSfImporting] = useState(false);
   const [sfImportMsg, setSfImportMsg] = useState<string | null>(null);
@@ -140,17 +141,25 @@ export function IntegrationsPanel({ project }: IntegrationsPanelProps) {
       const existing = new Set(stakeholders.filter((s) => s.projectId === project.id).map((s) => s.name.toLowerCase()));
       const toAdd    = (data.stakeholders ?? []).filter((s) => !existing.has(s.name.toLowerCase()));
 
-      await Promise.all(toAdd.map((s) => addStakeholder({
-        projectId: project.id,
-        name:      s.name,
-        role:      s.role,
-        company:   s.company,
-        influence: 'Low',
-        interest:  'Low',
-        notes:     '',
-      })));
+      if (toAdd.length === 0) { setSfImportMsg('All already imported.'); return; }
 
-      setSfImportMsg(toAdd.length > 0 ? `${toAdd.length} stakeholder(s) imported.` : 'All already imported.');
+      const rows = toAdd.map((s) => ({
+        id:         crypto.randomUUID(),
+        project_id: project.id,
+        name:       s.name,
+        role:       s.role || '',
+        company:    s.company || '',
+        influence:  'Low',
+        interest:   'Low',
+        notes:      '',
+        created_at: new Date().toISOString(),
+      }));
+
+      const { error: dbErr } = await supabase.from('stakeholders').insert(rows);
+      if (dbErr) { setSfImportMsg(`Error: ${dbErr.message}`); return; }
+
+      await fetchStakeholders();
+      setSfImportMsg(`${toAdd.length} stakeholder(s) imported.`);
     } catch (err) {
       setSfImportMsg(`Error: ${err instanceof Error ? err.message : 'Unknown'}`);
     } finally {
