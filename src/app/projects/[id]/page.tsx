@@ -14,10 +14,13 @@ import {
 import { ProjectHeader } from '@/components/layout/ProjectHeader';
 import { useProjectsStore, Project } from '@/stores/useProjectsStore';
 import { buildSlugMap, projectSlugPath } from '@/lib/slugify';
+import { IconChartBar } from '@tabler/icons-react';
 import { useRisksStore } from '@/stores/useRisksStore';
 import { useDecisionsStore } from '@/stores/useDecisionsStore';
 import { useActionItemsStore } from '@/stores/useActionItemsStore';
 import { useStakeholdersStore } from '@/stores/useStakeholdersStore';
+import { usePMToolStore } from '@/stores/usePMToolStore';
+import type { VelocitySprint } from '@/app/api/pm/jira/velocity/route';
 
 // ─── Module card ──────────────────────────────────────────────────────────────
 
@@ -71,6 +74,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const storeDecisions    = useDecisionsStore((s) => s.decisions);
   const storeItems        = useActionItemsStore((s) => s.items);
   const storeStakeholders = useStakeholdersStore((s) => s.stakeholders);
+  const pmConfigs         = usePMToolStore((s) => s.configs);
 
   const slugMap = mounted ? buildSlugMap(storeProjects) : {};
   const matchedId = mounted ? (Object.entries(slugMap).find(([, s]) => s === id)?.[0] ?? id) : null;
@@ -88,6 +92,16 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const openActions  = mounted ? storeItems.filter((i) => i.projectId === projectId && i.status !== 'Done').length : 0;
   const totalActions = mounted ? storeItems.filter((i) => i.projectId === projectId).length : 0;
   const stakeholders = mounted ? storeStakeholders.filter((s) => s.projectId === projectId).length : 0;
+
+  const jiraConfig     = pmConfigs[projectId] ?? null;
+  const velCache       = mounted ? (() => {
+    try {
+      const raw = localStorage.getItem(`sprint-vel-${projectId}`);
+      if (!raw) return null;
+      const { sprints, displayFrom } = JSON.parse(raw) as { sprints: VelocitySprint[]; displayFrom: number };
+      return sprints.slice(displayFrom).at(-1) ?? null;
+    } catch { return null; }
+  })() : null;
 
   const updateProject  = useProjectsStore((s) => s.updateProject);
   const timecardCount  = mounted ? (project?.timecardCount ?? 0) : 0;
@@ -151,6 +165,16 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             href={projectSlugPath(projectSlug, '/stakeholders')}
             color="#F59E0B"
           />
+          {jiraConfig && (
+            <ModuleCard
+              icon={<IconChartBar size={18} />}
+              label="Metrics"
+              count={velCache?.doneSP ?? 0}
+              sub={velCache ? `${velCache.doneSP} SP done · ${velCache.committedSP > 0 ? Math.round((velCache.doneSP / velCache.committedSP) * 100) : 0}% · ${velCache.shortName}` : 'Jira connected'}
+              href={projectSlugPath(projectSlug, '/metrics')}
+              color="#6366F1"
+            />
+          )}
           {p.salesforceId && (
             <ModuleCard
               icon={<IconStack2 size={18} />}
