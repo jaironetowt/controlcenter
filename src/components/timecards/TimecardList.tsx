@@ -1,8 +1,11 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { Pagination } from '@mantine/core';
 import { IconRefresh } from '@tabler/icons-react';
 import { useProjectsStore } from '@/stores/useProjectsStore';
+
+const PAGE_SIZE = 50;
 
 interface Timecard {
   resourceName: string;
@@ -35,6 +38,7 @@ export function TimecardList({ projectId, salesforceId }: TimecardListProps) {
   );
   const [error, setError]         = useState('');
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
+  const [page, setPage] = useState(1);
 
   const fetchTimecards = useCallback(async (force = false) => {
     const ts = Number(localStorage.getItem(TS_KEY(projectId)) ?? 0);
@@ -58,6 +62,7 @@ export function TimecardList({ projectId, salesforceId }: TimecardListProps) {
         return a.resourceName.localeCompare(b.resourceName);
       });
       setTimecards(list);
+      setPage(1);
       setLastFetched(new Date());
       localStorage.setItem(DATA_KEY(projectId), JSON.stringify(list));
       localStorage.setItem(TS_KEY(projectId), String(Date.now()));
@@ -87,6 +92,9 @@ export function TimecardList({ projectId, salesforceId }: TimecardListProps) {
     // Fetch only if stale
     void fetchTimecards();
   }, [projectId, fetchTimecards]);
+
+  const totalPages = Math.ceil(timecards.length / PAGE_SIZE);
+  const pageSlice  = timecards.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <>
@@ -138,7 +146,7 @@ export function TimecardList({ projectId, salesforceId }: TimecardListProps) {
               </tr>
             </thead>
             <tbody>
-              {timecards.map((tc, i) => (
+              {pageSlice.map((tc, i) => (
                 <tr key={i} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
                   <td className="py-2.5 pr-4">
                     <span className="text-[13px] text-zinc-800">{tc.resourceName}</span>
@@ -162,6 +170,12 @@ export function TimecardList({ projectId, salesforceId }: TimecardListProps) {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <Pagination value={page} onChange={setPage} total={totalPages} size="sm" />
         </div>
       )}
     </>
