@@ -14,6 +14,7 @@ export interface Project {
   archivedAt?: number;
   createdAt: number;
   salesforceId?: string;
+  sfDateRange?: string;
   timecardCount?: number;
   timecardCountAt?: number;
 }
@@ -44,6 +45,7 @@ function fromDb(row: Record<string, unknown>): Project {
     archivedAt:       row.archived_at ? new Date(row.archived_at as string).getTime() : undefined,
     createdAt:        new Date(row.created_at as string).getTime(),
     salesforceId:     (row.salesforce_id as string | null) ?? undefined,
+    sfDateRange:      (row.sf_date_range as string | null) ?? undefined,
     timecardCount:    (row.timecard_count as number | null) ?? undefined,
     timecardCountAt:  row.timecard_count_at ? new Date(row.timecard_count_at as string).getTime() : undefined,
   };
@@ -60,6 +62,7 @@ function toDb(p: Partial<Project> & { id: string }) {
   if (p.archived        !== undefined) row.archived          = p.archived;
   if (p.archivedAt      !== undefined) row.archived_at       = p.archivedAt ? new Date(p.archivedAt).toISOString() : null;
   if (p.salesforceId    !== undefined) row.salesforce_id     = p.salesforceId ?? null;
+  if (p.sfDateRange     !== undefined) row.sf_date_range     = p.sfDateRange ?? null;
   if (p.timecardCount   !== undefined) row.timecard_count    = p.timecardCount ?? null;
   if (p.timecardCountAt !== undefined) row.timecard_count_at = p.timecardCountAt ? new Date(p.timecardCountAt).toISOString() : null;
   return row;
@@ -112,6 +115,7 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
       date_range:    input.dateRange,
       archived:      false,
       salesforce_id: input.salesforceId ?? null,
+      sf_date_range: input.sfDateRange ?? null,
       created_at:    new Date(createdAt).toISOString(),
     });
 

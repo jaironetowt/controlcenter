@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { TextInput, Button, Group, Text } from '@mantine/core';
+import { IconCloudDown } from '@tabler/icons-react';
 import { useProjectsStore, type Project } from '@/stores/useProjectsStore';
-import { DateRangeFields, parseDateRange, buildDateRange } from '@/components/projects/DateRangeFields';
+import { DateRangeFields, parseDateRange, buildDateRange, monthToLabel } from '@/components/projects/DateRangeFields';
 
 // ─── Color palette ────────────────────────────────────────────────────────────
 
@@ -158,6 +159,24 @@ export function ProjectInfoForm({ project, onSaved }: ProjectInfoFormProps) {
         end={form.endDate}
         onChange={(s, e) => { setField('startDate', s); setField('endDate', e); }}
       />
+      {/* Original SF dates — shown only when dates have been manually changed */}
+      {(() => {
+        if (!project.sfDateRange) return null;
+        const sfDates = parseDateRange(project.sfDateRange);
+        if (form.startDate === sfDates.start && form.endDate === sfDates.end) return null;
+        const label = [
+          sfDates.start && monthToLabel(sfDates.start),
+          sfDates.end   && monthToLabel(sfDates.end),
+        ].filter(Boolean).join(' – ');
+        return (
+          <div className="flex items-start gap-1.5">
+            <IconCloudDown size={13} className="text-orange-400 mt-0.5 flex-shrink-0" />
+            <Text size="xs" c="orange">
+              Original Salesforce dates: {label}
+            </Text>
+          </div>
+        );
+      })()}
 
       <Group justify="flex-end" mt="xs">
         {saved && (
