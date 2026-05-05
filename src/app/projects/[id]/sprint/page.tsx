@@ -78,13 +78,13 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
   });
 
   // Layout
-  const H        = 200;
-  const barW     = 32;
-  const gap      = 10;
+  const H        = 150;
+  const barW     = 26;
+  const gap      = 8;
   const groupW   = barW * 2 + gap;
-  const groupGap = 56;
-  const padL     = 44;
-  const padB     = 44;
+  const groupGap = 44;
+  const padL     = 40;
+  const padB     = 40;
   const padR     = 16;
   const totalW   = padL + sprints.length * (groupW + groupGap) - groupGap + padR;
   const max      = Math.max(...sprints.flatMap((s) => [commVal(s), doneVal(s)]), ...maValues, 1);
