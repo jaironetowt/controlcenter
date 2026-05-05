@@ -16,7 +16,7 @@ export default function ProjectStakeholdersPage({ params }: { params: Promise<{ 
 
   const storeProjects   = useProjectsStore((s) => s.projects);
   const projectsLoading = useProjectsStore((s) => s.loading);
-  const project = mounted ? storeProjects.find((p) => slugify(p.name) === id || p.id === id) : null;
+  const project = mounted ? storeProjects.find((p) => (slugify(p.name) === id || p.id === id) && !p.archived) ?? storeProjects.find((p) => slugify(p.name) === id || p.id === id) : null;
 
   const rawFeatures = useFeaturesStore((s) => s.features);
   const features = mounted ? rawFeatures : DEFAULT_FEATURES;

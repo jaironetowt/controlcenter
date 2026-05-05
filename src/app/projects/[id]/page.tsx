@@ -72,7 +72,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const storeItems        = useActionItemsStore((s) => s.items);
   const storeStakeholders = useStakeholdersStore((s) => s.stakeholders);
 
-  const project = mounted ? storeProjects.find((p) => slugify(p.name) === id || p.id === id) : null;
+  const project = mounted ? storeProjects.find((p) => (slugify(p.name) === id || p.id === id) && !p.archived) ?? storeProjects.find((p) => slugify(p.name) === id || p.id === id) : null;
 
   if (mounted && !projectsLoading && !project) return notFound();
 

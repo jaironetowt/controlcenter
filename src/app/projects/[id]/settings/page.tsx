@@ -16,7 +16,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ id: 
 
   const storeProjects   = useProjectsStore((s) => s.projects);
   const projectsLoading = useProjectsStore((s) => s.loading);
-  const project = mounted ? storeProjects.find((p) => slugify(p.name) === id || p.id === id) : null;
+  const project = mounted ? storeProjects.find((p) => (slugify(p.name) === id || p.id === id) && !p.archived) ?? storeProjects.find((p) => slugify(p.name) === id || p.id === id) : null;
 
   if (mounted && !projectsLoading && !project) return notFound();
   const p = project ?? { id, name: '…', color: '#3E77FC', client: '…', phase: '…', dateRange: '…', archived: false };
