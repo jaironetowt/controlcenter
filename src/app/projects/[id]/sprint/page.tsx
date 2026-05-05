@@ -117,17 +117,21 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
       </div>
 
       <svg width="100%" style={{ maxWidth: totalW * 1.4 }} viewBox={`0 0 ${totalW} ${H + padB}`} className="overflow-visible">
-        {/* Grid */}
-        {tickVals.map((val) => {
+        {/* Grid — subticks a cada 50 */}
+        {Array.from({ length: Math.floor(max / 50) + 1 }, (_, i) => i * 50).map((val) => {
+          const isMajor = tickVals.includes(val);
           const pct = val / max;
           const y   = H - pct * H;
           return (
             <g key={val}>
               <line x1={padL} x2={totalW - padR} y1={y} y2={y}
-                stroke={val === 0 ? '#d4d4d8' : '#f4f4f5'} strokeWidth={val === 0 ? 1.5 : 1} />
-              <text x={padL - 6} y={y + 4} textAnchor="end" fontSize={9} fill="#a1a1aa" fontFamily="sans-serif">
-                {val}{unit}
-              </text>
+                stroke={val === 0 ? '#d4d4d8' : isMajor ? '#f0f0f0' : '#f7f7f7'}
+                strokeWidth={val === 0 ? 1.5 : 1} />
+              {isMajor && (
+                <text x={padL - 6} y={y + 4} textAnchor="end" fontSize={9} fill="#a1a1aa" fontFamily="sans-serif">
+                  {val}{unit}
+                </text>
+              )}
             </g>
           );
         })}
