@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { ProjectHeader } from '@/components/layout/ProjectHeader';
 import { TimecardList } from '@/components/timecards/TimecardList';
 import { useProjectsStore } from '@/stores/useProjectsStore';
+import { slugify } from '@/lib/slugify';
 
 export default function ProjectTimecardsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -12,7 +13,7 @@ export default function ProjectTimecardsPage({ params }: { params: Promise<{ id:
   useEffect(() => { setMounted(true); }, []);
 
   const storeProjects = useProjectsStore((s) => s.projects);
-  const project = mounted ? storeProjects.find((p) => p.id === id) : null;
+  const project = mounted ? storeProjects.find((p) => slugify(p.name) === id || p.id === id) : null;
 
   if (mounted && !project) return notFound();
   const p = project ?? { id, name: '…', color: '#3E77FC', client: '…', phase: '…', dateRange: '…', archived: false };

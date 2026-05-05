@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { ProjectHeader } from '@/components/layout/ProjectHeader';
 import { DecisionLog } from '@/components/decisions/DecisionLog';
 import { useProjectsStore } from '@/stores/useProjectsStore';
+import { slugify } from '@/lib/slugify';
 
 export default function ProjectDecisionsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

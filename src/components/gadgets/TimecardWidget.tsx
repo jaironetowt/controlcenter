@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { IconClock } from '@tabler/icons-react';
 import { useProjectsStore } from '@/stores/useProjectsStore';
+import { projectPath } from '@/lib/slugify';
 
 const MOCK_KEY = 'tc-data-mosaic';
 const MOCK_DATA = JSON.stringify([
@@ -73,7 +74,7 @@ export function TimecardWidget() {
           {rows.map((r) => (
             <Link
               key={r.projectId}
-              href={`/projects/${r.projectId}/timecards`}
+              href={projectPath(r.projectName, '/timecards')}
               className="flex items-center justify-between group"
             >
               <span className="text-[12px] text-zinc-600 group-hover:text-zinc-900 truncate transition-colors">

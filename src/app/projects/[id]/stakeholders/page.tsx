@@ -6,6 +6,7 @@ import { ProjectHeader } from '@/components/layout/ProjectHeader';
 import { StakeholderList } from '@/components/stakeholders/StakeholderList';
 import { InfluenceGrid } from '@/components/stakeholders/InfluenceGrid';
 import { useProjectsStore } from '@/stores/useProjectsStore';
+import { slugify } from '@/lib/slugify';
 import { useFeaturesStore, DEFAULT_FEATURES } from '@/stores/useFeaturesStore';
 
 export default function ProjectStakeholdersPage({ params }: { params: Promise<{ id: string }> }) {

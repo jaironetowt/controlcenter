@@ -13,6 +13,7 @@ import {
 } from '@tabler/icons-react';
 import { ProjectHeader } from '@/components/layout/ProjectHeader';
 import { useProjectsStore, Project } from '@/stores/useProjectsStore';
+import { slugify, projectPath } from '@/lib/slugify';
 import { useRisksStore } from '@/stores/useRisksStore';
 import { useDecisionsStore } from '@/stores/useDecisionsStore';
 import { useActionItemsStore } from '@/stores/useActionItemsStore';
@@ -70,7 +71,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const storeItems        = useActionItemsStore((s) => s.items);
   const storeStakeholders = useStakeholdersStore((s) => s.stakeholders);
 
-  const project = mounted ? storeProjects.find((p) => p.id === id) : null;
+  const project = mounted ? storeProjects.find((p) => slugify(p.name) === id || p.id === id) : null;
 
   if (mounted && !project) return notFound();
 
@@ -118,7 +119,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             label="Risks"
             count={openRisks}
             sub={`${totalRisks} total · ${openRisks} open`}
-            href={`/projects/${id}/risks`}
+            href={projectPath(p.name, '/risks')}
             color="#EF4444"
           />
           <ModuleCard
@@ -126,7 +127,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             label="Decisions"
             count={decisions}
             sub="registered decisions"
-            href={`/projects/${id}/decisions`}
+            href={projectPath(p.name, '/decisions')}
             color="#8B56FC"
           />
           <ModuleCard
@@ -134,7 +135,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             label="Action Items"
             count={openActions}
             sub={`${totalActions} total · ${openActions} open`}
-            href={`/projects/${id}/actions`}
+            href={projectPath(p.name, '/actions')}
             color="#3E77FC"
           />
           <ModuleCard
@@ -142,7 +143,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             label="Stakeholders"
             count={stakeholders}
             sub="mapped stakeholders"
-            href={`/projects/${id}/stakeholders`}
+            href={projectPath(p.name, '/stakeholders')}
             color="#F59E0B"
           />
           {p.salesforceId && (
@@ -151,7 +152,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               label="Timecards"
               count={timecardCount}
               sub="missing timecards"
-              href={`/projects/${id}/timecards`}
+              href={projectPath(p.name, '/timecards')}
               color="#06B6D4"
             />
           )}

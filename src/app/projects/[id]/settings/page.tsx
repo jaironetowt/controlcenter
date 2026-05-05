@@ -7,6 +7,7 @@ import { ProjectHeader } from '@/components/layout/ProjectHeader';
 import { PMToolConfig } from '@/components/integrations/PMToolConfig';
 import { ProjectInfoForm } from '@/components/projects/ProjectInfoForm';
 import { useProjectsStore } from '@/stores/useProjectsStore';
+import { slugify } from '@/lib/slugify';
 
 export default function ProjectSettingsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

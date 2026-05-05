@@ -8,6 +8,7 @@ import { RiskMatrix } from '@/components/risks/RiskMatrix';
 import { MitigatedRisks } from '@/components/risks/MitigatedRisks';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { useFeaturesStore, DEFAULT_FEATURES } from '@/stores/useFeaturesStore';
+import { slugify } from '@/lib/slugify';
 
 export default function ProjectRisksPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);

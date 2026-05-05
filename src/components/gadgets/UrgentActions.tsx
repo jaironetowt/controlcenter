@@ -6,6 +6,7 @@ import { IconChecklist, IconSettings, IconCircle, IconCircleHalf2, IconX } from 
 import { useActionItemsStore, type ActionStatus } from '@/stores/useActionItemsStore';
 import { PriorityIcon } from '@/components/ui/PriorityIcon';
 import { useProjectsStore } from '@/stores/useProjectsStore';
+import { projectPath } from '@/lib/slugify';
 
 const STORAGE_KEY = 'hd-urgent-days';
 const DEFAULT_DAYS = 3;
@@ -119,7 +120,7 @@ export function UrgentActions() {
             return (
               <Link
                 key={item.id}
-                href={`/projects/${item.projectId}/actions`}
+                href={proj ? projectPath(proj.name, '/actions') : `/projects/${item.projectId}/actions`}
                 className="flex flex-col gap-0.5 group"
               >
                 {/* Title row: radio centered on 1-2 lines */}

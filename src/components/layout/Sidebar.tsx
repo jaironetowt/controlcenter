@@ -30,6 +30,7 @@ import { useState, useEffect } from 'react';
 import { create } from 'zustand';
 import { useProjectsStore, type Project } from '@/stores/useProjectsStore';
 import { ProjectModal } from '@/components/projects/ProjectModal';
+import { slugify, projectPath } from '@/lib/slugify';
 
 // ─── Zustand store ────────────────────────────────────────────────────────────
 interface SidebarStore {
@@ -44,19 +45,19 @@ const useSidebarStore = create<SidebarStore>()((set) => ({
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
-function getModuleItems(projectId: string) {
+function getModuleItems(projectName: string) {
   return [
-    { label: 'Dashboard',    href: `/projects/${projectId}`,              icon: IconLayoutDashboard },
-    { label: 'Risks',        href: `/projects/${projectId}/risks`,        icon: IconAlertTriangle   },
-    { label: 'Decisions',    href: `/projects/${projectId}/decisions`,    icon: IconNotes           },
-    { label: 'Action Items', href: `/projects/${projectId}/actions`,      icon: IconChecklist       },
-    { label: 'Stakeholders', href: `/projects/${projectId}/stakeholders`, icon: IconUsers           },
-    { label: 'Milestones',  href: null,                                   icon: IconFlag            },
-    { label: 'Timecards',   href: `/projects/${projectId}/timecards`,    icon: IconClock           },
-    { label: 'Metrics',     href: null,                                   icon: IconChartBar        },
-    { label: 'Knowledge',    href: null,                                   icon: IconBook            },
-    { label: 'Reports',      href: null,                                   icon: IconFileText        },
-    { label: 'Settings',     href: `/projects/${projectId}/settings`,      icon: IconSettings2       },
+    { label: 'Dashboard',    href: projectPath(projectName),                   icon: IconLayoutDashboard },
+    { label: 'Risks',        href: projectPath(projectName, '/risks'),         icon: IconAlertTriangle   },
+    { label: 'Decisions',    href: projectPath(projectName, '/decisions'),     icon: IconNotes           },
+    { label: 'Action Items', href: projectPath(projectName, '/actions'),       icon: IconChecklist       },
+    { label: 'Stakeholders', href: projectPath(projectName, '/stakeholders'),  icon: IconUsers           },
+    { label: 'Milestones',   href: null,                                        icon: IconFlag            },
+    { label: 'Timecards',    href: projectPath(projectName, '/timecards'),     icon: IconClock           },
+    { label: 'Metrics',      href: null,                                        icon: IconChartBar        },
+    { label: 'Knowledge',    href: null,                                        icon: IconBook            },
+    { label: 'Reports',      href: null,                                        icon: IconFileText        },
+    { label: 'Settings',     href: projectPath(projectName, '/settings'),      icon: IconSettings2       },
   ];
 }
 
@@ -77,9 +78,9 @@ export function Sidebar() {
   const storeProjects = useProjectsStore((s) => s.projects);
   const projects = mounted ? storeProjects.filter((p) => !p.archived) : [];
 
-  const urlProjectId = pathname.match(/^\/projects\/([^/]+)/)?.[1] ?? null;
+  const urlProjectSlug = pathname.match(/^\/projects\/([^/]+)/)?.[1] ?? null;
   const activeProject = mounted
-    ? (urlProjectId ? projects.find((p) => p.id === urlProjectId) ?? null : null)
+    ? (urlProjectSlug ? projects.find((p) => slugify(p.name) === urlProjectSlug || p.id === urlProjectSlug) ?? null : null)
     : null;
 
   // Which projects have their sub-menu expanded
@@ -101,7 +102,7 @@ export function Sidebar() {
       });
     });
     requestAnimationFrame(() => {
-      router.push(`/projects/${project.id}`);
+      router.push(projectPath(project.name));
     });
   }
 
@@ -207,7 +208,7 @@ export function Sidebar() {
           {projects.map((project) => {
             const isActive = activeProject?.id === project.id;
             const menuOpen = isMenuOpen(project);
-            const moduleItems = getModuleItems(project.id);
+            const moduleItems = getModuleItems(project.name);
 
             const projectBtn = (
               <ProjectRow
