@@ -4,7 +4,7 @@ import { use, useState, useEffect } from 'react';
 import { notFound } from 'next/navigation';
 import { Text, Title, Divider, Stack } from '@mantine/core';
 import { ProjectHeader } from '@/components/layout/ProjectHeader';
-import { PMToolConfig } from '@/components/integrations/PMToolConfig';
+import { IntegrationsPanel } from '@/components/integrations/IntegrationsPanel';
 import { ProjectInfoForm } from '@/components/projects/ProjectInfoForm';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { buildSlugMap } from '@/lib/slugify';
@@ -48,11 +48,11 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ id: 
           <Divider />
 
           <div>
-            <Text fw={600} size="sm" mb="xs">PM Tool Integration</Text>
+            <Text fw={600} size="sm" mb="xs">Integrations</Text>
             <Text size="xs" c="dimmed" mb="md">
-              Connect a project management tool to pull sprint and issue data into Control Center.
+              Connect external tools to pull data into Control Center.
             </Text>
-            {mounted && <PMToolConfig projectId={projectId} />}
+            {mounted && project && <IntegrationsPanel project={project} />}
           </div>
         </Stack>
       </div>

@@ -118,6 +118,7 @@ Objetivo: substituir localStorage/Zustand persist por Supabase (Postgres). Auth 
 | CC-93 | [FEATURE] | Datas originais do SF — exibir aviso "Original Salesforce dates" apenas quando datas foram alteradas manualmente; remover botão "Sync dates"; campo `sf_date_range` persistido no banco | ✅ Feito |
 | CC-94 | [FEATURE] | Badge "Linked to Salesforce" com nome original do projeto no SF e link direto para o registro; campo `sf_name` persistido; backfill automático ao abrir modal/settings | ✅ Feito |
 | CC-95 | [BUG] | Badge SF — nome do projeto truncado no modal; redesenhado em duas linhas (label + nome completo linkado) | ✅ Feito |
+| CC-96 | [FEATURE] | Project Settings — seção Integrations com Salesforce, Jira (expandível com PMToolConfig), Linear e Monday.com (coming soon) | ✅ Feito |
 
 > ⚠️ **Próximo passo obrigatório antes de usar:**
 > 1. Criar projeto no [Supabase](https://app.supabase.com)
