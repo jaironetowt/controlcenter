@@ -48,7 +48,7 @@ const useSidebarStore = create<SidebarStore>()((set) => ({
 function getModuleItems(slug: string) {
   return [
     { label: 'Dashboard',    href: projectSlugPath(slug),                   icon: IconLayoutDashboard },
-    { label: 'Metrics',      href: projectSlugPath(slug, '/sprint'),        icon: IconChartBar        },
+    { label: 'Metrics',      href: projectSlugPath(slug, '/metrics'),       icon: IconChartBar        },
     { label: 'Risks',        href: projectSlugPath(slug, '/risks'),         icon: IconAlertTriangle   },
     { label: 'Decisions',    href: projectSlugPath(slug, '/decisions'),     icon: IconNotes           },
     { label: 'Action Items', href: projectSlugPath(slug, '/actions'),       icon: IconChecklist       },
