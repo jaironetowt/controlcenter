@@ -64,7 +64,7 @@ export function PMToolConfig({ projectId, tool: fixedTool }: PMToolConfigProps) 
   const saved = configs[projectId] ?? null;
 
   // Derive selected tool from persisted config, default to 'none'
-  const [selectedTool, setSelectedTool] = useState<string>('none');
+  const [selectedTool, setSelectedTool] = useState<string>(fixedTool ?? 'none');
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
