@@ -117,6 +117,24 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
   const [sfImportedName, setSfImportedName] = useState('');
   const [sfImportedDateRange, setSfImportedDateRange] = useState('');
 
+  // Backfill sfName when opening edit modal for an SF-linked project without saved name
+  useEffect(() => {
+    if (opened && isEditMode && project?.salesforceId && !project.sfName) {
+      const url = `https://willowtree.lightning.force.com/lightning/r/pse__Proj__c/${project.salesforceId}/view`;
+      fetch('/api/salesforce/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      })
+        .then((r) => r.json())
+        .then((data: { record?: Record<string, unknown> }) => {
+          const name = data.record?.['Name'] as string | undefined;
+          if (name) updateProject(project.id, { sfName: name });
+        })
+        .catch(() => undefined);
+    }
+  }, [opened, isEditMode, project?.salesforceId, project?.sfName, project?.id, updateProject]);
+
   // Reset form whenever the modal opens (or the project changes)
   useEffect(() => {
     if (opened) {

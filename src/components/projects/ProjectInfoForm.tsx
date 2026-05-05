@@ -43,6 +43,23 @@ interface FormErrors {
 export function ProjectInfoForm({ project, onSaved }: ProjectInfoFormProps) {
   const updateProject = useProjectsStore((s) => s.updateProject);
 
+  // Backfill sfName for projects linked to SF but without a saved name
+  useEffect(() => {
+    if (!project.salesforceId || project.sfName) return;
+    const url = `https://willowtree.lightning.force.com/lightning/r/pse__Proj__c/${project.salesforceId}/view`;
+    fetch('/api/salesforce/record', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    })
+      .then((r) => r.json())
+      .then((data: { record?: Record<string, unknown> }) => {
+        const name = data.record?.['Name'] as string | undefined;
+        if (name) updateProject(project.id, { sfName: name });
+      })
+      .catch(() => undefined);
+  }, [project.id, project.salesforceId, project.sfName, updateProject]);
+
   const initDates = parseDateRange(project.dateRange);
   const [form, setForm] = useState<FormState>({
     name:      project.name,
