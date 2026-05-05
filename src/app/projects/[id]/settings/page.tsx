@@ -2,17 +2,31 @@
 
 import { use, useState, useEffect } from 'react';
 import { notFound } from 'next/navigation';
-import { Text, Title, Divider, Stack } from '@mantine/core';
+import { Text, Title, Divider, Stack, Switch } from '@mantine/core';
 import { ProjectHeader } from '@/components/layout/ProjectHeader';
 import { IntegrationsPanel } from '@/components/integrations/IntegrationsPanel';
 import { ProjectInfoForm } from '@/components/projects/ProjectInfoForm';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { buildSlugMap } from '@/lib/slugify';
 
+export const SHOW_ISSUES_KEY = (id: string) => `sprint-show-issues-${id}`;
+
 export default function ProjectSettingsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
+  const [showIssues, setShowIssues] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  useEffect(() => {
+    if (!mounted) return;
+    setShowIssues(localStorage.getItem(SHOW_ISSUES_KEY(id)) === 'true');
+  }, [mounted, id]);
+
+  function toggleShowIssues(val: boolean) {
+    setShowIssues(val);
+    localStorage.setItem(SHOW_ISSUES_KEY(id), String(val));
+  }
 
   const storeProjects   = useProjectsStore((s) => s.projects);
   const projectsLoading = useProjectsStore((s) => s.loading);
@@ -43,6 +57,22 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ id: 
               Edit name, color, client, phase, and date range for this project.
             </Text>
             {mounted && project && <ProjectInfoForm project={project} />}
+          </div>
+
+          <Divider />
+
+          <div>
+            <Text fw={600} size="sm" mb="xs">Sprint</Text>
+            <Text size="xs" c="dimmed" mb="md">Configure o que é exibido na tela de Sprint.</Text>
+            {mounted && (
+              <Switch
+                label="Exibir toggle de Issues no gráfico de Velocity"
+                description="Quando ativado, aparece a opção de alternar entre Story Points e Issues no gráfico."
+                checked={showIssues}
+                onChange={(e) => toggleShowIssues(e.currentTarget.checked)}
+                size="sm"
+              />
+            )}
           </div>
 
           <Divider />

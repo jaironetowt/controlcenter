@@ -53,7 +53,11 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
   projectId: string;
 }) {
   const sprints = allSprints.slice(displayFrom);
+  const [showIssuesToggle, setShowIssuesToggle] = useState(false);
   const [mode, setMode] = useState<'sp' | 'issues'>('sp');
+  useEffect(() => {
+    setShowIssuesToggle(localStorage.getItem(`sprint-show-issues-${projectId}`) === 'true');
+  }, [projectId]);
   const doneVal  = (s: VelocitySprint) => mode === 'sp' ? s.doneSP      : s.done;
   const commVal  = (s: VelocitySprint) => mode === 'sp' ? s.committedSP : s.committed;
 
@@ -89,14 +93,16 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
           <p className="text-[13px] font-semibold text-zinc-800">Velocity</p>
           <p className="text-[11px] text-zinc-400 mt-0.5">Last {sprints.length} sprints · 3-sprint moving avg</p>
         </div>
-        <div className="flex rounded-lg overflow-hidden border border-zinc-200 text-[11px] font-medium">
-          {(['sp', 'issues'] as const).map((m) => (
-            <button key={m} onClick={() => setMode(m)}
-              className={`px-3 py-1.5 transition-colors ${mode === m ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-400 hover:text-zinc-700'}`}>
-              {m === 'sp' ? 'Story Points' : 'Issues'}
-            </button>
-          ))}
-        </div>
+        {showIssuesToggle && (
+          <div className="flex rounded-lg overflow-hidden border border-zinc-200 text-[11px] font-medium">
+            {(['sp', 'issues'] as const).map((m) => (
+              <button key={m} onClick={() => setMode(m)}
+                className={`px-3 py-1.5 transition-colors ${mode === m ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-400 hover:text-zinc-700'}`}>
+                {m === 'sp' ? 'Story Points' : 'Issues'}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div style={{ maxWidth: totalW * 1.4 }} className="mx-auto">
