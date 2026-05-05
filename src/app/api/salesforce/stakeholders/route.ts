@@ -26,11 +26,11 @@ export async function POST(req: Request) {
 
   try {
     const soql = [
-      'SELECT pse__Resource__r.Name, pse__Resource__r.Title',
-      'FROM pse__Assignment__c',
+      'SELECT pse__Contact__r.Name, pse__Contact__r.Title, pse__Contact__r.Account.Name',
+      'FROM pse__Project_Contact__c',
       `WHERE pse__Project__c = '${salesforceId}'`,
-      'AND pse__Resource__r.Name != null',
-      'ORDER BY pse__Resource__r.Name',
+      'AND pse__Contact__r.Name != null',
+      'ORDER BY pse__Contact__r.Name',
     ].join(' ');
 
     const stdout = await runSF(`sf data query --query ${JSON.stringify(soql)} --json`);
@@ -48,14 +48,15 @@ export async function POST(req: Request) {
     const stakeholders: SFStakeholder[] = [];
 
     for (const r of result.result.records) {
-      const res  = r['pse__Resource__r'] as Record<string, unknown> | null;
-      const name = res ? String(res['Name'] ?? '') : '';
+      const contact = r['pse__Contact__r'] as Record<string, unknown> | null;
+      const account = contact?.['Account'] as Record<string, unknown> | null;
+      const name    = contact ? String(contact['Name'] ?? '') : '';
       if (!name || seen.has(name)) continue;
       seen.add(name);
       stakeholders.push({
         name,
-        role:    res?.['Title'] ? String(res['Title']) : '',
-        company: '',
+        role:    contact?.['Title'] ? String(contact['Title']) : '',
+        company: account?.['Name']  ? String(account['Name'])  : '',
       });
     }
 
