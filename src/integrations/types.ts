@@ -11,6 +11,7 @@ export interface PMIssue {
   priority: 'Highest' | 'High' | 'Medium' | 'Low' | 'Lowest' | null;
   type: string;        // "Story" | "Bug" | "Task" etc
   url: string;
+  storyPoints: number | null;
 }
 
 export interface PMSprint {

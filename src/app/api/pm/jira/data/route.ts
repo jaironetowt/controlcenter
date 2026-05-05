@@ -41,6 +41,7 @@ interface JiraIssueFields {
   assignee: { displayName: string } | null;
   priority: { name: string } | null;
   issuetype: { name: string };
+  customfield_10024?: number | null;
 }
 
 interface JiraIssue {
@@ -162,7 +163,7 @@ export async function POST(request: Request): Promise<Response> {
 
         // 3. Fetch issues in the active sprint
         const { data: issuesData } = await jiraFetch<JiraIssuesResponse>(
-          `${baseUrl}/rest/agile/1.0/sprint/${rawSprint.id}/issue?maxResults=200&fields=summary,status,assignee,priority,issuetype`,
+          `${baseUrl}/rest/agile/1.0/sprint/${rawSprint.id}/issue?maxResults=200&fields=summary,status,assignee,priority,issuetype,customfield_10024`,
           auth,
         );
 
@@ -175,6 +176,7 @@ export async function POST(request: Request): Promise<Response> {
           priority: normalisePriority(issue.fields.priority?.name),
           type: issue.fields.issuetype.name,
           url: `${baseUrl}/browse/${issue.key}`,
+          storyPoints: issue.fields.customfield_10024 ?? null,
         }));
       }
     } catch (sprintErr) {

@@ -321,11 +321,16 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
   const doneStatuses = new Set(['done', 'closed', 'resolved']);
   const blockedStatuses = new Set(['block for development', 'block for testing', 'blocked']);
 
-  const total     = issues.length;
-  const done      = issues.filter((i) => doneStatuses.has(i.status.toLowerCase())).length;
-  const blocked   = issues.filter((i) => blockedStatuses.has(i.status.toLowerCase())).length;
-  const toDo      = issues.filter((i) => ['to do', 'assigned to development'].includes(i.status.toLowerCase())).length;
+  const total      = issues.length;
+  const done       = issues.filter((i) => doneStatuses.has(i.status.toLowerCase())).length;
+  const blocked    = issues.filter((i) => blockedStatuses.has(i.status.toLowerCase())).length;
+  const toDo       = issues.filter((i) => ['to do', 'assigned to development'].includes(i.status.toLowerCase())).length;
   const inProgress = total - done - blocked - toDo;
+
+  const spCommitted = issues.reduce((s, i) => s + (i.storyPoints ?? 0), 0);
+  const spDone      = issues.filter((i) => doneStatuses.has(i.status.toLowerCase())).reduce((s, i) => s + (i.storyPoints ?? 0), 0);
+  const spPct       = spCommitted > 0 ? Math.round((spDone / spCommitted) * 100) : null;
+  const hasSPData   = spCommitted > 0;
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -369,7 +374,7 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
 
       {/* KPI pills */}
       {total > 0 && (
-        <div className="flex gap-3 mb-5">
+        <div className="flex flex-wrap gap-3 mb-5">
           {[
             { label: 'Total',       value: total,      color: 'bg-zinc-100 text-zinc-700' },
             { label: 'Done',        value: done,       color: 'bg-green-50 text-green-700' },
@@ -382,6 +387,23 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
               <span className="text-[11px] font-medium">{label}</span>
             </div>
           ))}
+          {hasSPData && (
+            <>
+              <div className="w-px bg-zinc-200 self-stretch mx-1" />
+              <div className="flex flex-col items-center px-4 py-2 rounded-lg bg-indigo-50 text-indigo-700">
+                <span className="text-[18px] font-bold leading-tight">{spCommitted}</span>
+                <span className="text-[11px] font-medium">SP Committed</span>
+              </div>
+              <div className="flex flex-col items-center px-4 py-2 rounded-lg bg-indigo-50 text-indigo-700">
+                <span className="text-[18px] font-bold leading-tight">{spDone}</span>
+                <span className="text-[11px] font-medium">SP Done</span>
+              </div>
+              <div className="flex flex-col items-center px-4 py-2 rounded-lg bg-indigo-50 text-indigo-700">
+                <span className="text-[18px] font-bold leading-tight">{spPct}%</span>
+                <span className="text-[11px] font-medium">SP %</span>
+              </div>
+            </>
+          )}
         </div>
       )}
 
