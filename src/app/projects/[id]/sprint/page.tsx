@@ -127,8 +127,8 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
               <line x1={padL} x2={totalW - padR} y1={y} y2={y}
                 stroke={val === 0 ? '#d4d4d8' : isMajor ? '#f0f0f0' : '#f7f7f7'}
                 strokeWidth={val === 0 ? 1.5 : 1} />
-              {isMajor && (
-                <text x={padL - 6} y={y + 4} textAnchor="end" fontSize={9} fill="#a1a1aa" fontFamily="sans-serif">
+              {val > 0 && (
+                <text x={padL - 6} y={y + 4} textAnchor="end" fontSize={9} fill={isMajor ? '#a1a1aa' : '#c4c4c8'} fontFamily="sans-serif">
                   {val}{unit}
                 </text>
               )}
