@@ -20,7 +20,7 @@ import { useDecisionsStore } from '@/stores/useDecisionsStore';
 import { useActionItemsStore } from '@/stores/useActionItemsStore';
 import { useStakeholdersStore } from '@/stores/useStakeholdersStore';
 import { usePMToolStore } from '@/stores/usePMToolStore';
-import type { VelocitySprint } from '@/app/api/pm/jira/velocity/route';
+import type { PMProjectData } from '@/integrations/types';
 
 // ─── Module card ──────────────────────────────────────────────────────────────
 
@@ -94,14 +94,17 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const stakeholders = mounted ? storeStakeholders.filter((s) => s.projectId === projectId).length : 0;
 
   const jiraConfig     = pmConfigs[projectId] ?? null;
-  const velCache       = mounted ? (() => {
+  const sprintCache    = mounted ? (() => {
     try {
-      const raw = localStorage.getItem(`sprint-vel-${projectId}`);
+      const raw = localStorage.getItem(`sprint-data-${projectId}`);
       if (!raw) return null;
-      const { sprints, displayFrom } = JSON.parse(raw) as { sprints: VelocitySprint[]; displayFrom: number };
-      return sprints.slice(displayFrom).at(-1) ?? null;
+      return JSON.parse(raw) as PMProjectData;
     } catch { return null; }
   })() : null;
+  const doneStatuses   = new Set(['done', 'closed', 'resolved']);
+  const spCommitted    = sprintCache?.issues.reduce((s, i) => s + (i.storyPoints ?? 0), 0) ?? 0;
+  const spDone         = sprintCache?.issues.filter((i) => doneStatuses.has(i.status.toLowerCase())).reduce((s, i) => s + (i.storyPoints ?? 0), 0) ?? 0;
+  const spPct          = spCommitted > 0 ? Math.round((spDone / spCommitted) * 100) : 0;
 
   const updateProject  = useProjectsStore((s) => s.updateProject);
   const timecardCount  = mounted ? (project?.timecardCount ?? 0) : 0;
@@ -169,8 +172,8 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             <ModuleCard
               icon={<IconChartBar size={18} />}
               label="Metrics"
-              count={velCache?.doneSP ?? 0}
-              sub={velCache ? `${velCache.doneSP} SP done · ${velCache.committedSP > 0 ? Math.round((velCache.doneSP / velCache.committedSP) * 100) : 0}% · ${velCache.shortName}` : 'Jira connected'}
+              count={spDone}
+              sub={sprintCache?.activeSprint ? `${spDone} SP done · ${spPct}% · ${sprintCache.activeSprint.name}` : 'Jira connected'}
               href={projectSlugPath(projectSlug, '/metrics')}
               color="#6366F1"
             />
