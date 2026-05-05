@@ -115,6 +115,7 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
   const [sfError, setSfError]         = useState('');
   const [sfImportedId, setSfImportedId] = useState('');
   const [sfOriginalDates, setSfOriginalDates] = useState<{ start: string; end: string } | null>(null);
+  const [sfSyncDates, setSfSyncDates] = useState<{ start: string; end: string } | null>(null);
 
   // Reset form whenever the modal opens (or the project changes)
   useEffect(() => {
@@ -135,6 +136,7 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
       setSfLoading(false);
       setSfImportedId('');
       setSfOriginalDates(null);
+      setSfSyncDates(null);
     }
   }, [opened, project]);
 
@@ -211,6 +213,26 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
     }
   }
 
+  async function handleSfSync() {
+    if (!project?.salesforceId) return;
+    setSfLoading(true);
+    setSfError('');
+    setSfSyncDates(null);
+    try {
+      const sfUrl = `https://willowtree.lightning.force.com/lightning/r/pse__Proj__c/${project.salesforceId}/view`;
+      const imported = await fetchSalesforceProject(sfUrl);
+      const dates = parseDateRange(imported.dateRange);
+      setSfSyncDates(dates);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      setSfError(msg === 'SF_CLI_NOT_AUTHENTICATED'
+        ? 'Salesforce CLI not authenticated. Run: sf org login web --set-default'
+        : msg);
+    } finally {
+      setSfLoading(false);
+    }
+  }
+
   function handleArchiveRequest() {
     setConfirmingArchive(true);
   }
@@ -262,6 +284,25 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
       ) : (
         /* ── Form view ──────────────────────────────────────────────────────── */
         <Stack gap="sm">
+          {/* Salesforce badge — edit mode with linked project */}
+          {isEditMode && project?.salesforceId && (
+            <div className="flex items-center justify-between rounded-lg bg-[#f0f8ff] border border-[#b3daf7] px-3 py-2">
+              <Group gap="xs">
+                <IconCloudDown size={14} color="#00A1E0" />
+                <Text size="xs" fw={500} c="#0070a8">Linked to Salesforce</Text>
+              </Group>
+              <Button
+                size="xs"
+                variant="subtle"
+                color="blue"
+                loading={sfLoading}
+                onClick={() => void handleSfSync()}
+              >
+                Sync dates
+              </Button>
+            </div>
+          )}
+
           {/* Salesforce import — create mode only */}
           {!isEditMode && (
             <>
@@ -362,12 +403,32 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
             end={form.endDate}
             onChange={(s, e) => { setField('startDate', s); setField('endDate', e); }}
           />
+          {/* SF original dates warning — create mode */}
           {sfOriginalDates && (form.startDate !== sfOriginalDates.start || form.endDate !== sfOriginalDates.end) && (
             <Text size="xs" c="orange">
               Original date from Salesforce:{' '}
               {[sfOriginalDates.start && monthToLabel(sfOriginalDates.start), sfOriginalDates.end && monthToLabel(sfOriginalDates.end)].filter(Boolean).join(' – ')}
             </Text>
           )}
+          {/* SF sync result — edit mode */}
+          {sfSyncDates && (
+            <div className="rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 space-y-1">
+              <Text size="xs" fw={500} c="blue">Current dates in Salesforce:</Text>
+              <Text size="xs" c="dimmed">
+                {[sfSyncDates.start && monthToLabel(sfSyncDates.start), sfSyncDates.end && monthToLabel(sfSyncDates.end)].filter(Boolean).join(' – ') || '—'}
+              </Text>
+              {(sfSyncDates.start !== form.startDate || sfSyncDates.end !== form.endDate) && (
+                <Button size="xs" variant="light" color="blue" mt={4}
+                  onClick={() => { setField('startDate', sfSyncDates.start); setField('endDate', sfSyncDates.end); setSfSyncDates(null); }}>
+                  Apply SF dates
+                </Button>
+              )}
+              {sfSyncDates.start === form.startDate && sfSyncDates.end === form.endDate && (
+                <Text size="xs" c="green">Dates are already in sync.</Text>
+              )}
+            </div>
+          )}
+          {sfError && <Text size="xs" c="red">{sfError}</Text>}
 
           {/* Actions */}
           <Group justify="space-between" mt="xs">
