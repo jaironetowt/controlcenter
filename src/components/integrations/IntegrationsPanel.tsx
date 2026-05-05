@@ -157,7 +157,7 @@ export function IntegrationsPanel({ project }: IntegrationsPanelProps) {
         )}
         configurable
       >
-        <PMToolConfig projectId={project.id} />
+        <PMToolConfig projectId={project.id} tool="jira" />
       </IntegrationRow>
 
       {/* Linear */}

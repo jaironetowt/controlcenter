@@ -20,6 +20,8 @@ import type { PMToolType, PMToolConfig } from '@/integrations/types';
 
 interface PMToolConfigProps {
   projectId: string;
+  /** When provided, skips the tool selector and shows this tool's form directly. */
+  tool?: 'jira';
 }
 
 interface FormState {
@@ -50,7 +52,7 @@ const EMPTY_FORM: FormState = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function PMToolConfig({ projectId }: PMToolConfigProps) {
+export function PMToolConfig({ projectId, tool: fixedTool }: PMToolConfigProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
@@ -73,7 +75,7 @@ export function PMToolConfig({ projectId }: PMToolConfigProps) {
   // Reset form when project changes or when persisted data becomes available after hydration
   useEffect(() => {
     const next = configs[projectId] ?? null;
-    setSelectedTool(next?.type ?? 'none');
+    setSelectedTool(fixedTool ?? next?.type ?? 'none');
     setForm(
       next && next.type === 'jira'
         ? { baseUrl: next.baseUrl, email: next.email, apiToken: next.apiToken, projectKey: next.projectKey }
@@ -166,14 +168,16 @@ export function PMToolConfig({ projectId }: PMToolConfigProps) {
 
   return (
     <Stack gap="md">
-      <Select
-        label="PM Tool"
-        description="Connect a project management tool to pull sprint and issue data."
-        data={TOOL_OPTIONS}
-        value={selectedTool}
-        onChange={handleToolChange}
-        allowDeselect={false}
-      />
+      {!fixedTool && (
+        <Select
+          label="PM Tool"
+          description="Connect a project management tool to pull sprint and issue data."
+          data={TOOL_OPTIONS}
+          value={selectedTool}
+          onChange={handleToolChange}
+          allowDeselect={false}
+        />
+      )}
 
       {isJira && (
         <Stack gap="sm">
@@ -250,31 +254,43 @@ export function PMToolConfig({ projectId }: PMToolConfigProps) {
             </Alert>
           )}
 
-          <Button
-            variant="default"
-            size="xs"
-            loading={testStatus === 'loading'}
-            disabled={!jiraFormFilled}
-            onClick={handleTestConnection}
-            style={{ alignSelf: 'flex-start' }}
-          >
-            Test Connection
-          </Button>
+          <Group gap="xs">
+            <Button
+              variant="default"
+              size="xs"
+              loading={testStatus === 'loading'}
+              disabled={!jiraFormFilled}
+              onClick={handleTestConnection}
+            >
+              Test Connection
+            </Button>
+            {fixedTool && (
+              <Button
+                size="xs"
+                disabled={!jiraFormFilled}
+                onClick={handleSave}
+              >
+                Save
+              </Button>
+            )}
+          </Group>
         </Stack>
       )}
 
       {/* Save success feedback */}
       {saveSuccess && (
-        <Text size="sm" c="green">
+        <Text size="xs" c="green">
           Settings saved.
         </Text>
       )}
 
-      <Group justify="flex-end" mt="xs">
-        <Button size="sm" onClick={handleSave}>
-          Save
-        </Button>
-      </Group>
+      {!fixedTool && (
+        <Group justify="flex-end" mt="xs">
+          <Button size="sm" onClick={handleSave}>
+            Save
+          </Button>
+        </Group>
+      )}
     </Stack>
   );
 }
