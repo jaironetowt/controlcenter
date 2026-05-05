@@ -117,7 +117,7 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
         )}
       </div>
 
-      <div style={{ maxWidth: totalW * 1.4 }}>
+      <div style={{ maxWidth: totalW * 1.4 }} className="mx-auto">
       <svg width="100%" viewBox={`0 0 ${totalW} ${H + padT + padB}`} className="overflow-visible">
         {/* Y-axis label */}
         <text x={padL - 6} y={padT - 4} textAnchor="end" fontSize={8} fill="#a1a1aa" fontFamily="sans-serif" fontWeight={600}>
