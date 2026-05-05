@@ -115,7 +115,7 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
         )}
       </div>
 
-      <svg width="100%" viewBox={`0 0 ${totalW} ${H + padB}`} className="overflow-visible">
+      <svg width="100%" style={{ maxWidth: totalW * 1.4 }} viewBox={`0 0 ${totalW} ${H + padB}`} className="overflow-visible">
         {/* Grid */}
         {Array.from({ length: TICKS + 1 }, (_, i) => i / TICKS).map((pct) => {
           const y   = H - pct * H;
