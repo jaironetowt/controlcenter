@@ -46,7 +46,6 @@ function priorityColor(priority: string | null): string {
 
 // ─── Velocity Chart ───────────────────────────────────────────────────────────
 
-const VEL_MODE_KEY = (id: string) => `sprint-vel-mode-${id}`;
 
 function VelocityChart({ allSprints, displayFrom, projectId }: {
   allSprints: VelocitySprint[];
@@ -54,21 +53,8 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
   projectId: string;
 }) {
   const sprints = allSprints.slice(displayFrom);
-  const hasSP   = allSprints.some((s) => s.committedSP > 0);
-
-  const [mode, setMode] = useState<'sp' | 'issues'>(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem(VEL_MODE_KEY(projectId)) : null;
-    if (saved === 'sp' || saved === 'issues') return saved;
-    return hasSP ? 'sp' : 'issues';
-  });
-
-  const changeMode = (m: 'sp' | 'issues') => {
-    setMode(m);
-    localStorage.setItem(VEL_MODE_KEY(projectId), m);
-  };
-
-  const doneVal  = (s: VelocitySprint) => mode === 'sp' ? s.doneSP      : s.done;
-  const commVal  = (s: VelocitySprint) => mode === 'sp' ? s.committedSP : s.committed;
+  const doneVal  = (s: VelocitySprint) => s.doneSP;
+  const commVal  = (s: VelocitySprint) => s.committedSP;
 
   const MA_WINDOW = 3;
   const maValues = sprints.map((_, i) => {
@@ -92,7 +78,7 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
   const max      = Math.ceil(rawMax / 50) * 50;
   const tickStep = Math.max(50, Math.ceil(max / 5 / 50) * 50);
   const tickVals = Array.from({ length: Math.floor(max / tickStep) + 1 }, (_, i) => i * tickStep);
-  const unit  = mode === 'sp' ? ' SP' : '';
+  const unit  = ' SP';
 
   return (
     <div className="rounded-xl border border-zinc-200 bg-white p-5">
@@ -102,26 +88,13 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
           <p className="text-[13px] font-semibold text-zinc-800">Velocity</p>
           <p className="text-[11px] text-zinc-400 mt-0.5">Last {sprints.length} sprints · 3-sprint moving avg</p>
         </div>
-        {hasSP && (
-          <div className="flex rounded-lg overflow-hidden border border-zinc-200 text-[11px] font-medium">
-            {(['sp', 'issues'] as const).map((m) => (
-              <button
-                key={m}
-                onClick={() => changeMode(m)}
-                className={`px-3 py-1.5 transition-colors ${mode === m ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-400 hover:text-zinc-700'}`}
-              >
-                {m === 'sp' ? 'Story Points' : 'Issues'}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       <div style={{ maxWidth: totalW * 1.4 }} className="mx-auto">
       <svg width="100%" viewBox={`0 0 ${totalW} ${H + padT + padB}`} className="overflow-visible">
         {/* Y-axis label */}
         <text x={padL - 6} y={padT - 4} textAnchor="end" fontSize={8} fill="#a1a1aa" fontFamily="sans-serif" fontWeight={600}>
-          {mode === 'sp' ? 'SP' : 'Issues'}
+          SP
         </text>
 
         <g transform={`translate(0, ${padT})`}>
