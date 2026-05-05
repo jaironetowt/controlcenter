@@ -287,20 +287,21 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
         <Stack gap="sm">
           {/* Salesforce badge — edit mode with linked project */}
           {isEditMode && project?.salesforceId && (
-            <div className="flex items-center gap-2 rounded-lg bg-[#f0f8ff] border border-[#b3daf7] px-3 py-2 overflow-hidden">
-              <IconCloudDown size={14} color="#00A1E0" className="flex-shrink-0" />
-              <Text size="xs" fw={500} c="#0070a8" className="flex-shrink-0 whitespace-nowrap">Linked to Salesforce</Text>
-              <Text size="xs" c="dimmed" className="flex-shrink-0">·</Text>
+            <div className="rounded-lg bg-[#f0f8ff] border border-[#b3daf7] px-3 py-2">
+              <div className="flex items-center gap-1.5">
+                <IconCloudDown size={13} color="#00A1E0" className="flex-shrink-0" />
+                <Text size="xs" fw={500} c="#0070a8">Linked to Salesforce</Text>
+              </div>
               <a
                 href={`https://willowtree.lightning.force.com/lightning/r/pse__Proj__c/${project.salesforceId}/view`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 min-w-0 overflow-hidden"
+                className="flex items-center gap-1 mt-0.5 ml-[21px]"
                 style={{ color: '#0070a8', textDecoration: 'none' }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'underline'; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'none'; }}
               >
-                <Text size="xs" className="truncate whitespace-nowrap">{project.sfName ?? 'View in Salesforce'}</Text>
+                <Text size="xs">{project.sfName ?? 'View in Salesforce'}</Text>
                 <IconExternalLink size={11} className="flex-shrink-0" />
               </a>
             </div>
