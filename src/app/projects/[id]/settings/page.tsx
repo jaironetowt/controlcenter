@@ -62,8 +62,8 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ id: 
           <Divider />
 
           <div>
-            <Text fw={600} size="sm" mb="xs">Sprint</Text>
-            <Text size="xs" c="dimmed" mb="md">Configure o que é exibido na tela de Sprint.</Text>
+            <Text fw={600} size="sm" mb="xs">Metrics</Text>
+            <Text size="xs" c="dimmed" mb="md">Configure o que é exibido na tela de Metrics.</Text>
             {mounted && (
               <Switch
                 label="Exibir toggle de Issues no gráfico de Velocity"
