@@ -46,46 +46,67 @@ function priorityColor(priority: string | null): string {
 
 // ─── Velocity Chart ───────────────────────────────────────────────────────────
 
-function VelocityChart({ allSprints, displayFrom }: { allSprints: VelocitySprint[]; displayFrom: number }) {
-  const sprints = allSprints.slice(displayFrom); // bars to render
-  const hasSP = allSprints.some((s) => s.committedSP > 0);
-  const [mode, setMode] = useState<'sp' | 'issues'>(hasSP ? 'sp' : 'issues');
+const VEL_MODE_KEY = (id: string) => `sprint-vel-mode-${id}`;
 
-  const doneVal = (s: VelocitySprint) => mode === 'sp' ? s.doneSP : s.done;
-  const committed = (s: VelocitySprint) => mode === 'sp' ? s.committedSP : s.committed;
-  const done      = doneVal;
+function VelocityChart({ allSprints, displayFrom, projectId }: {
+  allSprints: VelocitySprint[];
+  displayFrom: number;
+  projectId: string;
+}) {
+  const sprints = allSprints.slice(displayFrom);
+  const hasSP   = allSprints.some((s) => s.committedSP > 0);
 
-  // 3-sprint MA at display index i = avg of allSprints[displayFrom+i-2 .. displayFrom+i]
+  const [mode, setMode] = useState<'sp' | 'issues'>(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem(VEL_MODE_KEY(projectId)) : null;
+    if (saved === 'sp' || saved === 'issues') return saved;
+    return hasSP ? 'sp' : 'issues';
+  });
+
+  const changeMode = (m: 'sp' | 'issues') => {
+    setMode(m);
+    localStorage.setItem(VEL_MODE_KEY(projectId), m);
+  };
+
+  const doneVal  = (s: VelocitySprint) => mode === 'sp' ? s.doneSP      : s.done;
+  const commVal  = (s: VelocitySprint) => mode === 'sp' ? s.committedSP : s.committed;
+
   const MA_WINDOW = 3;
   const maValues = sprints.map((_, i) => {
     const absIdx = displayFrom + i;
-    const slice = allSprints.slice(Math.max(0, absIdx - MA_WINDOW + 1), absIdx + 1);
+    const slice  = allSprints.slice(Math.max(0, absIdx - MA_WINDOW + 1), absIdx + 1);
     return slice.reduce((sum, s) => sum + doneVal(s), 0) / slice.length;
   });
 
-  const max = Math.max(...sprints.flatMap((s) => [committed(s), done(s)]), ...maValues, 1);
-  const H = 130;
-  const barW = 22;
-  const gap = 8;
-  const groupW = barW * 2 + gap;
-  const groupGap = 40;
-  const padL = 40;
-  const padB = 36;
-  const totalW = padL + sprints.length * (groupW + groupGap) - groupGap + 16;
+  // Layout
+  const H        = 200;
+  const barW     = 32;
+  const gap      = 10;
+  const groupW   = barW * 2 + gap;
+  const groupGap = 56;
+  const padL     = 44;
+  const padB     = 44;
+  const padR     = 16;
+  const totalW   = padL + sprints.length * (groupW + groupGap) - groupGap + padR;
+  const max      = Math.max(...sprints.flatMap((s) => [commVal(s), doneVal(s)]), ...maValues, 1);
+
+  const TICKS = 5;
+  const unit  = mode === 'sp' ? ' SP' : '';
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-[11px] font-medium text-zinc-500 uppercase tracking-wide">
-          Velocity — last {sprints.length} sprints
-        </p>
+    <div className="rounded-xl border border-zinc-200 bg-white p-5">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <p className="text-[13px] font-semibold text-zinc-800">Velocity</p>
+          <p className="text-[11px] text-zinc-400 mt-0.5">Last {sprints.length} sprints · 3-sprint moving avg</p>
+        </div>
         {hasSP && (
-          <div className="flex rounded-md overflow-hidden border border-zinc-200 text-[11px]">
+          <div className="flex rounded-lg overflow-hidden border border-zinc-200 text-[11px] font-medium">
             {(['sp', 'issues'] as const).map((m) => (
               <button
                 key={m}
-                onClick={() => setMode(m)}
-                className={`px-2 py-0.5 transition-colors ${mode === m ? 'bg-zinc-800 text-white' : 'bg-white text-zinc-500 hover:bg-zinc-50'}`}
+                onClick={() => changeMode(m)}
+                className={`px-3 py-1.5 transition-colors ${mode === m ? 'bg-zinc-900 text-white' : 'bg-white text-zinc-400 hover:text-zinc-700'}`}
               >
                 {m === 'sp' ? 'Story Points' : 'Issues'}
               </button>
@@ -94,14 +115,17 @@ function VelocityChart({ allSprints, displayFrom }: { allSprints: VelocitySprint
         )}
       </div>
 
-      <svg width={totalW} height={H + padB} className="overflow-visible">
-        {[0, 0.25, 0.5, 0.75, 1].map((pct) => {
-          const y = H - pct * H;
+      <svg width="100%" viewBox={`0 0 ${totalW} ${H + padB}`} className="overflow-visible">
+        {/* Grid */}
+        {Array.from({ length: TICKS + 1 }, (_, i) => i / TICKS).map((pct) => {
+          const y   = H - pct * H;
+          const val = Math.round(pct * max);
           return (
             <g key={pct}>
-              <line x1={padL} x2={totalW} y1={y} y2={y} stroke="#e4e4e7" strokeWidth={1} />
-              <text x={padL - 5} y={y + 4} textAnchor="end" fontSize={10} fill="#a1a1aa">
-                {Math.round(pct * max)}
+              <line x1={padL} x2={totalW - padR} y1={y} y2={y}
+                stroke={pct === 0 ? '#d4d4d8' : '#f4f4f5'} strokeWidth={pct === 0 ? 1.5 : 1} />
+              <text x={padL - 6} y={y + 4} textAnchor="end" fontSize={11} fill="#a1a1aa" fontFamily="sans-serif">
+                {val}{unit}
               </text>
             </g>
           );
@@ -109,21 +133,48 @@ function VelocityChart({ allSprints, displayFrom }: { allSprints: VelocitySprint
 
         {/* Bars */}
         {sprints.map((s, i) => {
-          const x = padL + i * (groupW + groupGap);
-          const cH = (committed(s) / max) * H;
-          const dH = (done(s) / max) * H;
-          const rate = committed(s) > 0 ? Math.round((done(s) / committed(s)) * 100) : 0;
+          const x    = padL + i * (groupW + groupGap);
+          const cVal = commVal(s);
+          const dVal = doneVal(s);
+          const cH   = (cVal / max) * H;
+          const dH   = (dVal / max) * H;
+          const rate = cVal > 0 ? Math.round((dVal / cVal) * 100) : 0;
+          const rateColor = rate >= 80 ? '#22c55e' : rate >= 60 ? '#f59e0b' : '#ef4444';
+
           return (
             <g key={s.id}>
-              <rect x={x} y={H - cH} width={barW} height={cH} rx={3} fill="#e4e4e7" />
-              <text x={x + barW / 2} y={H - cH - 4} textAnchor="middle" fontSize={10} fill="#71717a">{committed(s)}</text>
+              {/* Committed */}
+              <rect x={x} y={H - cH} width={barW} height={cH} rx={4} fill="#e4e4e7" />
+              {cH > 16 && (
+                <text x={x + barW / 2} y={H - cH + 14} textAnchor="middle" fontSize={11} fill="#71717a" fontWeight={600}>
+                  {cVal}
+                </text>
+              )}
+              {cH <= 16 && (
+                <text x={x + barW / 2} y={H - cH - 5} textAnchor="middle" fontSize={11} fill="#71717a">
+                  {cVal}
+                </text>
+              )}
 
-              <rect x={x + barW + gap} y={H - dH} width={barW} height={dH} rx={3} fill="#3b82f6" />
-              <text x={x + barW + gap + barW / 2} y={H - dH - 4} textAnchor="middle" fontSize={10} fill="#3b82f6">{done(s)}</text>
+              {/* Done */}
+              <rect x={x + barW + gap} y={H - dH} width={barW} height={dH} rx={4} fill="#3b82f6" />
+              {dH > 16 && (
+                <text x={x + barW + gap + barW / 2} y={H - dH + 14} textAnchor="middle" fontSize={11} fill="white" fontWeight={600}>
+                  {dVal}
+                </text>
+              )}
+              {dH <= 16 && (
+                <text x={x + barW + gap + barW / 2} y={H - dH - 5} textAnchor="middle" fontSize={11} fill="#3b82f6">
+                  {dVal}
+                </text>
+              )}
 
-              <text x={x + groupW / 2} y={H + 14} textAnchor="middle" fontSize={10} fill="#71717a">{s.shortName}</text>
-              <text x={x + groupW / 2} y={H + 26} textAnchor="middle" fontSize={10} fontWeight={600}
-                fill={rate >= 80 ? '#22c55e' : rate >= 60 ? '#f59e0b' : '#ef4444'}>
+              {/* Sprint label */}
+              <text x={x + groupW / 2} y={H + 18} textAnchor="middle" fontSize={11} fill="#71717a" fontFamily="sans-serif">
+                {s.shortName}
+              </text>
+              {/* Rate */}
+              <text x={x + groupW / 2} y={H + 34} textAnchor="middle" fontSize={12} fontWeight={700} fill={rateColor} fontFamily="sans-serif">
                 {rate}%
               </text>
             </g>
@@ -132,7 +183,7 @@ function VelocityChart({ allSprints, displayFrom }: { allSprints: VelocitySprint
 
         {/* Moving average line */}
         {(() => {
-          const maPoints = maValues.map((avg, i) => ({
+          const pts = maValues.map((avg, i) => ({
             x: padL + i * (groupW + groupGap) + barW + gap + barW / 2,
             y: H - (avg / max) * H,
             avg,
@@ -140,14 +191,14 @@ function VelocityChart({ allSprints, displayFrom }: { allSprints: VelocitySprint
           return (
             <g>
               <polyline
-                points={maPoints.map((p) => `${p.x},${p.y}`).join(' ')}
-                fill="none" stroke="#f59e0b" strokeWidth={2} strokeDasharray="4 3" strokeLinejoin="round"
+                points={pts.map((p) => `${p.x},${p.y}`).join(' ')}
+                fill="none" stroke="#f59e0b" strokeWidth={2.5} strokeDasharray="5 4" strokeLinejoin="round" strokeLinecap="round"
               />
-              {maPoints.map((p, i) => (
+              {pts.map((p, i) => (
                 <g key={i}>
-                  <circle cx={p.x} cy={p.y} r={3} fill="#f59e0b" />
-                  <text x={p.x} y={p.y - 7} textAnchor="middle" fontSize={9} fill="#f59e0b" fontWeight={600}>
-                    {Math.round(p.avg)}
+                  <circle cx={p.x} cy={p.y} r={4} fill="white" stroke="#f59e0b" strokeWidth={2} />
+                  <text x={p.x} y={p.y - 10} textAnchor="middle" fontSize={10} fill="#b45309" fontWeight={700} fontFamily="sans-serif">
+                    {Math.round(p.avg)}{unit}
                   </text>
                 </g>
               ))}
@@ -156,18 +207,19 @@ function VelocityChart({ allSprints, displayFrom }: { allSprints: VelocitySprint
         })()}
       </svg>
 
-      <div className="flex items-center gap-4 mt-1">
+      {/* Legend */}
+      <div className="flex items-center gap-5 mt-3 pl-1">
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm bg-zinc-200" />
+          <div className="w-3 h-3 rounded bg-zinc-200" />
           <span className="text-[11px] text-zinc-500">Committed</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-sm bg-blue-500" />
+          <div className="w-3 h-3 rounded bg-blue-500" />
           <span className="text-[11px] text-zinc-500">Done</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <svg width={16} height={8}><line x1={0} y1={4} x2={16} y2={4} stroke="#f59e0b" strokeWidth={2} strokeDasharray="4 3" /></svg>
-          <span className="text-[11px] text-zinc-500">Moving avg</span>
+          <svg width={18} height={10}><line x1={0} y1={5} x2={18} y2={5} stroke="#f59e0b" strokeWidth={2.5} strokeDasharray="5 4" /></svg>
+          <span className="text-[11px] text-zinc-500">3-sprint moving avg</span>
         </div>
       </div>
     </div>
@@ -316,8 +368,8 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
 
       {/* Velocity chart */}
       {velocity.length > 0 && (
-        <div className="mb-6">
-          <VelocityChart allSprints={velocity} displayFrom={velDisplayFrom} />
+        <div className="mb-5">
+          <VelocityChart allSprints={velocity} displayFrom={velDisplayFrom} projectId={projectId} />
         </div>
       )}
 
