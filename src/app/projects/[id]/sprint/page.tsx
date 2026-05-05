@@ -172,15 +172,6 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
       localStorage.setItem(DATA_KEY(projectId), JSON.stringify(json));
       localStorage.setItem(TS_KEY(projectId), String(Date.now()));
 
-      // Fetch velocity in parallel (best-effort, no cache)
-      fetch('/api/pm/jira/velocity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ baseUrl, email, apiToken, projectKey, limit: 3 }),
-      })
-        .then((r) => r.json())
-        .then((v: { sprints?: VelocitySprint[] }) => { if (v.sprints) setVelocity(v.sprints); })
-        .catch(() => undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -197,6 +188,18 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
     }
     void fetchData();
   }, [projectId, fetchData]);
+
+  // Velocity fetched independently on mount — not gated by sprint cache
+  useEffect(() => {
+    fetch('/api/pm/jira/velocity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ baseUrl, email, apiToken, projectKey, limit: 3 }),
+    })
+      .then((r) => r.json())
+      .then((v: { sprints?: VelocitySprint[] }) => { if (v.sprints) setVelocity(v.sprints); })
+      .catch(() => undefined);
+  }, [projectId, baseUrl, email, apiToken, projectKey]);
 
   // ── KPI breakdown ──────────────────────────────────────────────────────────
 
