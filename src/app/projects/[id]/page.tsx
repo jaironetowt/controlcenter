@@ -27,7 +27,7 @@ import type { PMProjectData } from '@/integrations/types';
 interface ModuleCardProps {
   icon: React.ReactNode;
   label: string;
-  count: number;
+  count: number | string;
   sub: string;
   href: string;
   color: string;
@@ -172,8 +172,8 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             <ModuleCard
               icon={<IconChartBar size={18} />}
               label="Metrics"
-              count={spDone}
-              sub={sprintCache?.activeSprint ? `${spDone} SP done · ${spPct}% · ${sprintCache.activeSprint.name}` : 'Jira connected'}
+              count={sprintCache?.activeSprint && spCommitted > 0 ? `${spDone} / ${spCommitted}` : spDone}
+              sub={sprintCache?.activeSprint && spCommitted > 0 ? `${spPct}% SP done` : 'Jira connected'}
               href={projectSlugPath(projectSlug, '/metrics')}
               color="#6366F1"
             />
