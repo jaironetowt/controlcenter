@@ -53,38 +53,37 @@ const EMPTY_FORM: FormState = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function PMToolConfig({ projectId, tool: fixedTool }: PMToolConfigProps) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
-
-  const rawConfigs = usePMToolStore((s) => s.configs);
-  const configs    = mounted ? rawConfigs : {} as typeof rawConfigs;
-  const setConfig  = usePMToolStore((s) => s.setConfig);
+  const configs      = usePMToolStore((s) => s.configs);
+  const setConfig    = usePMToolStore((s) => s.setConfig);
   const removeConfig = usePMToolStore((s) => s.removeConfig);
 
   const saved = configs[projectId] ?? null;
 
-  // Derive selected tool from persisted config, default to 'none'
-  const [selectedTool, setSelectedTool] = useState<string>(fixedTool ?? 'none');
-
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
-
+  const [selectedTool, setSelectedTool] = useState<string>(
+    fixedTool ?? saved?.type ?? 'none',
+  );
+  const [form, setForm] = useState<FormState>(
+    saved?.type === 'jira'
+      ? { baseUrl: saved.baseUrl, email: saved.email, apiToken: saved.apiToken, projectKey: saved.projectKey }
+      : EMPTY_FORM,
+  );
   const [testStatus, setTestStatus] = useState<TestStatus>('idle');
   const [testError, setTestError]   = useState<string>('');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Reset form when project changes or when persisted data becomes available after hydration
+  // Sync form when projectId changes
   useEffect(() => {
     const next = configs[projectId] ?? null;
     setSelectedTool(fixedTool ?? next?.type ?? 'none');
     setForm(
-      next && next.type === 'jira'
+      next?.type === 'jira'
         ? { baseUrl: next.baseUrl, email: next.email, apiToken: next.apiToken, projectKey: next.projectKey }
         : EMPTY_FORM,
     );
     setTestStatus('idle');
     setTestError('');
     setSaveSuccess(false);
-  }, [projectId, mounted]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [projectId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
 
@@ -157,7 +156,7 @@ export function PMToolConfig({ projectId, tool: fixedTool }: PMToolConfigProps) 
 
   // ── Derived state ─────────────────────────────────────────────────────────────
 
-  const isJira = selectedTool === 'jira';
+  const isJira = fixedTool === 'jira' || selectedTool === 'jira';
   const jiraFormFilled =
     form.baseUrl.trim() !== '' &&
     form.email.trim() !== '' &&
