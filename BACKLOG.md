@@ -119,6 +119,8 @@ Objetivo: substituir localStorage/Zustand persist por Supabase (Postgres). Auth 
 | CC-94 | [FEATURE] | Badge "Linked to Salesforce" com nome original do projeto no SF e link direto para o registro; campo `sf_name` persistido; backfill automático ao abrir modal/settings | ✅ Feito |
 | CC-95 | [BUG] | Badge SF — nome do projeto truncado no modal; redesenhado em duas linhas (label + nome completo linkado) | ✅ Feito |
 | CC-96 | [FEATURE] | Project Settings — seção Integrations com Salesforce, Jira (expandível com PMToolConfig), Linear e Monday.com (coming soon) | ✅ Feito |
+| CC-97 | [FEATURE] | Timecards — paginação 30 itens/página com indicador "1–30 de X" centralizado | ✅ Feito |
+| CC-98 | [FEATURE] | Sprint page — aba Jira no sidebar, tela básica com sprint ativo, KPIs (total/done/in-progress/to-do/blocked), tabela de issues com key linkada, tipo, status, prioridade e assignee; cache localStorage 3h + refresh manual | ✅ Feito |
 
 > ⚠️ **Próximo passo obrigatório antes de usar:**
 > 1. Criar projeto no [Supabase](https://app.supabase.com)

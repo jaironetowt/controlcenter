@@ -25,6 +25,7 @@ import {
   IconSettings2,
   IconChevronDown,
   IconChevronRight,
+  IconBrandJira,
 } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
 import { create } from 'zustand';
@@ -48,6 +49,7 @@ const useSidebarStore = create<SidebarStore>()((set) => ({
 function getModuleItems(slug: string) {
   return [
     { label: 'Dashboard',    href: projectSlugPath(slug),                   icon: IconLayoutDashboard },
+    { label: 'Sprint',       href: projectSlugPath(slug, '/sprint'),        icon: IconBrandJira       },
     { label: 'Risks',        href: projectSlugPath(slug, '/risks'),         icon: IconAlertTriangle   },
     { label: 'Decisions',    href: projectSlugPath(slug, '/decisions'),     icon: IconNotes           },
     { label: 'Action Items', href: projectSlugPath(slug, '/actions'),       icon: IconChecklist       },
