@@ -60,7 +60,7 @@ function IntegrationRow({ icon, name, status, summary, configurable = false, chi
       </div>
 
       {configurable && children && (
-        <Collapse in={open}>
+        <Collapse expanded={open}>
           <div className="px-4 pb-4 pt-2 border-t border-zinc-100 bg-zinc-50">
             {children}
           </div>
