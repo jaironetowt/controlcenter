@@ -12,6 +12,7 @@ interface Quadrant {
   interest: Stakeholder['interest'];
   bg: string;
   border: string;
+  borderActive: string;
   textColor: string;
 }
 
@@ -23,6 +24,7 @@ const QUADRANTS: Quadrant[] = [
     interest: 'High',
     bg: 'bg-blue-50',
     border: 'border-blue-200',
+    borderActive: 'border-blue-400',
     textColor: 'text-blue-800',
   },
   {
@@ -32,6 +34,7 @@ const QUADRANTS: Quadrant[] = [
     interest: 'Low',
     bg: 'bg-purple-50',
     border: 'border-purple-200',
+    borderActive: 'border-purple-400',
     textColor: 'text-purple-800',
   },
   {
@@ -41,6 +44,7 @@ const QUADRANTS: Quadrant[] = [
     interest: 'High',
     bg: 'bg-yellow-50',
     border: 'border-yellow-200',
+    borderActive: 'border-yellow-400',
     textColor: 'text-yellow-800',
   },
   {
@@ -50,6 +54,7 @@ const QUADRANTS: Quadrant[] = [
     interest: 'Low',
     bg: 'bg-zinc-50',
     border: 'border-zinc-200',
+    borderActive: 'border-zinc-400',
     textColor: 'text-zinc-600',
   },
 ];
@@ -64,9 +69,46 @@ export function InfluenceGrid({ projectId }: InfluenceGridProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  const rawStakeholders = useStakeholdersStore((s) => s.stakeholders);
+  const rawStakeholders   = useStakeholdersStore((s) => s.stakeholders);
+  const updateStakeholder = useStakeholdersStore((s) => s.updateStakeholder);
+
   const stakeholders = mounted ? rawStakeholders : [];
   const filtered     = stakeholders.filter((sh) => sh.projectId === projectId);
+
+  const [draggingId, setDraggingId]     = useState<string | null>(null);
+  const [overQuadrant, setOverQuadrant] = useState<string | null>(null);
+
+  function handleDragStart(e: React.DragEvent, id: string) {
+    setDraggingId(id);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', id);
+  }
+
+  function handleDragEnd() {
+    setDraggingId(null);
+    setOverQuadrant(null);
+  }
+
+  function handleDragOver(e: React.DragEvent, quadrantLabel: string) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setOverQuadrant(quadrantLabel);
+  }
+
+  function handleDragLeave() {
+    setOverQuadrant(null);
+  }
+
+  function handleDrop(e: React.DragEvent, q: Quadrant) {
+    e.preventDefault();
+    const id = e.dataTransfer.getData('text/plain');
+    if (!id) return;
+    const sh = filtered.find((s) => s.id === id);
+    if (!sh || (sh.influence === q.influence && sh.interest === q.interest)) return;
+    void updateStakeholder(id, { influence: q.influence, interest: q.interest });
+    setDraggingId(null);
+    setOverQuadrant(null);
+  }
 
   return (
     <section className="mt-8">
@@ -91,14 +133,18 @@ export function InfluenceGrid({ projectId }: InfluenceGridProps) {
           {/* 2×2 grid */}
           <div className="grid grid-cols-2 gap-3">
             {QUADRANTS.map((q) => {
-              const names = filtered
-                .filter((sh) => sh.influence === q.influence && sh.interest === q.interest)
-                .map((sh) => sh.name);
+              const inQuadrant = filtered.filter(
+                (sh) => sh.influence === q.influence && sh.interest === q.interest,
+              );
+              const isActive = overQuadrant === q.label;
 
               return (
                 <div
                   key={q.label}
-                  className={`rounded-xl border p-4 min-h-[120px] flex flex-col gap-3 ${q.bg} ${q.border}`}
+                  className={`rounded-xl border-2 p-4 min-h-[120px] flex flex-col gap-3 transition-colors ${q.bg} ${isActive ? q.borderActive : q.border}`}
+                  onDragOver={(e) => handleDragOver(e, q.label)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, q)}
                 >
                   {/* Quadrant header */}
                   <div>
@@ -107,19 +153,24 @@ export function InfluenceGrid({ projectId }: InfluenceGridProps) {
                   </div>
 
                   {/* Stakeholder pills */}
-                  {names.length > 0 ? (
+                  {inQuadrant.length > 0 ? (
                     <div className="flex flex-wrap gap-1.5">
-                      {names.map((name) => (
+                      {inQuadrant.map((sh) => (
                         <span
-                          key={name}
-                          className="text-[12px] bg-white border border-zinc-200 rounded-full px-2 py-0.5 text-zinc-700 shadow-sm"
+                          key={sh.id}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, sh.id)}
+                          onDragEnd={handleDragEnd}
+                          className={`text-[12px] bg-white border border-zinc-200 rounded-full px-2 py-0.5 text-zinc-700 shadow-sm cursor-grab active:cursor-grabbing select-none transition-opacity ${draggingId === sh.id ? 'opacity-40' : 'opacity-100'}`}
                         >
-                          {name}
+                          {sh.name}
                         </span>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-[12px] text-zinc-400 italic">No stakeholders</p>
+                    <p className={`text-[12px] italic transition-colors ${isActive ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                      {isActive ? 'Drop here' : 'No stakeholders'}
+                    </p>
                   )}
                 </div>
               );
