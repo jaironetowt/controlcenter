@@ -90,7 +90,8 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
   const rawMax   = Math.max(...sprints.flatMap((s) => [commVal(s), doneVal(s)]), ...maValues, 1);
   const max      = Math.ceil(rawMax / 10) * 10;
 
-  const TICKS = 5;
+  const tickStep = Math.max(10, Math.ceil((max / 5) / 10) * 10);
+  const tickVals = Array.from({ length: Math.floor(max / tickStep) + 1 }, (_, i) => i * tickStep);
   const unit  = mode === 'sp' ? ' SP' : '';
 
   return (
@@ -118,13 +119,13 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
 
       <svg width="100%" style={{ maxWidth: totalW * 1.4 }} viewBox={`0 0 ${totalW} ${H + padB}`} className="overflow-visible">
         {/* Grid */}
-        {Array.from({ length: TICKS + 1 }, (_, i) => i / TICKS).map((pct) => {
+        {tickVals.map((val) => {
+          const pct = val / max;
           const y   = H - pct * H;
-          const val = Math.round(pct * max);
           return (
-            <g key={pct}>
+            <g key={val}>
               <line x1={padL} x2={totalW - padR} y1={y} y2={y}
-                stroke={pct === 0 ? '#d4d4d8' : '#f4f4f5'} strokeWidth={pct === 0 ? 1.5 : 1} />
+                stroke={val === 0 ? '#d4d4d8' : '#f4f4f5'} strokeWidth={val === 0 ? 1.5 : 1} />
               <text x={padL - 6} y={y + 4} textAnchor="end" fontSize={9} fill="#a1a1aa" fontFamily="sans-serif">
                 {val}{unit}
               </text>
