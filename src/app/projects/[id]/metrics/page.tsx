@@ -342,7 +342,15 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
           {data?.activeSprint ? (
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[14px] font-semibold text-zinc-800">{data.activeSprint.name}</span>
+                <a
+                  href={`${baseUrl}/jira/software/projects/${projectKey}/boards`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[14px] font-semibold text-zinc-800 hover:underline flex items-center gap-1"
+                >
+                  {data.activeSprint.name}
+                  <IconExternalLink size={12} className="text-zinc-400" />
+                </a>
                 <Badge size="xs" color="blue" variant="light">Active</Badge>
               </div>
               <span className="text-[12px] text-zinc-400">
