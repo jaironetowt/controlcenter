@@ -141,7 +141,11 @@ export function IntegrationsPanel({ project }: IntegrationsPanelProps) {
       const existing = new Set(stakeholders.filter((s) => s.projectId === project.id).map((s) => s.name.toLowerCase()));
       const toAdd    = (data.stakeholders ?? []).filter((s) => !existing.has(s.name.toLowerCase()));
 
-      if (toAdd.length === 0) { setSfImportMsg('All already imported.'); return; }
+      const sfTotal = (data.stakeholders ?? []).length;
+      if (toAdd.length === 0) {
+        setSfImportMsg(sfTotal === 0 ? 'No resources found in Salesforce.' : `All ${sfTotal} already imported.`);
+        return;
+      }
 
       const rows = toAdd.map((s) => ({
         id:         crypto.randomUUID(),

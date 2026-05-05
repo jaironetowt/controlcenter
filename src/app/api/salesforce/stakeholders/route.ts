@@ -26,10 +26,10 @@ export async function POST(req: Request) {
 
   try {
     const soql = [
-      'SELECT pse__Resource__r.Name, pse__Resource__r.Title, pse__Resource__r.Account.Name',
+      'SELECT pse__Resource__r.Name, pse__Resource__r.Title',
       'FROM pse__Assignment__c',
       `WHERE pse__Project__c = '${salesforceId}'`,
-      'AND pse__Status__c = \'Active\'',
+      'AND pse__Resource__r.Name != null',
       'ORDER BY pse__Resource__r.Name',
     ].join(' ');
 
@@ -48,15 +48,14 @@ export async function POST(req: Request) {
     const stakeholders: SFStakeholder[] = [];
 
     for (const r of result.result.records) {
-      const res     = r['pse__Resource__r'] as Record<string, unknown> | null;
-      const account = res?.['Account']      as Record<string, unknown> | null;
-      const name    = res ? String(res['Name'] ?? '') : '';
+      const res  = r['pse__Resource__r'] as Record<string, unknown> | null;
+      const name = res ? String(res['Name'] ?? '') : '';
       if (!name || seen.has(name)) continue;
       seen.add(name);
       stakeholders.push({
         name,
-        role:    res?.['Title']  ? String(res['Title'])         : '',
-        company: account?.['Name'] ? String(account['Name'])    : '',
+        role:    res?.['Title'] ? String(res['Title']) : '',
+        company: '',
       });
     }
 
