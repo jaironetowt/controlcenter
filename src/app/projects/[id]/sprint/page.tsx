@@ -97,6 +97,7 @@ function VelocityChart({ sprints }: { sprints: VelocitySprint[] }) {
           );
         })}
 
+        {/* Bars */}
         {sprints.map((s, i) => {
           const x = padL + i * (groupW + groupGap);
           const cH = (committed(s) / max) * H;
@@ -118,6 +119,30 @@ function VelocityChart({ sprints }: { sprints: VelocitySprint[] }) {
             </g>
           );
         })}
+
+        {/* Moving average line — center of each "done" bar */}
+        {(() => {
+          const maPoints = sprints.map((_, i) => {
+            const avg = sprints.slice(0, i + 1).reduce((sum, s) => sum + done(s), 0) / (i + 1);
+            const x = padL + i * (groupW + groupGap) + barW + gap + barW / 2;
+            const y = H - (avg / max) * H;
+            return { x, y, avg };
+          });
+          const polyline = maPoints.map((p) => `${p.x},${p.y}`).join(' ');
+          return (
+            <g>
+              <polyline points={polyline} fill="none" stroke="#f59e0b" strokeWidth={2} strokeDasharray="4 3" strokeLinejoin="round" />
+              {maPoints.map((p, i) => (
+                <g key={i}>
+                  <circle cx={p.x} cy={p.y} r={3} fill="#f59e0b" />
+                  <text x={p.x} y={p.y - 7} textAnchor="middle" fontSize={9} fill="#f59e0b" fontWeight={600}>
+                    {Math.round(p.avg)}
+                  </text>
+                </g>
+              ))}
+            </g>
+          );
+        })()}
       </svg>
 
       <div className="flex items-center gap-4 mt-1">
@@ -128,6 +153,10 @@ function VelocityChart({ sprints }: { sprints: VelocitySprint[] }) {
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded-sm bg-blue-500" />
           <span className="text-[11px] text-zinc-500">Done</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <svg width={16} height={8}><line x1={0} y1={4} x2={16} y2={4} stroke="#f59e0b" strokeWidth={2} strokeDasharray="4 3" /></svg>
+          <span className="text-[11px] text-zinc-500">Moving avg</span>
         </div>
       </div>
     </div>
