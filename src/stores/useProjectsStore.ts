@@ -109,7 +109,7 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
     // Optimistic update
     set((s) => ({ projects: [...s.projects, newProject] }));
 
-    const { error } = await supabase.from('projects').insert({
+    const baseRow: Record<string, unknown> = {
       id,
       name:          input.name,
       color:         input.color,
@@ -118,14 +118,22 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
       date_range:    input.dateRange,
       archived:      false,
       salesforce_id: input.salesforceId ?? null,
-      sf_name:       input.sfName ?? null,
-      sf_date_range: input.sfDateRange ?? null,
       created_at:    new Date(createdAt).toISOString(),
-    });
+    };
+    if (input.sfName      !== undefined) baseRow.sf_name       = input.sfName;
+    if (input.sfDateRange !== undefined) baseRow.sf_date_range = input.sfDateRange;
+
+    let { error } = await supabase.from('projects').insert(baseRow);
+
+    // 42703 = column does not exist — migration pending, retry without SF columns
+    if (error?.code === '42703') {
+      const { sf_name: _n, sf_date_range: _d, ...fallback } = baseRow;
+      void (_n); void (_d);
+      ({ error } = await supabase.from('projects').insert(fallback));
+    }
 
     if (error) {
-      // Reverter
-      set((s) => ({ projects: s.projects.filter((p) => p.id !== id), error: error.message }));
+      set((s) => ({ projects: s.projects.filter((p) => p.id !== id), error: error!.message }));
     }
   },
 
@@ -137,13 +145,17 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
       ),
     }));
 
-    const { error } = await supabase
-      .from('projects')
-      .update(toDb({ id, ...updates }))
-      .eq('id', id);
+    const row = toDb({ id, ...updates });
+    let { error } = await supabase.from('projects').update(row).eq('id', id);
+
+    // 42703 = column does not exist — retry without SF columns
+    if (error?.code === '42703') {
+      const { sf_name: _n, sf_date_range: _d, ...fallback } = row;
+      void (_n); void (_d);
+      ({ error } = await supabase.from('projects').update(fallback).eq('id', id));
+    }
 
     if (error) {
-      // Reverter — refetch
       set({ error: error.message });
       get().fetchProjects();
     }
