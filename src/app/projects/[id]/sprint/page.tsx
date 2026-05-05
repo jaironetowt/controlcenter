@@ -15,6 +15,8 @@ import type { VelocitySprint } from '@/app/api/pm/jira/velocity/route';
 
 const DATA_KEY = (id: string) => `sprint-data-${id}`;
 const TS_KEY   = (id: string) => `sprint-ts-${id}`;
+const VEL_KEY  = (id: string) => `sprint-vel-${id}`;
+const VEL_TS_KEY = (id: string) => `sprint-vel-ts-${id}`;
 const THREE_HOURS = 3 * 60 * 60 * 1000;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -286,8 +288,16 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
     void fetchData();
   }, [projectId, fetchData]);
 
-  // Velocity fetched independently on mount — not gated by sprint cache
+  // Velocity — load from cache immediately, then refresh in background
   useEffect(() => {
+    const cached = localStorage.getItem(VEL_KEY(projectId));
+    const ts     = Number(localStorage.getItem(VEL_TS_KEY(projectId)) ?? 0);
+    if (cached) {
+      const { sprints, displayFrom } = JSON.parse(cached) as { sprints: VelocitySprint[]; displayFrom: number };
+      setVelocity(sprints);
+      setVelDisplayFrom(displayFrom);
+    }
+    if (Date.now() - ts < THREE_HOURS) return; // cache still fresh
     fetch('/api/pm/jira/velocity', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -295,7 +305,12 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
     })
       .then((r) => r.json())
       .then((v: { sprints?: VelocitySprint[]; displayFrom?: number }) => {
-        if (v.sprints) { setVelocity(v.sprints); setVelDisplayFrom(v.displayFrom ?? 0); }
+        if (v.sprints) {
+          setVelocity(v.sprints);
+          setVelDisplayFrom(v.displayFrom ?? 0);
+          localStorage.setItem(VEL_KEY(projectId), JSON.stringify({ sprints: v.sprints, displayFrom: v.displayFrom ?? 0 }));
+          localStorage.setItem(VEL_TS_KEY(projectId), String(Date.now()));
+        }
       })
       .catch(() => undefined);
   }, [projectId, baseUrl, email, apiToken, projectKey]);
