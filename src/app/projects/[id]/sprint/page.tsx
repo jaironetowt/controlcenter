@@ -117,7 +117,8 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
         )}
       </div>
 
-      <svg width="100%" style={{ maxWidth: totalW * 1.4 }} viewBox={`0 0 ${totalW} ${H + padT + padB}`} className="overflow-visible">
+      <div style={{ maxWidth: totalW * 1.4 }}>
+      <svg width="100%" viewBox={`0 0 ${totalW} ${H + padT + padB}`} className="overflow-visible">
         {/* Y-axis label */}
         <text x={padL - 6} y={padT - 4} textAnchor="end" fontSize={8} fill="#a1a1aa" fontFamily="sans-serif" fontWeight={600}>
           {mode === 'sp' ? 'SP' : 'Issues'}
@@ -222,6 +223,7 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
 
       {/* Legend */}
       <div className="flex items-center justify-center gap-5 mt-3">
+
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded bg-zinc-200" />
           <span className="text-[11px] text-zinc-500">Committed</span>
@@ -234,6 +236,7 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
           <svg width={18} height={10}><line x1={0} y1={5} x2={18} y2={5} stroke="#f59e0b" strokeWidth={2.5} strokeDasharray="5 4" /></svg>
           <span className="text-[11px] text-zinc-500">3-sprint moving avg</span>
         </div>
+      </div>
       </div>
     </div>
   );
