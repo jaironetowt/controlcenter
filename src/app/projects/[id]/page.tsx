@@ -66,6 +66,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   useEffect(() => { setMounted(true); }, []);
 
   const storeProjects     = useProjectsStore((s) => s.projects);
+  const projectsLoading   = useProjectsStore((s) => s.loading);
   const storeRisks        = useRisksStore((s) => s.risks);
   const storeDecisions    = useDecisionsStore((s) => s.decisions);
   const storeItems        = useActionItemsStore((s) => s.items);
@@ -73,7 +74,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
   const project = mounted ? storeProjects.find((p) => slugify(p.name) === id || p.id === id) : null;
 
-  if (mounted && !project) return notFound();
+  if (mounted && !projectsLoading && !project) return notFound();
 
   const p: Project = project ?? { id, name: '…', color: '#3E77FC', client: '…', phase: '…', dateRange: '…', archived: false, createdAt: 0 };
   const projectId = p.id;

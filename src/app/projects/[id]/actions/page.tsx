@@ -12,10 +12,11 @@ export default function ProjectActionsPage({ params }: { params: Promise<{ id: s
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  const storeProjects = useProjectsStore((s) => s.projects);
+  const storeProjects   = useProjectsStore((s) => s.projects);
+  const projectsLoading = useProjectsStore((s) => s.loading);
   const project = mounted ? storeProjects.find((p) => slugify(p.name) === id || p.id === id) : null;
 
-  if (mounted && !project) return notFound();
+  if (mounted && !projectsLoading && !project) return notFound();
   const p = project ?? { id, name: '…', color: '#3E77FC', client: '…', phase: '…', dateRange: '…', archived: false };
   const projectId = p.id;
 
