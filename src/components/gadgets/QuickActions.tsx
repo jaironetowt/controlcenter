@@ -181,7 +181,9 @@ export function QuickActions() {
   const [priority, setPriority]     = useState<Priority>('Medium');
   const [owner, setOwner]           = useState('');
   const [openedAt, setOpenedAt]     = useState(() => new Date());
+  const [dueDate, setDueDate]       = useState<Date | null>(null);
   const dateInputRef                = useRef<HTMLInputElement>(null);
+  const dueDateInputRef             = useRef<HTMLInputElement>(null);
 
   const allProjects = useProjectsStore((s) => s.projects).filter((p) => !p.archived);
   const addRisk     = useRisksStore((s) => s.addRisk);
@@ -317,17 +319,51 @@ if (!mounted) return null;
       {selected === 'action' && (
         <CaptureCard
           placeholder="What needs to be done…"
-          onSave={(title) => addItem({ projectId, title, owner, dueDate: '', priority, status: 'To Do' })}
+          onSave={(title) => {
+            addItem({ projectId, title, owner, dueDate: dueDate ? dueDate.toISOString().slice(0, 10) : '', priority, status: 'To Do' });
+            setDueDate(null);
+          }}
           meta={
-            <div className="flex items-center gap-2">
-              <span className="text-zinc-500 text-[10px] w-[60px]">Priority</span>
-              <button
-                onClick={() => setPriority((p) => nextLevel(p))}
-                className="flex items-center gap-1 px-1.5 py-px rounded-md bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-[76px]"
-              >
-                <PriorityIcon priority={priority} />
-                <span className="text-zinc-400 text-[10px] ml-auto">{priority}</span>
-              </button>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <span className="text-zinc-500 text-[10px] w-[60px]">Priority</span>
+                <button
+                  onClick={() => setPriority((p) => nextLevel(p))}
+                  className="flex items-center gap-1 px-1.5 py-px rounded-md bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors w-[76px]"
+                >
+                  <PriorityIcon priority={priority} />
+                  <span className="text-zinc-400 text-[10px] ml-auto">{priority}</span>
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-zinc-500 text-[10px] w-[60px]">Due date</span>
+                <div className="relative w-[98px]">
+                  <div
+                    onClick={() => dueDateInputRef.current?.showPicker?.()}
+                    className="flex items-center gap-1 px-1.5 py-px rounded-md bg-zinc-100 border border-zinc-300 text-[10px] text-zinc-600 hover:border-orange-400 hover:bg-orange-50 transition-colors cursor-pointer w-full"
+                  >
+                    <svg className="w-2.5 h-2.5 text-zinc-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-zinc-400 text-[10px] ml-auto truncate">
+                      {dueDate ? dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'None'}
+                    </span>
+                  </div>
+                  <input
+                    ref={dueDateInputRef}
+                    type="date"
+                    value={dueDate ? dueDate.toISOString().slice(0, 10) : ''}
+                    onChange={(e) => {
+                      if (!e.currentTarget.value) { setDueDate(null); return; }
+                      const [y, m, d] = e.currentTarget.value.split('-').map(Number);
+                      const date = new Date(y, m - 1, d);
+                      if (!isNaN(date.getTime())) setDueDate(date);
+                    }}
+                    className="absolute inset-0 opacity-0 pointer-events-none"
+                    tabIndex={-1}
+                  />
+                </div>
+              </div>
             </div>
           }
         />
