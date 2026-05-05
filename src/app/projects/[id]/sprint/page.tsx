@@ -87,7 +87,8 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
   const padB     = 40;
   const padR     = 16;
   const totalW   = padL + sprints.length * (groupW + groupGap) - groupGap + padR;
-  const max      = Math.max(...sprints.flatMap((s) => [commVal(s), doneVal(s)]), ...maValues, 1);
+  const rawMax   = Math.max(...sprints.flatMap((s) => [commVal(s), doneVal(s)]), ...maValues, 1);
+  const max      = Math.ceil(rawMax / 10) * 10;
 
   const TICKS = 5;
   const unit  = mode === 'sp' ? ' SP' : '';
