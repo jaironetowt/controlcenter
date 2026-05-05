@@ -76,13 +76,14 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   if (mounted && !project) return notFound();
 
   const p: Project = project ?? { id, name: '…', color: '#3E77FC', client: '…', phase: '…', dateRange: '…', archived: false, createdAt: 0 };
+  const projectId = p.id;
 
-  const openRisks    = mounted ? storeRisks.filter((r) => r.projectId === id && r.status === 'Open').length : 0;
-  const totalRisks   = mounted ? storeRisks.filter((r) => r.projectId === id).length : 0;
-  const decisions    = mounted ? storeDecisions.filter((d) => d.projectId === id).length : 0;
-  const openActions  = mounted ? storeItems.filter((i) => i.projectId === id && i.status !== 'Done').length : 0;
-  const totalActions = mounted ? storeItems.filter((i) => i.projectId === id).length : 0;
-  const stakeholders = mounted ? storeStakeholders.filter((s) => s.projectId === id).length : 0;
+  const openRisks    = mounted ? storeRisks.filter((r) => r.projectId === projectId && r.status === 'Open').length : 0;
+  const totalRisks   = mounted ? storeRisks.filter((r) => r.projectId === projectId).length : 0;
+  const decisions    = mounted ? storeDecisions.filter((d) => d.projectId === projectId).length : 0;
+  const openActions  = mounted ? storeItems.filter((i) => i.projectId === projectId && i.status !== 'Done').length : 0;
+  const totalActions = mounted ? storeItems.filter((i) => i.projectId === projectId).length : 0;
+  const stakeholders = mounted ? storeStakeholders.filter((s) => s.projectId === projectId).length : 0;
 
   const updateProject  = useProjectsStore((s) => s.updateProject);
   const timecardCount  = mounted ? (project?.timecardCount ?? 0) : 0;
@@ -101,14 +102,14 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       .then((r) => r.json())
       .then((data: { timecards?: unknown[] }) => {
         const count = data.timecards?.length ?? 0;
-        updateProject(id, { timecardCount: count, timecardCountAt: Date.now() });
+        updateProject(projectId, { timecardCount: count, timecardCountAt: Date.now() });
       })
       .catch(() => undefined);
   }, [mounted, id, project?.salesforceId, timecardCountAt, updateProject]);
 
   return (
     <>
-      <ProjectHeader name={p.name} color={p.color} client={p.client} phase={p.phase} dateRange={p.dateRange} projectId={id} archived={p.archived} />
+      <ProjectHeader name={p.name} color={p.color} client={p.client} phase={p.phase} dateRange={p.dateRange} projectId={projectId} archived={p.archived} />
 
       {/* Module grid */}
       <div className="flex-1 overflow-y-auto px-10 py-8">
