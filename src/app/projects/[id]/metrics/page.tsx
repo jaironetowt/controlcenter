@@ -329,7 +329,7 @@ function SprintBoard({ projectId, baseUrl, email, apiToken, projectKey }: Sprint
 
   const spCommitted = issues.reduce((s, i) => s + (i.storyPoints ?? 0), 0);
   const spDone      = issues.filter((i) => doneStatuses.has(i.status.toLowerCase())).reduce((s, i) => s + (i.storyPoints ?? 0), 0);
-  const spPct       = spCommitted > 0 ? Math.round((spDone / spCommitted) * 100) : null;
+  const spPct       = spCommitted > 0 ? Math.round((spDone / spCommitted) * 100) : 0;
   const hasSPData   = spCommitted > 0;
 
   // ── Render ─────────────────────────────────────────────────────────────────
