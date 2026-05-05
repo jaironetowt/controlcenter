@@ -27,8 +27,8 @@ import type { PMProjectData } from '@/integrations/types';
 interface ModuleCardProps {
   icon: React.ReactNode;
   label: string;
-  count: number | string;
-  sub: string;
+  count: React.ReactNode;
+  sub: React.ReactNode;
   href: string;
   color: string;
 }
@@ -53,8 +53,12 @@ function ModuleCard({ icon, label, count, sub, href, color }: ModuleCardProps) {
       </div>
       <div>
         <p className="text-[13px] text-zinc-500 font-medium">{label}</p>
-        <p className="text-[28px] font-semibold text-zinc-900 leading-none mt-0.5">{count}</p>
-        <p className="text-[12px] text-zinc-400 mt-1">{sub}</p>
+        <div className="leading-none mt-0.5">
+          {typeof count === 'object' ? count : <span className="text-[28px] font-semibold text-zinc-900">{count}</span>}
+        </div>
+        <div className="mt-1">
+          {typeof sub === 'object' ? sub : <span className="text-[12px] text-zinc-400">{sub}</span>}
+        </div>
       </div>
     </Link>
   );
@@ -172,8 +176,17 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             <ModuleCard
               icon={<IconChartBar size={18} />}
               label="Metrics"
-              count={sprintCache?.activeSprint && spCommitted > 0 ? `${spDone} / ${spCommitted}` : spDone}
-              sub={sprintCache?.activeSprint && spCommitted > 0 ? `${spPct}% SP done` : 'Jira connected'}
+              count={sprintCache?.activeSprint && spCommitted > 0
+                ? <span className="leading-none">
+                    <span className="text-[28px] font-semibold text-zinc-900">{spDone}</span>
+                    <span className="text-[18px] font-normal text-zinc-400"> / {spCommitted}</span>
+                  </span>
+                : <span className="text-[28px] font-semibold text-zinc-900">{spDone}</span>
+              }
+              sub={sprintCache?.activeSprint && spCommitted > 0
+                ? <span className="text-[12px] font-semibold" style={{ color: spPct >= 80 ? '#22c55e' : spPct >= 60 ? '#f59e0b' : '#ef4444' }}>{spPct}% SP done</span>
+                : <span className="text-[12px] text-zinc-400">Jira connected</span>
+              }
               href={projectSlugPath(projectSlug, '/metrics')}
               color="#6366F1"
             />
