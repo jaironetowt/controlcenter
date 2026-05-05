@@ -221,7 +221,7 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
       </svg>
 
       {/* Legend */}
-      <div className="flex items-center gap-5 mt-3 pl-1">
+      <div className="flex items-center justify-center gap-5 mt-3">
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded bg-zinc-200" />
           <span className="text-[11px] text-zinc-500">Committed</span>
