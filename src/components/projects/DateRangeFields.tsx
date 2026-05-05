@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 import { Text } from '@mantine/core';
+import { IconCalendar } from '@tabler/icons-react';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -55,7 +56,10 @@ function MonthPicker({ value, label, onChange }: { value: string; label: string;
         onClick={openPicker}
         className="relative w-full px-3 py-[7px] rounded-md border border-zinc-300 text-[13px] text-zinc-800 bg-white cursor-pointer hover:border-zinc-400 transition"
       >
-        <span>{value ? monthToLabel(value) : <span className="text-zinc-400">— —</span>}</span>
+        <span className="flex items-center justify-between gap-2">
+          <span>{value ? monthToLabel(value) : <span className="text-zinc-400">— —</span>}</span>
+          <IconCalendar size={14} className="text-zinc-400 shrink-0" />
+        </span>
         <input
           ref={ref}
           type="month"
