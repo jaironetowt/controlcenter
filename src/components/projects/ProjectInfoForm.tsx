@@ -103,23 +103,19 @@ export function ProjectInfoForm({ project, onSaved }: ProjectInfoFormProps) {
         <div className="flex items-center gap-2 rounded-lg bg-[#f0f8ff] border border-[#b3daf7] px-3 py-2">
           <IconCloudDown size={14} color="#00A1E0" className="flex-shrink-0" />
           <Text size="xs" fw={500} c="#0070a8" className="flex-shrink-0">Linked to Salesforce</Text>
-          {project.sfName && (
-            <>
-              <Text size="xs" c="dimmed" className="flex-shrink-0">·</Text>
-              <a
-                href={`https://willowtree.lightning.force.com/lightning/r/pse__Proj__c/${project.salesforceId}/view`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 min-w-0"
-                style={{ color: '#0070a8', textDecoration: 'none' }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'underline'; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'none'; }}
-              >
-                <Text size="xs" className="truncate">{project.sfName}</Text>
-                <IconExternalLink size={11} className="flex-shrink-0" />
-              </a>
-            </>
-          )}
+          <Text size="xs" c="dimmed" className="flex-shrink-0">·</Text>
+          <a
+            href={`https://willowtree.lightning.force.com/lightning/r/pse__Proj__c/${project.salesforceId}/view`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 min-w-0"
+            style={{ color: '#0070a8', textDecoration: 'none' }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'underline'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.textDecoration = 'none'; }}
+          >
+            <Text size="xs" className="truncate">{project.sfName ?? 'View in Salesforce'}</Text>
+            <IconExternalLink size={11} className="flex-shrink-0" />
+          </a>
         </div>
       )}
 
