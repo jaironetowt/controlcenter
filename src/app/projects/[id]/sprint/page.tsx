@@ -117,6 +117,11 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
       </div>
 
       <svg width="100%" style={{ maxWidth: totalW * 1.4 }} viewBox={`0 0 ${totalW} ${H + padB}`} className="overflow-visible">
+        {/* Y-axis label */}
+        <text x={padL - 6} y={-6} textAnchor="end" fontSize={8} fill="#a1a1aa" fontFamily="sans-serif" fontWeight={600}>
+          {mode === 'sp' ? 'SP' : 'Issues'}
+        </text>
+
         {/* Grid — subticks a cada 50 */}
         {Array.from({ length: Math.floor(max / 50) + 1 }, (_, i) => i * 50).map((val) => {
           const isMajor = tickVals.includes(val);
@@ -129,7 +134,7 @@ function VelocityChart({ allSprints, displayFrom, projectId }: {
                 strokeWidth={val === 0 ? 1.5 : 1} />
               {val > 0 && (
                 <text x={padL - 6} y={y + 4} textAnchor="end" fontSize={7.5} fill={isMajor ? '#a1a1aa' : '#c4c4c8'} fontFamily="sans-serif">
-                  {val}{unit}
+                  {val}
                 </text>
               )}
             </g>
