@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { IconPencil, IconTrash, IconUserPlus } from '@tabler/icons-react';
 import { useStakeholdersStore, type Stakeholder } from '@/stores/useStakeholdersStore';
+import { useSpaceStore } from '@/stores/useSpaceStore';
 import { StakeholderModal } from './StakeholderModal';
 
 // ─── Badge helpers ────────────────────────────────────────────────────────────
@@ -106,6 +107,7 @@ export function StakeholderList({ projectId }: StakeholderListProps) {
 
   const rawStakeholders = useStakeholdersStore((s) => s.stakeholders);
   const deleteStakeholder = useStakeholdersStore((s) => s.deleteStakeholder);
+  const canEdit = useSpaceStore((s) => s.me != null && s.selectedSpace === s.me.sub);
 
   const filtered = mounted
     ? rawStakeholders.filter((sh) => sh.projectId === projectId)
@@ -135,13 +137,15 @@ export function StakeholderList({ projectId }: StakeholderListProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-[16px] font-semibold text-zinc-900">Stakeholders</h2>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-[13px] font-medium text-white hover:bg-zinc-700 transition-colors"
-        >
-          <IconUserPlus size={14} />
-          Add Stakeholder
-        </button>
+        {canEdit && (
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-1.5 rounded-lg bg-zinc-900 px-3 py-1.5 text-[13px] font-medium text-white hover:bg-zinc-700 transition-colors"
+          >
+            <IconUserPlus size={14} />
+            Add Stakeholder
+          </button>
+        )}
       </div>
 
       {/* Card grid */}

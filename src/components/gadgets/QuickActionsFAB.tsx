@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { IconBolt } from '@tabler/icons-react';
 import { QuickActions } from './QuickActions';
 import { useRightPanelStore } from '@/components/layout/RightPanel';
+import { useSpaceStore } from '@/stores/useSpaceStore';
 
 const PANEL_WIDTH = 280;
 const FAB_MARGIN  = 24;
@@ -15,6 +16,7 @@ export function QuickActionsFAB() {
   const [hovered, setHovered]   = useState(false);
   const containerRef            = useRef<HTMLDivElement>(null);
   const panelCollapsed          = useRightPanelStore((s) => s.collapsed);
+  const canEdit                 = useSpaceStore((s) => s.me != null && s.selectedSpace === s.me.sub);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -36,6 +38,8 @@ export function QuickActionsFAB() {
   }, [open]);
 
   if (!mounted) return null;
+  // Hide creation entry point when viewing someone else's (read-only) workspace.
+  if (!canEdit) return null;
 
   const rightOffset = (panelCollapsed ? 0 : PANEL_WIDTH) + FAB_MARGIN;
 

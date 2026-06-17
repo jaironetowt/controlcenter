@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Text, Stack, Title, Divider } from '@mantine/core';
 import { FeaturesConfig } from '@/components/settings/FeaturesConfig';
+import { SharingConfig } from '@/components/settings/SharingConfig';
 
 // ─── Settings Page ────────────────────────────────────────────────────────────
 
@@ -26,6 +27,16 @@ export default function SettingsPage() {
             Enable or disable optional UI features across the entire application.
           </Text>
           {mounted && <FeaturesConfig />}
+        </div>
+
+        <Divider />
+
+        <div>
+          <Text fw={600} size="sm" mb="xs">Sharing</Text>
+          <Text size="xs" c="dimmed" mb="md">
+            Pessoas adicionadas aqui podem VER todo o seu workspace (somente leitura).
+          </Text>
+          {mounted && <SharingConfig />}
         </div>
       </Stack>
     </div>

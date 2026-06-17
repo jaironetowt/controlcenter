@@ -30,6 +30,8 @@ import { useState, useEffect } from 'react';
 import { create } from 'zustand';
 import { useProjectsStore, type Project } from '@/stores/useProjectsStore';
 import { ProjectModal } from '@/components/projects/ProjectModal';
+import { SpaceSwitcher } from '@/components/layout/SpaceSwitcher';
+import { useSpaceStore } from '@/stores/useSpaceStore';
 import { buildSlugMap, projectSlugPath } from '@/lib/slugify';
 
 // ─── Zustand store ────────────────────────────────────────────────────────────
@@ -76,6 +78,7 @@ export function Sidebar() {
   const router = useRouter();
 
   const storeProjects = useProjectsStore((s) => s.projects);
+  const canEdit = useSpaceStore((s) => s.me != null && s.selectedSpace === s.me.sub);
   const projects = mounted ? storeProjects.filter((p) => !p.archived) : [];
   const slugMap  = mounted ? buildSlugMap(storeProjects) : {};
 
@@ -162,6 +165,11 @@ export function Sidebar() {
         </div>
 
         <div className="mx-3 h-px bg-white/8 flex-shrink-0" />
+
+        {/* Space switcher */}
+        <div className={`flex-shrink-0 pt-2 ${isCollapsed ? 'px-2 flex justify-center' : 'px-2'}`}>
+          <SpaceSwitcher isCollapsed={isCollapsed} />
+        </div>
 
         {/* Global nav */}
         <nav className="px-2 pt-3 pb-1 flex flex-col gap-0.5 flex-shrink-0">
@@ -286,7 +294,7 @@ export function Sidebar() {
             );
           })}
 
-          {!isCollapsed && (
+          {!isCollapsed && canEdit && (
             <button
               onClick={openCreateModal}
               className="flex items-center gap-1 px-2 py-1.5 mt-1 rounded-md text-[12px] text-[#C7C7CC]/60 hover:text-[#C7C7CC] transition-colors text-left w-full"

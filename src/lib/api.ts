@@ -32,9 +32,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 // ─── CRUD ─────────────────────────────────────────────────────────────────────
 
-/** GET /api/{resource} -> Row[] (the `data` array). */
-export async function apiList<T>(resource: Resource): Promise<T[]> {
-  const { data } = await request<{ data: T[] }>(`/api/${resource}`);
+/**
+ * GET /api/{resource}?space=<space> -> Row[] (the `data` array).
+ * When `space` (an owner_sub) is passed it scopes the read to that space;
+ * the worker defaults to the caller's own space when it is omitted.
+ */
+export async function apiList<T>(resource: Resource, space?: string): Promise<T[]> {
+  const qs = space ? `?space=${encodeURIComponent(space)}` : '';
+  const { data } = await request<{ data: T[] }>(`/api/${resource}${qs}`);
   return data;
 }
 
@@ -63,6 +68,61 @@ export async function apiUpdate<T>(
 /** DELETE /api/{resource}/{id} -> void. */
 export async function apiDelete(resource: Resource, id: string): Promise<void> {
   await request<{ ok: true }>(`/api/${resource}/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+// ─── Identity / spaces ────────────────────────────────────────────────────────
+
+export interface Me {
+  sub: string;
+  email: string;
+}
+
+export interface SpaceRow {
+  owner_sub: string;
+  owner_email: string;
+  role: 'owner' | 'viewer';
+}
+
+export interface ShareRow {
+  viewer_email: string;
+  role: string;
+}
+
+/** GET /api/me -> { sub, email } (email lowercased by the worker). */
+export async function getMe(): Promise<Me> {
+  return request<Me>('/api/me');
+}
+
+/**
+ * GET /api/spaces -> { me, spaces }.
+ * `spaces` always includes the caller's own space (role 'owner') plus every
+ * space they were invited to as a viewer.
+ */
+export async function getSpaces(): Promise<{ me: Me; spaces: SpaceRow[] }> {
+  return request<{ me: Me; spaces: SpaceRow[] }>('/api/spaces');
+}
+
+// ─── Shares (viewers of the caller's own space) ────────────────────────────────
+
+/** GET /api/shares -> ShareRow[] (the `data` array). */
+export async function getShares(): Promise<ShareRow[]> {
+  const { data } = await request<{ data: ShareRow[] }>('/api/shares');
+  return data;
+}
+
+/** POST /api/shares { email } -> invites a viewer to the caller's space (upsert). */
+export async function addShare(email: string): Promise<void> {
+  await request<{ ok: true }>('/api/shares', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+/** DELETE /api/shares/{email} -> removes a viewer from the caller's space. */
+export async function removeShare(email: string): Promise<void> {
+  await request<{ ok: true }>(`/api/shares/${encodeURIComponent(email)}`, {
     method: 'DELETE',
   });
 }

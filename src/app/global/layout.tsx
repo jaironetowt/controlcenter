@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/layout/Sidebar';
 import { RightPanel } from '@/components/layout/RightPanel';
+import { ReadOnlyBanner } from '@/components/layout/ReadOnlyBanner';
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 
@@ -9,6 +10,7 @@ export default function GlobalLayout({ children }: { children: React.ReactNode }
       <Sidebar />
 
       <main className="flex-1 flex flex-col overflow-hidden">
+        <ReadOnlyBanner />
         {children}
       </main>
 

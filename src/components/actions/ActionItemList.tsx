@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { IconPencil, IconTrash, IconCircle, IconCircleHalf2, IconCircleCheck } from '@tabler/icons-react';
 import { useActionItemsStore, type ActionItem, type ActionStatus } from '@/stores/useActionItemsStore';
+import { useSpaceStore } from '@/stores/useSpaceStore';
 import { PriorityIcon } from '@/components/ui/PriorityIcon';
 import { ActionItemModal } from './ActionItemModal';
 
@@ -155,6 +156,7 @@ export function ActionItemList({ projectId }: ActionItemListProps) {
   const rawItems  = useActionItemsStore((s) => s.items);
   const updateItem = useActionItemsStore((s) => s.updateItem);
   const deleteItem = useActionItemsStore((s) => s.deleteItem);
+  const canEdit    = useSpaceStore((s) => s.me != null && s.selectedSpace === s.me.sub);
 
   const items = mounted ? rawItems.filter((i) => i.projectId === projectId) : [];
 
@@ -188,12 +190,14 @@ export function ActionItemList({ projectId }: ActionItemListProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-[16px] font-semibold text-zinc-900">Action Items</h2>
-        <button
-          onClick={openCreate}
-          className="px-3 py-1.5 rounded-lg bg-blue-500 text-white text-[13px] font-medium hover:bg-blue-600 transition-colors"
-        >
-          Add Item
-        </button>
+        {canEdit && (
+          <button
+            onClick={openCreate}
+            className="px-3 py-1.5 rounded-lg bg-blue-500 text-white text-[13px] font-medium hover:bg-blue-600 transition-colors"
+          >
+            Add Item
+          </button>
+        )}
       </div>
 
       {/* Filter tabs */}

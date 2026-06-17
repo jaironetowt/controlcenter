@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 import { useRisksStore, type Risk, type Probability, type Impact, type RiskStatus } from '@/stores/useRisksStore';
+import { useSpaceStore } from '@/stores/useSpaceStore';
 import { RiskModal } from './RiskModal';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -157,6 +158,7 @@ export function RiskLog({ projectId }: RiskLogProps) {
   const openRisks    = projectRisks.filter((r) => r.status === 'Open');
   const numMap       = buildNumMap(projectRisks);
   const deleteRisk   = useRisksStore((s) => s.deleteRisk);
+  const canEdit      = useSpaceStore((s) => s.me != null && s.selectedSpace === s.me.sub);
 
   const [modalOpen, setModalOpen]     = useState(false);
   const [editingRisk, setEditingRisk] = useState<Risk | undefined>(undefined);
@@ -169,9 +171,11 @@ export function RiskLog({ projectId }: RiskLogProps) {
     <>
       <div className="flex items-center justify-between mb-3">
         <span className="text-[14px] font-semibold text-zinc-800">Risk Log</span>
-        <button onClick={openCreateModal} className="px-3 py-1 text-[12px] font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">
-          Add Risk
-        </button>
+        {canEdit && (
+          <button onClick={openCreateModal} className="px-3 py-1 text-[12px] font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">
+            Add Risk
+          </button>
+        )}
       </div>
 
       {openRisks.length === 0 ? (

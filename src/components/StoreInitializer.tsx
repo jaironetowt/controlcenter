@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useSpaceStore } from '@/stores/useSpaceStore';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { useRisksStore } from '@/stores/useRisksStore';
 import { useActionItemsStore } from '@/stores/useActionItemsStore';
@@ -10,24 +11,33 @@ import { useFeaturesStore } from '@/stores/useFeaturesStore';
 
 /**
  * Componente invisível montado no topo da árvore que dispara o fetch
- * inicial de todos os stores Supabase. Deve ser incluído dentro do Providers.
+ * inicial de identidade/espaços e, em seguida, de todos os stores Supabase.
+ * Deve ser incluído dentro do Providers.
+ *
+ * Fluxo multi-tenant:
+ * 1. No mount, carrega me + spaces (define selectedSpace default = me.sub).
+ * 2. Sempre que selectedSpace estiver definido (ou mudar), re-busca todos
+ *    os resources do espaço selecionado.
  */
 export function StoreInitializer() {
-  const fetchProjects     = useProjectsStore((s) => s.fetchProjects);
-  const fetchRisks        = useRisksStore((s) => s.fetchRisks);
-  const fetchItems        = useActionItemsStore((s) => s.fetchItems);
-  const fetchDecisions    = useDecisionsStore((s) => s.fetchDecisions);
-  const fetchStakeholders = useStakeholdersStore((s) => s.fetchStakeholders);
-  const fetchFeatures     = useFeaturesStore((s) => s.fetchFeatures);
+  const selectedSpace = useSpaceStore((s) => s.selectedSpace);
 
+  // 1. Carrega identidade + espaços uma vez no mount.
   useEffect(() => {
-    fetchProjects();
-    fetchRisks();
-    fetchItems();
-    fetchDecisions();
-    fetchStakeholders();
-    fetchFeatures();
-  }, [fetchProjects, fetchRisks, fetchItems, fetchDecisions, fetchStakeholders, fetchFeatures]);
+    void useSpaceStore.getState().fetchSpaces();
+  }, []);
+
+  // 2. (Re)busca todos os resources sempre que o espaço selecionado mudar.
+  useEffect(() => {
+    if (!selectedSpace) return;
+
+    void useProjectsStore.getState().fetchProjects();
+    void useRisksStore.getState().fetchRisks();
+    void useActionItemsStore.getState().fetchItems();
+    void useDecisionsStore.getState().fetchDecisions();
+    void useStakeholdersStore.getState().fetchStakeholders();
+    void useFeaturesStore.getState().fetchFeatures();
+  }, [selectedSpace]);
 
   return null;
 }

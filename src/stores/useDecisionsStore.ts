@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { apiList, apiCreate, apiUpdate, apiDelete } from '@/lib/api';
+import { useSpaceStore } from '@/stores/useSpaceStore';
 import type { DbDecision } from '@/lib/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -50,7 +51,7 @@ export const useDecisionsStore = create<DecisionsStore>()((set, get) => ({
   fetchDecisions: async () => {
     set({ loading: true, error: null });
     try {
-      const rows = await apiList<DbDecision>('decisions');
+      const rows = await apiList<DbDecision>('decisions', useSpaceStore.getState().selectedSpace ?? undefined);
       set({ decisions: rows.map(fromDb), loading: false });
     } catch (e) {
       set({ loading: false, error: e instanceof Error ? e.message : String(e) });
@@ -58,6 +59,12 @@ export const useDecisionsStore = create<DecisionsStore>()((set, get) => ({
   },
 
   addDecision: async (input) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaco de outra pessoa' });
+      return;
+    }
+
     const id = crypto.randomUUID();
     const createdAt = Date.now();
 
@@ -85,6 +92,12 @@ export const useDecisionsStore = create<DecisionsStore>()((set, get) => ({
   },
 
   updateDecision: async (id, updates) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaco de outra pessoa' });
+      return;
+    }
+
     set((s) => ({
       decisions: s.decisions.map((d) =>
         d.id === id ? { ...d, ...updates } : d,
@@ -108,6 +121,12 @@ export const useDecisionsStore = create<DecisionsStore>()((set, get) => ({
   },
 
   deleteDecision: async (id) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaco de outra pessoa' });
+      return;
+    }
+
     set((s) => ({ decisions: s.decisions.filter((d) => d.id !== id) }));
 
     try {

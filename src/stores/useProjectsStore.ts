@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { apiList, apiCreate, apiUpdate, apiDelete } from '@/lib/api';
+import { useSpaceStore } from '@/stores/useSpaceStore';
 import type { DbProject } from '@/lib/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -83,7 +84,8 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
   fetchProjects: async () => {
     set({ loading: true, error: null });
     try {
-      const rows = await apiList<DbProject>('projects');
+      const space = useSpaceStore.getState().selectedSpace ?? undefined;
+      const rows = await apiList<DbProject>('projects', space);
       set({
         projects: rows.map((r) => fromDb(r as unknown as Record<string, unknown>)),
         loading:  false,
@@ -94,6 +96,12 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
   },
 
   addProject: async (input) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaco de outra pessoa' });
+      return;
+    }
+
     const id = crypto.randomUUID();
     const createdAt = Date.now();
 
@@ -132,6 +140,12 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
   },
 
   updateProject: async (id, updates) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaco de outra pessoa' });
+      return;
+    }
+
     // Optimistic update
     set((s) => ({
       projects: s.projects.map((p) =>
@@ -150,6 +164,12 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
   },
 
   archiveProject: async (id) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaco de outra pessoa' });
+      return;
+    }
+
     const archivedAt = Date.now();
 
     set((s) => ({
@@ -170,6 +190,12 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
   },
 
   restoreProject: async (id) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaco de outra pessoa' });
+      return;
+    }
+
     set((s) => ({
       projects: s.projects.map((p) =>
         p.id === id ? { ...p, archived: false, archivedAt: undefined } : p,

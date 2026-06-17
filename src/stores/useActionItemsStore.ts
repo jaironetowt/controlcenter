@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { apiList, apiCreate, apiUpdate, apiDelete } from '@/lib/api';
+import { useSpaceStore } from '@/stores/useSpaceStore';
 import type { DbActionItem } from '@/lib/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -53,7 +54,8 @@ export const useActionItemsStore = create<ActionItemsStore>()((set, get) => ({
   fetchItems: async () => {
     set({ loading: true, error: null });
     try {
-      const rows = await apiList<DbActionItem>('action_items');
+      const space = useSpaceStore.getState().selectedSpace ?? undefined;
+      const rows = await apiList<DbActionItem>('action_items', space);
       // ordenados desc por created_at (a API não garante ordem para este recurso)
       const items = rows
         .map(fromDb)
@@ -65,6 +67,12 @@ export const useActionItemsStore = create<ActionItemsStore>()((set, get) => ({
   },
 
   addItem: async (input) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaço de outra pessoa' });
+      return;
+    }
+
     const id = crypto.randomUUID();
     const createdAt = Date.now();
 
@@ -93,6 +101,12 @@ export const useActionItemsStore = create<ActionItemsStore>()((set, get) => ({
   },
 
   updateItem: async (id, updates) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaço de outra pessoa' });
+      return;
+    }
+
     set((s) => ({
       items: s.items.map((item) =>
         item.id === id ? { ...item, ...updates } : item,
@@ -116,6 +130,12 @@ export const useActionItemsStore = create<ActionItemsStore>()((set, get) => ({
   },
 
   deleteItem: async (id) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaço de outra pessoa' });
+      return;
+    }
+
     set((s) => ({ items: s.items.filter((item) => item.id !== id) }));
 
     try {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 import { useDecisionsStore, type Decision } from '@/stores/useDecisionsStore';
+import { useSpaceStore } from '@/stores/useSpaceStore';
 import { DecisionModal } from './DecisionModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -118,6 +119,7 @@ export function DecisionLog({ projectId }: DecisionLogProps) {
 
   const rawDecisions = useDecisionsStore((s) => s.decisions);
   const deleteDecision = useDecisionsStore((s) => s.deleteDecision);
+  const canEdit = useSpaceStore((s) => s.me != null && s.selectedSpace === s.me.sub);
 
   const decisions = mounted
     ? rawDecisions.filter((d) => d.projectId === projectId)
@@ -146,12 +148,14 @@ export function DecisionLog({ projectId }: DecisionLogProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-[16px] font-semibold text-zinc-900">Decision Log</h2>
-        <button
-          onClick={openCreate}
-          className="px-3 py-1.5 rounded-lg bg-blue-500 text-white text-[13px] font-medium hover:bg-blue-600 transition-colors"
-        >
-          Add Decision
-        </button>
+        {canEdit && (
+          <button
+            onClick={openCreate}
+            className="px-3 py-1.5 rounded-lg bg-blue-500 text-white text-[13px] font-medium hover:bg-blue-600 transition-colors"
+          >
+            Add Decision
+          </button>
+        )}
       </div>
 
       {/* List */}

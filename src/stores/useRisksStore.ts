@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { apiList, apiCreate, apiUpdate, apiDelete } from '@/lib/api';
+import { useSpaceStore } from '@/stores/useSpaceStore';
 import type { DbRisk } from '@/lib/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -58,7 +59,8 @@ export const useRisksStore = create<RisksStore>()((set, get) => ({
   fetchRisks: async () => {
     set({ loading: true, error: null });
     try {
-      const data = await apiList<DbRisk>('risks');
+      const space = useSpaceStore.getState().selectedSpace ?? undefined;
+      const data = await apiList<DbRisk>('risks', space);
       set({ risks: data.map(fromDb), loading: false });
     } catch (e) {
       set({ loading: false, error: e instanceof Error ? e.message : String(e) });
@@ -66,6 +68,12 @@ export const useRisksStore = create<RisksStore>()((set, get) => ({
   },
 
   addRisk: async (input) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaco de outra pessoa' });
+      return;
+    }
+
     const id = crypto.randomUUID();
     const createdAt = input.createdAt ?? Date.now();
 
@@ -100,6 +108,12 @@ export const useRisksStore = create<RisksStore>()((set, get) => ({
   },
 
   updateRisk: async (id, updates) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaco de outra pessoa' });
+      return;
+    }
+
     set((s) => ({
       risks: s.risks.map((r) => {
         if (r.id !== id) return r;
@@ -140,6 +154,12 @@ export const useRisksStore = create<RisksStore>()((set, get) => ({
   },
 
   deleteRisk: async (id) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaco de outra pessoa' });
+      return;
+    }
+
     set((s) => ({ risks: s.risks.filter((r) => r.id !== id) }));
 
     try {

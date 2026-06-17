@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { apiList, apiCreate, apiUpdate, apiDelete } from '@/lib/api';
+import { useSpaceStore } from '@/stores/useSpaceStore';
 import type { DbStakeholder } from '@/lib/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -55,7 +56,8 @@ export const useStakeholdersStore = create<StakeholdersStore>()((set, get) => ({
   fetchStakeholders: async () => {
     set({ loading: true, error: null });
     try {
-      const data = await apiList<DbStakeholder>('stakeholders');
+      const space = useSpaceStore.getState().selectedSpace ?? undefined;
+      const data = await apiList<DbStakeholder>('stakeholders', space);
       set({ stakeholders: data.map(fromDb), loading: false });
     } catch (e) {
       set({ loading: false, error: (e as Error).message });
@@ -63,6 +65,12 @@ export const useStakeholdersStore = create<StakeholdersStore>()((set, get) => ({
   },
 
   addStakeholder: async (input) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaco de outra pessoa' });
+      return;
+    }
+
     const id = crypto.randomUUID();
     const createdAt = Date.now();
 
@@ -88,6 +96,12 @@ export const useStakeholdersStore = create<StakeholdersStore>()((set, get) => ({
   },
 
   updateStakeholder: async (id, updates) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaco de outra pessoa' });
+      return;
+    }
+
     set((s) => ({
       stakeholders: s.stakeholders.map((sh) =>
         sh.id === id ? { ...sh, ...updates } : sh,
@@ -112,6 +126,12 @@ export const useStakeholdersStore = create<StakeholdersStore>()((set, get) => ({
   },
 
   deleteStakeholder: async (id) => {
+    const sp = useSpaceStore.getState();
+    if (sp.selectedSpace && sp.me && sp.selectedSpace !== sp.me.sub) {
+      set({ error: 'Read-only: espaco de outra pessoa' });
+      return;
+    }
+
     set((s) => ({ stakeholders: s.stakeholders.filter((sh) => sh.id !== id) }));
 
     try {
