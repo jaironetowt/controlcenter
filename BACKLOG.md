@@ -140,30 +140,37 @@ Objetivo: substituir localStorage/Zustand persist por Supabase (Postgres). Auth 
 
 ## Fase 2.6 — Migração para gizmos.run (all-in)
 
-Objetivo: deploy do Control Center no `telus.gizmos.run` usando a infra **nativa** da plataforma (SQL + auth org-scoped + secrets + file storage), eliminando a dependência externa do Supabase. Decisão tomada em 2026-06-17: **all-in no gizmos** — o gizmos já provê banco e auth no mesmo runtime onde a app roda, então manter Supabase cloud é redundante e foi a fonte de instabilidade ("ferrou").
+Objetivo: deploy do Control Center no `control-center.telus.gizmos.run` usando a infra **nativa** da plataforma (D1/KV/R2 + auth org-scoped via SSO), eliminando a dependência externa do Supabase. Decisão tomada em 2026-06-17: **all-in no gizmos**.
 
-> ⚠️ **Pendências de confirmação no `/guide` (auth-gated — telus org)** antes de implementar CC-100/104:
-> 1. Engine SQL provido pelo gizmos — **Postgres ou SQLite** (define tipos de coluna: `uuid`/`timestamptz`/`jsonb` vs `text`/`integer`)
-> 2. Nomes exatos dos secrets / connection string injetados em runtime
-> 3. Mecânica do `gizmos push` — onde roda o build/release hook (pra plugar `drizzle-kit migrate`)
-> 4. Como a identidade do usuário (auth org-scoped) chega na app — header? session?
+> ✅ **Fatos confirmados pelo `/guide` (2026-06-17)** — pendências anteriores resolvidas:
+> - **Runtime**: Cloudflare Worker único serve a app a partir de R2. **Não roda servidor Next.js** — só estático/SPA + `worker.ts` opcional. O CLI **não faz bundle**: builda-se local e dá push do output (`./out`/`./dist`).
+> - **Banco**: **D1 (SQLite)**. → Drizzle com driver D1. Migrations **forward-only** (rollback de versão restaura código, **não** dado).
+> - **Auth**: resolvida pelo loader (SSO da org antes da request). Identidade em **headers**: `x-gizmos-sub` (id estável — usar como user id), `x-gizmos-role` (owner/admin/editor/viewer/organization), `x-gizmos-user`, `x-gizmos-name`. **Sem login page, sem auth do Supabase, sem RLS.**
+> - **Backend/bindings**: `worker.ts` + `wrangler.toml` no zip → D1/KV/R2/AI auto-provisionados, zero config.
+> - **Deploy**: `npm run build` → `gizmos push --app control-center ./out` (precisa `GIZMOS_API_KEY`). Ou drop de zip na UI. CLI install via `https://gizmos.run/llms.txt`.
+> - **Versões**: cada deploy é snapshot imutável; rollback = pointer flip atômico, efetivo na próxima request. Logs: `gizmos logs control-center --since 30m`.
+
+> ⚠️ **DECISÃO PENDENTE (CC-100)**: conversão do runtime. Opções: (A) **Next static export** (`output: 'export'` + `generateStaticParams`) — menor churn, mantém o código; ou (B) **migrar para Vite + React SPA** — tipo nativo do gizmos, mas rewrite maior. Recomendação: (A).
 
 | ID | Tipo | Ticket | Status |
 |----|------|--------|--------|
-| CC-99  | [INFRA] | gizmos.run — setup inicial: instalar CLI, `gizmos init`, provisionar app container + subdomínio na org telus | Pendente |
-| CC-100 | [INFRA] | Schema Drizzle como fonte única da verdade (`lib/db/schema.ts`) substituindo o SQL solto das migrations do Supabase; engine = SQL nativo do gizmos (confirmar Postgres/SQLite) | Pendente |
-| CC-101 | [INFRA] | Remover Supabase — drop `@supabase/supabase-js`, policies RLS (`auth.role()`/`auth.uid()`), FK para `auth.users`; resolver stack dupla no package.json (manter Drizzle, remover o que sobra) | Pendente |
-| CC-102 | [INFRA] | Auth — substituir auth do Supabase (login page + middleware + `src/lib/auth.ts`) pela auth org-scoped nativa do gizmos; re-chavear `user_settings` pelo user id do gizmos (ou config global, uso solo) | Pendente |
-| CC-103 | [INFRA] | Reescrever camada de dados dos stores — trocar supabase client por API routes/Drizzle em useProjectsStore, useRisksStore, useActionItemsStore, useDecisionsStore, useStakeholdersStore, useFeaturesStore | Pendente |
-| CC-104 | [INFRA] | Deploy pipeline — migrations no release step (`drizzle-kit migrate` atômico com o deploy) + `gizmos push`; secrets injetados em runtime, fora do repo | Pendente |
-| CC-105 | [POLISH] | Fast version reflection — versionar o `persist` do Zustand (`version` + `migrate`) pra estado velho do localStorage não mascarar versão nova; build/version stamp visível na UI | Pendente |
-| CC-106 | [INFRA] | Migração de dados — exportar do Supabase atual (se ainda acessível) ou re-seed; adaptar `scripts/migrate-from-localstorage.ts` para o destino gizmos | Pendente |
+| CC-99  | [INFRA] | gizmos CLI — instalar (`gizmos.run/llms.txt` / installer), gerar `GIZMOS_API_KEY`, reservar app name `control-center` | Pendente |
+| CC-100 | [INFRA] | **Conversão de runtime** — Next.js SSR não roda no gizmos; converter para static export (`output: 'export'`, `generateStaticParams` p/ rotas dinâmicas) OU migrar p/ Vite SPA. **Decisão A vs B pendente** | Pendente |
+| CC-101 | [INFRA] | Backend `worker.ts` + `wrangler.toml` — mover `app/api/*` (route handlers) para o Worker; bindings D1/KV/R2 auto-provisionados | Pendente |
+| CC-102 | [INFRA] | Schema Drizzle (D1/SQLite) como source of truth — tipos SQLite (`text` ids, `integer` timestamps, JSON em `text`); migrations **forward-only** | Pendente |
+| CC-103 | [INFRA] | Remover Supabase — drop `@supabase/supabase-js`, policies RLS, FK `auth.users`; manter Drizzle (+`better-sqlite3` p/ dev local, que casa com D1) | Pendente |
+| CC-104 | [INFRA] | Auth via headers do loader — ler `x-gizmos-sub`/`x-gizmos-role` no worker; **remover** login page + middleware + `src/lib/auth.ts`; `user_settings` chaveado por `x-gizmos-sub` (uso solo: pode ser global) | Pendente |
+| CC-105 | [INFRA] | Reescrever camada de dados dos stores — supabase client → `fetch('/api/*')` servido pelo worker (useProjectsStore, useRisksStore, useActionItemsStore, useDecisionsStore, useStakeholdersStore, useFeaturesStore) | Pendente |
+| CC-106 | [INFRA] | Deploy pipeline — `npm run build` → `gizmos push --app control-center ./out`; migrations D1 aplicadas no deploy; `GIZMOS_API_KEY` em env, nunca no repo | Pendente |
+| CC-107 | [POLISH] | Fast version reflection — versionar `persist` do Zustand (`version` + `migrate`); build/version stamp na UI; **atenção**: rollback de código não reverte dado D1 (migrations forward-only) | Pendente |
+| CC-108 | [INFRA] | Migração de dados — Supabase → D1 (export do estado atual, se acessível, + import via worker/script) | Pendente |
 
 > ⚠️ **Decisões fixadas (2026-06-17)**
-> - **All-in no gizmos**: banco e auth nativos da plataforma; Supabase externo sai por completo
-> - Drizzle ORM como source of truth do schema (portável Postgres/SQLite)
-> - Modelo de dados normalizado atual é mantido (projects + risks/action_items/decisions/stakeholders + user_settings); só remove o acoplamento ao auth do Supabase
-> - `architecture.md` precisa ser atualizado: hoje descreve "SQLite local-first" mas o código usava Supabase — alinhar para o destino gizmos
+> - **All-in no gizmos**: D1 + auth via headers do loader; Supabase externo sai por completo
+> - Drizzle ORM como source of truth do schema, target **D1/SQLite**
+> - Modelo normalizado atual é mantido (projects + risks/action_items/decisions/stakeholders + user_settings); remove só o acoplamento ao auth do Supabase
+> - Auth: **sem login/RLS** — o loader do gizmos garante SSO; app lê `x-gizmos-*`
+> - `architecture.md` precisa ser atualizado para refletir o destino gizmos (hoje descreve "SQLite local-first"; o código foi pra Supabase; destino real = D1 no Cloudflare Worker)
 
 ---
 
