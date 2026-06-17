@@ -151,7 +151,7 @@ export function Sidebar() {
               <IconStack2 size={16} color="white" />
             </div>
             <span className={`text-white text-[14px] font-semibold tracking-tight truncate ${labelCls}`}>
-              Control Center
+              Project Management Center
             </span>
           </Link>
           {!isCollapsed && (

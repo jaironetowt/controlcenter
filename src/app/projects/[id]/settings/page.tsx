@@ -80,7 +80,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ id: 
           <div>
             <Text fw={600} size="sm" mb="xs">Integrations</Text>
             <Text size="xs" c="dimmed" mb="md">
-              Connect external tools to pull data into Control Center.
+              Connect external tools to pull data into Project Management Center.
             </Text>
             {mounted && project && <IntegrationsPanel project={project} />}
           </div>

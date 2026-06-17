@@ -1,8 +1,8 @@
-name = "control-center"
+name = "project-management-center"
 main = "worker.ts"
 compatibility_date = "2025-06-01"
 compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
 binding = "DB"
-database_name = "control-center"
+database_name = "project-management-center"

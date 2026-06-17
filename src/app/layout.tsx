@@ -7,7 +7,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'Control Center',
+  title: 'Project Management Center',
   description: 'Personal project management hub',
 };
 
