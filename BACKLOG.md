@@ -150,12 +150,12 @@ Objetivo: deploy do Control Center no `control-center.telus.gizmos.run` usando a
 > - **Deploy**: `npm run build` → `gizmos push --app control-center ./out` (precisa `GIZMOS_API_KEY`). Ou drop de zip na UI. CLI install via `https://gizmos.run/llms.txt`.
 > - **Versões**: cada deploy é snapshot imutável; rollback = pointer flip atômico, efetivo na próxima request. Logs: `gizmos logs control-center --since 30m`.
 
-> ⚠️ **DECISÃO PENDENTE (CC-100)**: conversão do runtime. Opções: (A) **Next static export** (`output: 'export'` + `generateStaticParams`) — menor churn, mantém o código; ou (B) **migrar para Vite + React SPA** — tipo nativo do gizmos, mas rewrite maior. Recomendação: (A).
+> ✅ **DECISÃO (CC-100, 2026-06-17)**: conversão do runtime = **(A) Next static export** (`output: 'export'` + `generateStaticParams` para rotas dinâmicas). Menor churn, mantém Next App Router + Mantine. `app/api/*` migra pro `worker.ts`. Sem SSR/middleware (auth já é do loader).
 
 | ID | Tipo | Ticket | Status |
 |----|------|--------|--------|
 | CC-99  | [INFRA] | gizmos CLI — instalar (`gizmos.run/llms.txt` / installer), gerar `GIZMOS_API_KEY`, reservar app name `control-center` | Pendente |
-| CC-100 | [INFRA] | **Conversão de runtime** — Next.js SSR não roda no gizmos; converter para static export (`output: 'export'`, `generateStaticParams` p/ rotas dinâmicas) OU migrar p/ Vite SPA. **Decisão A vs B pendente** | Pendente |
+| CC-100 | [INFRA] | **Conversão de runtime → Next static export** (`output: 'export'` + `generateStaticParams` p/ rotas dinâmicas); remover dependências de SSR/middleware | Pendente (decidido: opção A) |
 | CC-101 | [INFRA] | Backend `worker.ts` + `wrangler.toml` — mover `app/api/*` (route handlers) para o Worker; bindings D1/KV/R2 auto-provisionados | Pendente |
 | CC-102 | [INFRA] | Schema Drizzle (D1/SQLite) como source of truth — tipos SQLite (`text` ids, `integer` timestamps, JSON em `text`); migrations **forward-only** | Pendente |
 | CC-103 | [INFRA] | Remover Supabase — drop `@supabase/supabase-js`, policies RLS, FK `auth.users`; manter Drizzle (+`better-sqlite3` p/ dev local, que casa com D1) | Pendente |
