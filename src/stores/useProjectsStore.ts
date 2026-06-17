@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { supabase } from '@/lib/supabase';
+import { apiList, apiCreate, apiUpdate, apiDelete } from '@/lib/api';
+import type { DbProject } from '@/lib/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,7 +43,8 @@ function fromDb(row: Record<string, unknown>): Project {
     client:           row.client as string,
     phase:            row.phase as string,
     dateRange:        row.date_range as string,
-    archived:         row.archived as boolean,
+    // archived trafega como 0/1 (integer) ou boolean
+    archived:         Boolean(row.archived),
     archivedAt:       row.archived_at ? new Date(row.archived_at as string).getTime() : undefined,
     createdAt:        new Date(row.created_at as string).getTime(),
     salesforceId:     (row.salesforce_id as string | null) ?? undefined,
@@ -61,7 +63,7 @@ function toDb(p: Partial<Project> & { id: string }) {
   if (p.client          !== undefined) row.client            = p.client;
   if (p.phase           !== undefined) row.phase             = p.phase;
   if (p.dateRange       !== undefined) row.date_range        = p.dateRange;
-  if (p.archived        !== undefined) row.archived          = p.archived;
+  if (p.archived        !== undefined) row.archived          = p.archived ? 1 : 0;
   if (p.archivedAt      !== undefined) row.archived_at       = p.archivedAt ? new Date(p.archivedAt).toISOString() : null;
   if (p.salesforceId    !== undefined) row.salesforce_id     = p.salesforceId ?? null;
   if (p.sfName          !== undefined) row.sf_name           = p.sfName ?? null;
@@ -80,19 +82,15 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
 
   fetchProjects: async () => {
     set({ loading: true, error: null });
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*')
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      set({ loading: false, error: error.message });
-      return;
+    try {
+      const rows = await apiList<DbProject>('projects');
+      set({
+        projects: rows.map((r) => fromDb(r as unknown as Record<string, unknown>)),
+        loading:  false,
+      });
+    } catch (e) {
+      set({ loading: false, error: e instanceof Error ? e.message : String(e) });
     }
-    set({
-      projects: (data ?? []).map(fromDb),
-      loading:  false,
-    });
   },
 
   addProject: async (input) => {
@@ -109,31 +107,27 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
     // Optimistic update
     set((s) => ({ projects: [...s.projects, newProject] }));
 
-    const baseRow: Record<string, unknown> = {
+    const row: Record<string, unknown> = {
       id,
       name:          input.name,
       color:         input.color,
       client:        input.client,
       phase:         input.phase,
       date_range:    input.dateRange,
-      archived:      false,
+      archived:      0,
       salesforce_id: input.salesforceId ?? null,
       created_at:    new Date(createdAt).toISOString(),
     };
-    if (input.sfName      !== undefined) baseRow.sf_name       = input.sfName;
-    if (input.sfDateRange !== undefined) baseRow.sf_date_range = input.sfDateRange;
+    if (input.sfName      !== undefined) row.sf_name       = input.sfName;
+    if (input.sfDateRange !== undefined) row.sf_date_range = input.sfDateRange;
 
-    let { error } = await supabase.from('projects').insert(baseRow);
-
-    // 42703 = column does not exist — migration pending, retry without SF columns
-    if (error?.code === '42703') {
-      const { sf_name: _n, sf_date_range: _d, ...fallback } = baseRow;
-      void (_n); void (_d);
-      ({ error } = await supabase.from('projects').insert(fallback));
-    }
-
-    if (error) {
-      set((s) => ({ projects: s.projects.filter((p) => p.id !== id), error: error!.message }));
+    try {
+      await apiCreate<DbProject>('projects', row as unknown as DbProject);
+    } catch (e) {
+      set((s) => ({
+        projects: s.projects.filter((p) => p.id !== id),
+        error: e instanceof Error ? e.message : String(e),
+      }));
     }
   },
 
@@ -146,17 +140,11 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
     }));
 
     const row = toDb({ id, ...updates });
-    let { error } = await supabase.from('projects').update(row).eq('id', id);
 
-    // 42703 = column does not exist — retry without SF columns
-    if (error?.code === '42703') {
-      const { sf_name: _n, sf_date_range: _d, ...fallback } = row;
-      void (_n); void (_d);
-      ({ error } = await supabase.from('projects').update(fallback).eq('id', id));
-    }
-
-    if (error) {
-      set({ error: error.message });
+    try {
+      await apiUpdate<DbProject>('projects', id, row as unknown as Partial<DbProject>);
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : String(e) });
       get().fetchProjects();
     }
   },
@@ -170,13 +158,13 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
       ),
     }));
 
-    const { error } = await supabase
-      .from('projects')
-      .update({ archived: true, archived_at: new Date(archivedAt).toISOString() })
-      .eq('id', id);
-
-    if (error) {
-      set({ error: error.message });
+    try {
+      await apiUpdate<DbProject>('projects', id, {
+        archived: 1,
+        archived_at: new Date(archivedAt).toISOString(),
+      } as unknown as Partial<DbProject>);
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : String(e) });
       get().fetchProjects();
     }
   },
@@ -188,13 +176,13 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
       ),
     }));
 
-    const { error } = await supabase
-      .from('projects')
-      .update({ archived: false, archived_at: null })
-      .eq('id', id);
-
-    if (error) {
-      set({ error: error.message });
+    try {
+      await apiUpdate<DbProject>('projects', id, {
+        archived: 0,
+        archived_at: null,
+      } as unknown as Partial<DbProject>);
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : String(e) });
       get().fetchProjects();
     }
   },

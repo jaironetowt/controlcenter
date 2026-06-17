@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { supabase } from '@/lib/supabase';
+import { getUserSettings, putUserSettings } from '@/lib/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -52,37 +52,16 @@ export const useFeaturesStore = create<FeaturesStore>()((set, get) => ({
 
   fetchFeatures: async () => {
     set({ loading: true, error: null });
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      // Não autenticado — usar defaults sem erro
-      set({ loading: false });
-      return;
-    }
-
-    const { data, error } = await supabase
-      .from('user_settings')
-      .select('features')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (error) {
-      set({ loading: false, error: error.message });
-      return;
-    }
-
-    if (data?.features) {
+    try {
+      // The worker resolves the current user from the gizmos SSO session.
+      const stored = await getUserSettings();
       set({
-        features: { ...DEFAULT_FEATURES, ...(data.features as Partial<FeaturesMap>) },
+        features: { ...DEFAULT_FEATURES, ...(stored as Partial<FeaturesMap>) },
         loading:  false,
       });
-    } else {
-      // Primeira vez — criar registro com defaults
-      await supabase.from('user_settings').upsert({
-        user_id:  user.id,
-        features: DEFAULT_FEATURES,
-      });
-      set({ features: DEFAULT_FEATURES, loading: false });
+    } catch (e) {
+      // Fall back to defaults — never block the UI on settings.
+      set({ loading: false, error: e instanceof Error ? e.message : String(e) });
     }
   },
 
@@ -92,15 +71,10 @@ export const useFeaturesStore = create<FeaturesStore>()((set, get) => ({
     // Optimistic
     set({ features: next });
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { error } = await supabase
-      .from('user_settings')
-      .upsert({ user_id: user.id, features: next });
-
-    if (error) {
-      set({ error: error.message });
+    try {
+      await putUserSettings(next);
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : String(e) });
       get().fetchFeatures();
     }
   },

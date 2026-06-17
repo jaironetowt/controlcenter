@@ -164,6 +164,7 @@ Objetivo: deploy do Control Center no `control-center.telus.gizmos.run` usando a
 | CC-106 | [INFRA] | Deploy pipeline — `npm run build` → `gizmos push --app control-center ./out`; migrations D1 aplicadas no deploy; `GIZMOS_API_KEY` em env, nunca no repo | Pendente |
 | CC-107 | [POLISH] | Fast version reflection — versionar `persist` do Zustand (`version` + `migrate`); build/version stamp na UI; **atenção**: rollback de código não reverte dado D1 (migrations forward-only) | Pendente |
 | CC-108 | [INFRA] | Migração de dados — Supabase → D1 (export do estado atual, se acessível, + import via worker/script) | Pendente |
+| CC-109 | [INFRA] | Roteamento p/ static export (impl. de CC-100) — `generateStaticParams` no segmento `projects/[id]` (shell placeholder `_` + `dynamicParams: true`); root `page.tsx` → client redirect (`useRouter().replace('/global')`); auditoria de APIs de servidor (nenhuma além do redirect) | ✅ Feito |
 
 > ⚠️ **Decisões fixadas (2026-06-17) — atualizadas pós leitura da skill oficial**
 > - **All-in no gizmos**: D1 + auth via headers do loader; Supabase externo sai por completo

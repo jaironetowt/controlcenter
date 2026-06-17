@@ -9,8 +9,7 @@ import { useProjectsStore } from '@/stores/useProjectsStore';
 import { usePMToolStore } from '@/stores/usePMToolStore';
 import Link from 'next/link';
 import { buildSlugMap, projectSlugPath } from '@/lib/slugify';
-import type { PMProjectData } from '@/integrations/types';
-import type { VelocitySprint } from '@/app/api/pm/jira/velocity/route';
+import type { PMProjectData, VelocitySprint } from '@/integrations/types';
 
 // ─── Cache keys ───────────────────────────────────────────────────────────────
 

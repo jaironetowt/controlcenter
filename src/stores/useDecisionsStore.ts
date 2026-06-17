@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { supabase } from '@/lib/supabase';
+import { apiList, apiCreate, apiUpdate, apiDelete } from '@/lib/api';
+import type { DbDecision } from '@/lib/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -26,16 +27,16 @@ interface DecisionsStore {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function fromDb(row: Record<string, unknown>): Decision {
+function fromDb(row: DbDecision): Decision {
   return {
-    id:           row.id as string,
-    projectId:    row.project_id as string,
-    title:        row.title as string,
-    context:      row.context as string,
-    decision:     row.decision as string,
-    alternatives: row.alternatives as string,
-    author:       row.author as string,
-    createdAt:    new Date(row.created_at as string).getTime(),
+    id:           row.id,
+    projectId:    row.project_id,
+    title:        row.title,
+    context:      row.context,
+    decision:     row.decision,
+    alternatives: row.alternatives,
+    author:       row.author,
+    createdAt:    new Date(row.created_at).getTime(),
   };
 }
 
@@ -48,16 +49,12 @@ export const useDecisionsStore = create<DecisionsStore>()((set, get) => ({
 
   fetchDecisions: async () => {
     set({ loading: true, error: null });
-    const { data, error } = await supabase
-      .from('decisions')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      set({ loading: false, error: error.message });
-      return;
+    try {
+      const rows = await apiList<DbDecision>('decisions');
+      set({ decisions: rows.map(fromDb), loading: false });
+    } catch (e) {
+      set({ loading: false, error: e instanceof Error ? e.message : String(e) });
     }
-    set({ decisions: (data ?? []).map(fromDb), loading: false });
   },
 
   addDecision: async (input) => {
@@ -68,19 +65,22 @@ export const useDecisionsStore = create<DecisionsStore>()((set, get) => ({
 
     set((s) => ({ decisions: [newDecision, ...s.decisions] }));
 
-    const { error } = await supabase.from('decisions').insert({
-      id,
-      project_id:   input.projectId,
-      title:        input.title,
-      context:      input.context,
-      decision:     input.decision,
-      alternatives: input.alternatives,
-      author:       input.author,
-      created_at:   new Date(createdAt).toISOString(),
-    });
-
-    if (error) {
-      set((s) => ({ decisions: s.decisions.filter((d) => d.id !== id), error: error.message }));
+    try {
+      await apiCreate<DbDecision>('decisions', {
+        id,
+        project_id:   input.projectId,
+        title:        input.title,
+        context:      input.context,
+        decision:     input.decision,
+        alternatives: input.alternatives,
+        author:       input.author,
+        created_at:   new Date(createdAt).toISOString(),
+      });
+    } catch (e) {
+      set((s) => ({
+        decisions: s.decisions.filter((d) => d.id !== id),
+        error: e instanceof Error ? e.message : String(e),
+      }));
     }
   },
 
@@ -91,7 +91,7 @@ export const useDecisionsStore = create<DecisionsStore>()((set, get) => ({
       ),
     }));
 
-    const dbUpdates: Record<string, unknown> = {};
+    const dbUpdates: Partial<DbDecision> = {};
     if (updates.title        !== undefined) dbUpdates.title        = updates.title;
     if (updates.context      !== undefined) dbUpdates.context      = updates.context;
     if (updates.decision     !== undefined) dbUpdates.decision     = updates.decision;
@@ -99,10 +99,10 @@ export const useDecisionsStore = create<DecisionsStore>()((set, get) => ({
     if (updates.author       !== undefined) dbUpdates.author       = updates.author;
     if (updates.projectId    !== undefined) dbUpdates.project_id   = updates.projectId;
 
-    const { error } = await supabase.from('decisions').update(dbUpdates).eq('id', id);
-
-    if (error) {
-      set({ error: error.message });
+    try {
+      await apiUpdate<DbDecision>('decisions', id, dbUpdates);
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : String(e) });
       get().fetchDecisions();
     }
   },
@@ -110,10 +110,10 @@ export const useDecisionsStore = create<DecisionsStore>()((set, get) => ({
   deleteDecision: async (id) => {
     set((s) => ({ decisions: s.decisions.filter((d) => d.id !== id) }));
 
-    const { error } = await supabase.from('decisions').delete().eq('id', id);
-
-    if (error) {
-      set({ error: error.message });
+    try {
+      await apiDelete('decisions', id);
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : String(e) });
       get().fetchDecisions();
     }
   },

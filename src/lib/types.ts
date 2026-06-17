@@ -1,18 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl     = process.env.NEXT_PUBLIC_SUPABASE_URL     ?? '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('[Supabase] NEXT_PUBLIC_SUPABASE_URL ou NEXT_PUBLIC_SUPABASE_ANON_KEY não configurados. Copie .env.local.example para .env.local e preencha as credenciais.');
-}
-
-export const supabase = createClient(
-  supabaseUrl  || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder',
-);
-
-// ─── Database Types ───────────────────────────────────────────────────────────
+// ─── Database row types (snake_case, as served by /api/*) ──────────────────────
+// These mirror the D1/SQLite table columns exactly. Rows travel over the API
+// in snake_case; the stores' fromDb/toDb helpers map them to/from app models.
 
 export interface DbProject {
   id: string;
@@ -21,9 +9,14 @@ export interface DbProject {
   client: string;
   phase: string;
   date_range: string;
-  archived: boolean;
+  // SQLite has no boolean; archived travels as 0/1 (integer) over the wire.
+  archived: boolean | number;
   archived_at: string | null;
   salesforce_id: string | null;
+  sf_name: string | null;
+  sf_date_range: string | null;
+  timecard_count: number | null;
+  timecard_count_at: string | null;
   created_at: string;
 }
 

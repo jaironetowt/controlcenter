@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { supabase } from '@/lib/supabase';
+import { apiList, apiCreate, apiUpdate, apiDelete } from '@/lib/api';
+import type { DbActionItem } from '@/lib/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -29,16 +30,16 @@ interface ActionItemsStore {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function fromDb(row: Record<string, unknown>): ActionItem {
+function fromDb(row: DbActionItem): ActionItem {
   return {
-    id:        row.id as string,
-    projectId: row.project_id as string,
-    title:     row.title as string,
-    owner:     row.owner as string,
-    dueDate:   row.due_date as string,
-    priority:  row.priority as Priority,
-    status:    row.status as ActionStatus,
-    createdAt: new Date(row.created_at as string).getTime(),
+    id:        row.id,
+    projectId: row.project_id,
+    title:     row.title,
+    owner:     row.owner,
+    dueDate:   row.due_date,
+    priority:  row.priority,
+    status:    row.status,
+    createdAt: new Date(row.created_at).getTime(),
   };
 }
 
@@ -51,16 +52,16 @@ export const useActionItemsStore = create<ActionItemsStore>()((set, get) => ({
 
   fetchItems: async () => {
     set({ loading: true, error: null });
-    const { data, error } = await supabase
-      .from('action_items')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      set({ loading: false, error: error.message });
-      return;
+    try {
+      const rows = await apiList<DbActionItem>('action_items');
+      // ordenados desc por created_at (a API não garante ordem para este recurso)
+      const items = rows
+        .map(fromDb)
+        .sort((a, b) => b.createdAt - a.createdAt);
+      set({ items, loading: false });
+    } catch (e) {
+      set({ loading: false, error: e instanceof Error ? e.message : String(e) });
     }
-    set({ items: (data ?? []).map(fromDb), loading: false });
   },
 
   addItem: async (input) => {
@@ -72,19 +73,22 @@ export const useActionItemsStore = create<ActionItemsStore>()((set, get) => ({
     // Optimistic: prepend (items são ordenados desc)
     set((s) => ({ items: [newItem, ...s.items] }));
 
-    const { error } = await supabase.from('action_items').insert({
-      id,
-      project_id: input.projectId,
-      title:      input.title,
-      owner:      input.owner,
-      due_date:   input.dueDate,
-      priority:   input.priority,
-      status:     input.status,
-      created_at: new Date(createdAt).toISOString(),
-    });
-
-    if (error) {
-      set((s) => ({ items: s.items.filter((i) => i.id !== id), error: error.message }));
+    try {
+      await apiCreate<DbActionItem>('action_items', {
+        id,
+        project_id: input.projectId,
+        title:      input.title,
+        owner:      input.owner,
+        due_date:   input.dueDate,
+        priority:   input.priority,
+        status:     input.status,
+        created_at: new Date(createdAt).toISOString(),
+      });
+    } catch (e) {
+      set((s) => ({
+        items: s.items.filter((i) => i.id !== id),
+        error: e instanceof Error ? e.message : String(e),
+      }));
     }
   },
 
@@ -95,7 +99,7 @@ export const useActionItemsStore = create<ActionItemsStore>()((set, get) => ({
       ),
     }));
 
-    const dbUpdates: Record<string, unknown> = {};
+    const dbUpdates: Partial<DbActionItem> = {};
     if (updates.title     !== undefined) dbUpdates.title      = updates.title;
     if (updates.owner     !== undefined) dbUpdates.owner      = updates.owner;
     if (updates.dueDate   !== undefined) dbUpdates.due_date   = updates.dueDate;
@@ -103,10 +107,10 @@ export const useActionItemsStore = create<ActionItemsStore>()((set, get) => ({
     if (updates.status    !== undefined) dbUpdates.status     = updates.status;
     if (updates.projectId !== undefined) dbUpdates.project_id = updates.projectId;
 
-    const { error } = await supabase.from('action_items').update(dbUpdates).eq('id', id);
-
-    if (error) {
-      set({ error: error.message });
+    try {
+      await apiUpdate<DbActionItem>('action_items', id, dbUpdates);
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : String(e) });
       get().fetchItems();
     }
   },
@@ -114,10 +118,10 @@ export const useActionItemsStore = create<ActionItemsStore>()((set, get) => ({
   deleteItem: async (id) => {
     set((s) => ({ items: s.items.filter((item) => item.id !== id) }));
 
-    const { error } = await supabase.from('action_items').delete().eq('id', id);
-
-    if (error) {
-      set({ error: error.message });
+    try {
+      await apiDelete('action_items', id);
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : String(e) });
       get().fetchItems();
     }
   },

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { supabase } from '@/lib/supabase';
+import { apiList, apiCreate, apiUpdate, apiDelete } from '@/lib/api';
+import type { DbRisk } from '@/lib/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -32,18 +33,18 @@ interface RisksStore {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function fromDb(row: Record<string, unknown>): Risk {
+function fromDb(row: DbRisk): Risk {
   return {
-    id:          row.id as string,
-    projectId:   row.project_id as string,
-    title:       row.title as string,
-    description: row.description as string,
-    probability: row.probability as Probability,
-    impact:      row.impact as Impact,
-    status:      row.status as RiskStatus,
-    owner:       row.owner as string,
-    createdAt:   new Date(row.created_at as string).getTime(),
-    closedAt:    row.closed_at ? new Date(row.closed_at as string).getTime() : undefined,
+    id:          row.id,
+    projectId:   row.project_id,
+    title:       row.title,
+    description: row.description,
+    probability: row.probability,
+    impact:      row.impact,
+    status:      row.status,
+    owner:       row.owner,
+    createdAt:   new Date(row.created_at).getTime(),
+    closedAt:    row.closed_at ? new Date(row.closed_at).getTime() : undefined,
   };
 }
 
@@ -56,16 +57,12 @@ export const useRisksStore = create<RisksStore>()((set, get) => ({
 
   fetchRisks: async () => {
     set({ loading: true, error: null });
-    const { data, error } = await supabase
-      .from('risks')
-      .select('*')
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      set({ loading: false, error: error.message });
-      return;
+    try {
+      const data = await apiList<DbRisk>('risks');
+      set({ risks: data.map(fromDb), loading: false });
+    } catch (e) {
+      set({ loading: false, error: e instanceof Error ? e.message : String(e) });
     }
-    set({ risks: (data ?? []).map(fromDb), loading: false });
   },
 
   addRisk: async (input) => {
@@ -81,21 +78,24 @@ export const useRisksStore = create<RisksStore>()((set, get) => ({
 
     set((s) => ({ risks: [...s.risks, newRisk] }));
 
-    const { error } = await supabase.from('risks').insert({
-      id,
-      project_id:  input.projectId,
-      title:       input.title,
-      description: input.description,
-      probability: input.probability,
-      impact:      input.impact,
-      status:      input.status,
-      owner:       input.owner,
-      created_at:  new Date(createdAt).toISOString(),
-      closed_at:   null,
-    });
-
-    if (error) {
-      set((s) => ({ risks: s.risks.filter((r) => r.id !== id), error: error.message }));
+    try {
+      await apiCreate<DbRisk>('risks', {
+        id,
+        project_id:  input.projectId,
+        title:       input.title,
+        description: input.description,
+        probability: input.probability,
+        impact:      input.impact,
+        status:      input.status,
+        owner:       input.owner,
+        created_at:  new Date(createdAt).toISOString(),
+        closed_at:   null,
+      });
+    } catch (e) {
+      set((s) => ({
+        risks: s.risks.filter((r) => r.id !== id),
+        error: e instanceof Error ? e.message : String(e),
+      }));
     }
   },
 
@@ -116,7 +116,7 @@ export const useRisksStore = create<RisksStore>()((set, get) => ({
 
     // Calcular closedAt para persistir
     const current = get().risks.find((r) => r.id === id);
-    const dbUpdates: Record<string, unknown> = {};
+    const dbUpdates: Partial<DbRisk> = {};
     if (updates.title       !== undefined) dbUpdates.title       = updates.title;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
     if (updates.probability !== undefined) dbUpdates.probability = updates.probability;
@@ -131,10 +131,10 @@ export const useRisksStore = create<RisksStore>()((set, get) => ({
       }
     }
 
-    const { error } = await supabase.from('risks').update(dbUpdates).eq('id', id);
-
-    if (error) {
-      set({ error: error.message });
+    try {
+      await apiUpdate<DbRisk>('risks', id, dbUpdates);
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : String(e) });
       get().fetchRisks();
     }
   },
@@ -142,10 +142,10 @@ export const useRisksStore = create<RisksStore>()((set, get) => ({
   deleteRisk: async (id) => {
     set((s) => ({ risks: s.risks.filter((r) => r.id !== id) }));
 
-    const { error } = await supabase.from('risks').delete().eq('id', id);
-
-    if (error) {
-      set({ error: error.message });
+    try {
+      await apiDelete('risks', id);
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : String(e) });
       get().fetchRisks();
     }
   },

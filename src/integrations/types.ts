@@ -43,3 +43,25 @@ export interface PMToolConnector {
   testConnection: (config: PMToolConfig) => Promise<{ ok: boolean; error?: string }>;
   fetchProjectData: (config: PMToolConfig) => Promise<PMProjectData>;
 }
+
+// Previously defined in src/app/api/pm/jira/velocity/route.ts. Jira routes moved
+// to the worker (re-implementation tracked in CC-60); type kept here so the UI
+// resolves without the deleted API route.
+export interface VelocitySprint {
+  id: string;
+  name: string;
+  shortName: string;
+  startDate: string | null;
+  endDate: string | null;
+  committed: number;
+  done: number;
+  committedSP: number;
+  doneSP: number;
+}
+
+// Previously defined in src/app/api/salesforce/stakeholders/route.ts.
+export interface SFStakeholder {
+  name: string;
+  role: string;
+  company: string;
+}

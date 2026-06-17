@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { supabase } from '@/lib/supabase';
+import { apiList, apiCreate, apiUpdate, apiDelete } from '@/lib/api';
+import type { DbStakeholder } from '@/lib/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -30,17 +31,17 @@ interface StakeholdersStore {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function fromDb(row: Record<string, unknown>): Stakeholder {
+function fromDb(row: DbStakeholder): Stakeholder {
   return {
-    id:        row.id as string,
-    projectId: row.project_id as string,
-    name:      row.name as string,
-    role:      row.role as string,
-    company:   row.company as string,
-    influence: row.influence as InfluenceLevel,
-    interest:  row.interest as InterestLevel,
-    notes:     row.notes as string,
-    createdAt: new Date(row.created_at as string).getTime(),
+    id:        row.id,
+    projectId: row.project_id,
+    name:      row.name,
+    role:      row.role,
+    company:   row.company,
+    influence: row.influence,
+    interest:  row.interest,
+    notes:     row.notes,
+    createdAt: new Date(row.created_at).getTime(),
   };
 }
 
@@ -53,16 +54,12 @@ export const useStakeholdersStore = create<StakeholdersStore>()((set, get) => ({
 
   fetchStakeholders: async () => {
     set({ loading: true, error: null });
-    const { data, error } = await supabase
-      .from('stakeholders')
-      .select('*')
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      set({ loading: false, error: error.message });
-      return;
+    try {
+      const data = await apiList<DbStakeholder>('stakeholders');
+      set({ stakeholders: data.map(fromDb), loading: false });
+    } catch (e) {
+      set({ loading: false, error: (e as Error).message });
     }
-    set({ stakeholders: (data ?? []).map(fromDb), loading: false });
   },
 
   addStakeholder: async (input) => {
@@ -73,20 +70,20 @@ export const useStakeholdersStore = create<StakeholdersStore>()((set, get) => ({
 
     set((s) => ({ stakeholders: [...s.stakeholders, newSh] }));
 
-    const { error } = await supabase.from('stakeholders').insert({
-      id,
-      project_id: input.projectId,
-      name:       input.name,
-      role:       input.role,
-      company:    input.company,
-      influence:  input.influence,
-      interest:   input.interest,
-      notes:      input.notes,
-      created_at: new Date(createdAt).toISOString(),
-    });
-
-    if (error) {
-      set((s) => ({ stakeholders: s.stakeholders.filter((sh) => sh.id !== id), error: error.message }));
+    try {
+      await apiCreate<DbStakeholder>('stakeholders', {
+        id,
+        project_id: input.projectId,
+        name:       input.name,
+        role:       input.role,
+        company:    input.company,
+        influence:  input.influence,
+        interest:   input.interest,
+        notes:      input.notes,
+        created_at: new Date(createdAt).toISOString(),
+      });
+    } catch (e) {
+      set((s) => ({ stakeholders: s.stakeholders.filter((sh) => sh.id !== id), error: (e as Error).message }));
     }
   },
 
@@ -97,7 +94,7 @@ export const useStakeholdersStore = create<StakeholdersStore>()((set, get) => ({
       ),
     }));
 
-    const dbUpdates: Record<string, unknown> = {};
+    const dbUpdates: Partial<DbStakeholder> = {};
     if (updates.name      !== undefined) dbUpdates.name       = updates.name;
     if (updates.role      !== undefined) dbUpdates.role       = updates.role;
     if (updates.company   !== undefined) dbUpdates.company    = updates.company;
@@ -106,10 +103,10 @@ export const useStakeholdersStore = create<StakeholdersStore>()((set, get) => ({
     if (updates.notes     !== undefined) dbUpdates.notes      = updates.notes;
     if (updates.projectId !== undefined) dbUpdates.project_id = updates.projectId;
 
-    const { error } = await supabase.from('stakeholders').update(dbUpdates).eq('id', id);
-
-    if (error) {
-      set({ error: error.message });
+    try {
+      await apiUpdate<DbStakeholder>('stakeholders', id, dbUpdates);
+    } catch (e) {
+      set({ error: (e as Error).message });
       get().fetchStakeholders();
     }
   },
@@ -117,10 +114,10 @@ export const useStakeholdersStore = create<StakeholdersStore>()((set, get) => ({
   deleteStakeholder: async (id) => {
     set((s) => ({ stakeholders: s.stakeholders.filter((sh) => sh.id !== id) }));
 
-    const { error } = await supabase.from('stakeholders').delete().eq('id', id);
-
-    if (error) {
-      set({ error: error.message });
+    try {
+      await apiDelete('stakeholders', id);
+    } catch (e) {
+      set({ error: (e as Error).message });
       get().fetchStakeholders();
     }
   },

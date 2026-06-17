@@ -11,10 +11,7 @@ import {
 } from '@tabler/icons-react';
 import { type Project } from '@/stores/useProjectsStore';
 import { usePMToolStore } from '@/stores/usePMToolStore';
-import { useStakeholdersStore } from '@/stores/useStakeholdersStore';
-import { supabase } from '@/lib/supabase';
 import { PMToolConfig } from '@/components/integrations/PMToolConfig';
-import type { SFStakeholder } from '@/app/api/salesforce/stakeholders/route';
 
 // ─── Integration row ──────────────────────────────────────────────────────────
 
@@ -116,68 +113,27 @@ interface IntegrationsPanelProps {
 export function IntegrationsPanel({ project }: IntegrationsPanelProps) {
   const pmConfigs         = usePMToolStore((s) => s.configs);
   const jiraConfig        = pmConfigs[project.id] ?? null;
-  const stakeholders      = useStakeholdersStore((s) => s.stakeholders);
-  const fetchStakeholders = useStakeholdersStore((s) => s.fetchStakeholders);
 
-  const [sfImporting, setSfImporting] = useState(false);
+  const [sfImporting] = useState(false);
   const [sfImportMsg, setSfImportMsg] = useState<string | null>(null);
 
   const sfConnected   = !!project.salesforceId;
   const jiraConnected = !!jiraConfig;
 
-  async function handleImportStakeholders() {
-    if (!project.salesforceId) return;
-    setSfImporting(true);
-    setSfImportMsg(null);
-    try {
-      const res  = await fetch('/api/salesforce/stakeholders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ salesforceId: project.salesforceId }),
-      });
-      const data = await res.json() as { stakeholders?: SFStakeholder[]; error?: string };
-      if (!res.ok || data.error) { setSfImportMsg(`Error: ${data.error ?? 'Unknown'}`); return; }
-
-      const existing = new Set(stakeholders.filter((s) => s.projectId === project.id).map((s) => s.name.toLowerCase()));
-      const toAdd    = (data.stakeholders ?? []).filter((s) => !existing.has(s.name.toLowerCase()));
-
-      const sfTotal = (data.stakeholders ?? []).length;
-      if (toAdd.length === 0) {
-        setSfImportMsg(sfTotal === 0 ? 'No resources found in Salesforce.' : `All ${sfTotal} already imported.`);
-        return;
-      }
-
-      const rows = toAdd.map((s) => ({
-        id:         crypto.randomUUID(),
-        project_id: project.id,
-        name:       s.name,
-        role:       s.role || '',
-        company:    s.company || '',
-        influence:  'Low',
-        interest:   'Low',
-        notes:      '',
-        created_at: new Date().toISOString(),
-      }));
-
-      const { error: dbErr } = await supabase.from('stakeholders').insert(rows);
-      if (dbErr) { setSfImportMsg(`Error: ${dbErr.message}`); return; }
-
-      await fetchStakeholders();
-      setSfImportMsg(`${toAdd.length} stakeholder(s) imported.`);
-    } catch (err) {
-      setSfImportMsg(`Error: ${err instanceof Error ? err.message : 'Unknown'}`);
-    } finally {
-      setSfImporting(false);
-    }
+  // Salesforce integration is disabled in this version (the SF CLI-backed
+  // routes can't run on the Worker). Re-enable when the Worker-side Salesforce
+  // integration lands — tracked in CC-60.
+  function handleImportStakeholders() {
+    setSfImportMsg('Salesforce import is unavailable in this version.');
   }
 
   return (
     <Stack gap="sm">
-      {/* Salesforce */}
+      {/* Salesforce — disabled in this version (Worker migration, CC-60) */}
       <IntegrationRow
         icon={<SalesforceIcon />}
         name="Salesforce"
-        status={sfConnected ? 'connected' : 'not-connected'}
+        status="coming-soon"
         summary={sfConnected ? (
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-1">
@@ -198,22 +154,20 @@ export function IntegrationsPanel({ project }: IntegrationsPanelProps) {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={(e) => { e.stopPropagation(); void handleImportStakeholders(); }}
+                onClick={(e) => { e.stopPropagation(); handleImportStakeholders(); }}
                 disabled={sfImporting}
-                className="flex items-center gap-1 text-[11px] text-zinc-500 hover:text-zinc-800 transition-colors disabled:opacity-40"
+                className="flex items-center gap-1 text-[11px] text-zinc-400 cursor-not-allowed"
               >
                 <IconUsersPlus size={11} />
-                {sfImporting ? 'Importing…' : 'Import stakeholders'}
+                Import stakeholders
               </button>
               {sfImportMsg && (
-                <span className={`text-[11px] ${sfImportMsg.startsWith('Error') ? 'text-red-500' : 'text-green-600'}`}>
-                  {sfImportMsg}
-                </span>
+                <span className="text-[11px] text-zinc-500">{sfImportMsg}</span>
               )}
             </div>
           </div>
         ) : (
-          <Text size="xs" c="dimmed">Import a project via "New Project → Import from Salesforce"</Text>
+          <Text size="xs" c="dimmed">Unavailable in this version.</Text>
         )}
       />
 
