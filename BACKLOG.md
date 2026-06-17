@@ -1,6 +1,6 @@
 # BACKLOG — Control Center
 
-_Status: Em desenvolvimento. Última atualização: 2026-04-30_
+_Status: Em desenvolvimento. Última atualização: 2026-06-17_
 
 ---
 
@@ -135,6 +135,35 @@ Objetivo: substituir localStorage/Zustand persist por Supabase (Postgres). Auth 
 > - IDs: manter `crypto.randomUUID()` — compatível com Supabase
 > - Dados locais: migrar via script (CC-78) antes de desligar o localStorage
 > - Credenciais sensíveis (Jira, Salesforce): permanecem em env vars / localStorage, fora do Supabase
+
+---
+
+## Fase 2.6 — Migração para gizmos.run (all-in)
+
+Objetivo: deploy do Control Center no `telus.gizmos.run` usando a infra **nativa** da plataforma (SQL + auth org-scoped + secrets + file storage), eliminando a dependência externa do Supabase. Decisão tomada em 2026-06-17: **all-in no gizmos** — o gizmos já provê banco e auth no mesmo runtime onde a app roda, então manter Supabase cloud é redundante e foi a fonte de instabilidade ("ferrou").
+
+> ⚠️ **Pendências de confirmação no `/guide` (auth-gated — telus org)** antes de implementar CC-100/104:
+> 1. Engine SQL provido pelo gizmos — **Postgres ou SQLite** (define tipos de coluna: `uuid`/`timestamptz`/`jsonb` vs `text`/`integer`)
+> 2. Nomes exatos dos secrets / connection string injetados em runtime
+> 3. Mecânica do `gizmos push` — onde roda o build/release hook (pra plugar `drizzle-kit migrate`)
+> 4. Como a identidade do usuário (auth org-scoped) chega na app — header? session?
+
+| ID | Tipo | Ticket | Status |
+|----|------|--------|--------|
+| CC-99  | [INFRA] | gizmos.run — setup inicial: instalar CLI, `gizmos init`, provisionar app container + subdomínio na org telus | Pendente |
+| CC-100 | [INFRA] | Schema Drizzle como fonte única da verdade (`lib/db/schema.ts`) substituindo o SQL solto das migrations do Supabase; engine = SQL nativo do gizmos (confirmar Postgres/SQLite) | Pendente |
+| CC-101 | [INFRA] | Remover Supabase — drop `@supabase/supabase-js`, policies RLS (`auth.role()`/`auth.uid()`), FK para `auth.users`; resolver stack dupla no package.json (manter Drizzle, remover o que sobra) | Pendente |
+| CC-102 | [INFRA] | Auth — substituir auth do Supabase (login page + middleware + `src/lib/auth.ts`) pela auth org-scoped nativa do gizmos; re-chavear `user_settings` pelo user id do gizmos (ou config global, uso solo) | Pendente |
+| CC-103 | [INFRA] | Reescrever camada de dados dos stores — trocar supabase client por API routes/Drizzle em useProjectsStore, useRisksStore, useActionItemsStore, useDecisionsStore, useStakeholdersStore, useFeaturesStore | Pendente |
+| CC-104 | [INFRA] | Deploy pipeline — migrations no release step (`drizzle-kit migrate` atômico com o deploy) + `gizmos push`; secrets injetados em runtime, fora do repo | Pendente |
+| CC-105 | [POLISH] | Fast version reflection — versionar o `persist` do Zustand (`version` + `migrate`) pra estado velho do localStorage não mascarar versão nova; build/version stamp visível na UI | Pendente |
+| CC-106 | [INFRA] | Migração de dados — exportar do Supabase atual (se ainda acessível) ou re-seed; adaptar `scripts/migrate-from-localstorage.ts` para o destino gizmos | Pendente |
+
+> ⚠️ **Decisões fixadas (2026-06-17)**
+> - **All-in no gizmos**: banco e auth nativos da plataforma; Supabase externo sai por completo
+> - Drizzle ORM como source of truth do schema (portável Postgres/SQLite)
+> - Modelo de dados normalizado atual é mantido (projects + risks/action_items/decisions/stakeholders + user_settings); só remove o acoplamento ao auth do Supabase
+> - `architecture.md` precisa ser atualizado: hoje descreve "SQLite local-first" mas o código usava Supabase — alinhar para o destino gizmos
 
 ---
 
