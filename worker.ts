@@ -189,13 +189,27 @@ async function handleBootstrap(env: Env, caller: Caller, url: URL): Promise<Resp
     return results ?? [];
   };
 
-  const [projects, risks, action_items, decisions, stakeholders] = await Promise.all([
+  let [projects, risks, action_items, decisions, stakeholders] = await Promise.all([
     listFor('projects'),
     listFor('risks'),
     listFor('action_items'),
     listFor('decisions'),
     listFor('stakeholders'),
   ]);
+
+  // Auto-seed: the first time a user opens their OWN empty space, populate a
+  // demo project so the portal isn't blank during evaluation. Idempotent — once
+  // there's any project it never re-seeds (and never touches a viewer's view).
+  if (space === caller.sub && projects.length === 0) {
+    await seedDemoData(env, caller.sub);
+    [projects, risks, action_items, decisions, stakeholders] = await Promise.all([
+      listFor('projects'),
+      listFor('risks'),
+      listFor('action_items'),
+      listFor('decisions'),
+      listFor('stakeholders'),
+    ]);
+  }
 
   return json({
     me: { sub: caller.sub, email: caller.email },
@@ -347,16 +361,22 @@ const DEMO_PROJECT_NAME = 'Projeto Exemplo (Demo)';
 
 async function handleSeed(env: Env, caller: Caller): Promise<Response> {
   if (!caller.sub) return json({ error: 'Unauthorized' }, 401);
+  const projectId = await seedDemoData(env, caller.sub);
+  if (!projectId) return json({ ok: true, alreadySeeded: true });
+  return json({ ok: true, projectId });
+}
 
-  // Idempotency guard: don't duplicate the demo project.
+// Inserts the demo project + children scoped to `sub`. Idempotent: returns null
+// (no insert) if the demo project already exists. Reused by handleSeed (the
+// Settings button) and handleBootstrap (auto-seed on a brand-new empty space).
+async function seedDemoData(env: Env, sub: string): Promise<string | null> {
   const existing = await env.DB.prepare(
     'SELECT id FROM projects WHERE owner_sub = ? AND name = ? LIMIT 1',
   )
-    .bind(caller.sub, DEMO_PROJECT_NAME)
+    .bind(sub, DEMO_PROJECT_NAME)
     .first<{ id: string }>();
-  if (existing) return json({ ok: true, alreadySeeded: true });
+  if (existing) return null;
 
-  const sub = caller.sub;
   const now = new Date().toISOString();
   const projectId = crypto.randomUUID();
 
@@ -478,7 +498,7 @@ async function handleSeed(env: Env, caller: Caller): Promise<Response> {
   // All inserts in a single batch (transactional in D1).
   await env.DB.batch(statements);
 
-  return json({ ok: true, projectId });
+  return projectId;
 }
 
 // ─── User settings (unchanged; keyed by x-gizmos-sub) ───────────────────────────
