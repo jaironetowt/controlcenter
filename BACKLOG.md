@@ -165,9 +165,14 @@ Objetivo: deploy do Control Center no `control-center.telus.gizmos.run` usando a
 | CC-107 | [POLISH] | Fast version reflection — versionar `persist` do Zustand (`version` + `migrate`); build/version stamp na UI; **atenção**: rollback de código não reverte dado D1 (migrations forward-only) | Pendente |
 | CC-108 | [INFRA] | Migração de dados — Supabase → D1 (export do estado atual, se acessível, + import via worker/script) | Pendente |
 
-> ⚠️ **Decisões fixadas (2026-06-17)**
+> ⚠️ **Decisões fixadas (2026-06-17) — atualizadas pós leitura da skill oficial**
 > - **All-in no gizmos**: D1 + auth via headers do loader; Supabase externo sai por completo
-> - Drizzle ORM como source of truth do schema, target **D1/SQLite**
+> - **SQL cru no `worker.ts`** (`env.DB`, API CF/atalhos) em vez de Drizzle — zero deps no worker, bundle garantido; **dropar drizzle + better-sqlite3 + @supabase/supabase-js**
+> - **Sem AI**: remover `@anthropic-ai/sdk` e Fase 4 fica fora de escopo na versão gizmos (decisão do Jairo 2026-06-17)
+> - **Salesforce desabilitado**: rotas `api/salesforce/*` usam `child_process` + SF CLI local → impossível no Worker; stub "indisponível no gizmos" até CC-60 (OAuth/ECA). Jira (`api/pm/jira/*`, só `fetch`) migra pro worker
+> - **Migrations**: `migrations/*.sql` no bundle auto-aplicam no deploy
+> - **Caveat aberto**: deep-link/refresh em `/projects/<slug>/*` depende do SPA-fallback do loader — validar on-platform (CC-100)
+> - **Deploy**: zip pela UI (sem precisar de `GIZMOS_API_KEY`) ou `gizmos push` com key
 > - Modelo normalizado atual é mantido (projects + risks/action_items/decisions/stakeholders + user_settings); remove só o acoplamento ao auth do Supabase
 > - Auth: **sem login/RLS** — o loader do gizmos garante SSO; app lê `x-gizmos-*`
 > - `architecture.md` precisa ser atualizado para refletir o destino gizmos (hoje descreve "SQLite local-first"; o código foi pra Supabase; destino real = D1 no Cloudflare Worker)
