@@ -4,6 +4,7 @@ import { MantineProvider } from '@mantine/core';
 import { ToastContainer } from '@/components/ui/Toast';
 import { QuickActionsFAB } from '@/components/gadgets/QuickActionsFAB';
 import { StoreInitializer } from '@/components/StoreInitializer';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -20,7 +21,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <StoreInitializer />
       <ToastContainer />
       <QuickActionsFAB />
-      {children}
+      <ErrorBoundary>{children}</ErrorBoundary>
     </MantineProvider>
   );
 }

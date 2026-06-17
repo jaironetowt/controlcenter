@@ -201,6 +201,39 @@ Objetivo: cada usuário tem seu próprio workspace (espaço); pode adicionar out
 
 ---
 
+## Fase 2.8 — Estabilidade (hardening) — PRIORIDADE
+
+Objetivo: endurecer a base antes de feature nova (escolha do Jairo 2026-06-17). Modelo confirmado: **portal passivo** (Claude/cowork alimenta o D1; portal só exibe; sem connectors).
+
+| ID | Tipo | Ticket | Status |
+|----|------|--------|--------|
+| CC-116 | [BUG] | Error boundary global (`global-error.tsx` + ErrorBoundary nos providers) — um componente quebrado não pode dar white-screen | Pendente |
+| CC-117 | [BUG] | Neutralizar integrações vivas mortas (resíduo da migração): `metrics` chama `/api/pm/jira/*` (removido) e dashboard chama `/api/salesforce/timecards` (removido) → 404 em runtime. Mostrar "Indisponível nesta versão" e não buscar endpoint morto | Pendente |
+| CC-118 | [BUG] | Stores órfãos `usePMToolStore`/`useSalesforceStore`/`ExternalHealthBadge` + componentes de Integrations — limpar ou neutralizar (sem backend no modelo passivo) | Pendente |
+| CC-119 | [POLISH] | Guarda de hidratação + versionar `persist` (CC-107) nos stores que ainda usam persist/localStorage; evitar mismatch SSR/CSR | Pendente |
+| CC-120 | [POLISH] | Estados de loading/erro/vazio surfados nas views principais (risks/actions/decisions/stakeholders/projects) a partir de `store.loading`/`store.error` | Pendente |
+| CC-109 | [INFRA] | Validação on-platform (browser logado): criar projeto → refresh persiste; seletor de espaço; deep-link | Pendente (você) |
+
+---
+
+## Fase 3 — Learnings do Detox Command Center (portal passivo, deferido)
+
+Objetivo: aplicar os padrões **genéricos e estáveis** do brief do Detox (cowork) ao PMC, mantendo o portal passivo. Connectors/skills/morning-refresh ficam no cowork, fora do portal. Entra depois da estabilidade.
+
+| ID | Tipo | Ticket | Status |
+|----|------|--------|--------|
+| CC-121 | [FEATURE] | "Today" / Mission Control — landing com fila de prioridade (action items atrasados + riscos abertos high) agregando os projetos do espaço | Pendente |
+| CC-122 | [FEATURE] | RAG formal nos projetos (derivado: risco crítico/blocker → 🔴; dependências abertas → 🟡; senão 🟢) + override manual | Pendente |
+| CC-123 | [FEATURE] | Action Items "Meus vs Time" (filtro owner = usuário atual) | Pendente |
+| CC-124 | [FEATURE] | Blockers — status "blocked" + idade + flag de escalonamento (≥N dias) em riscos/action items | Pendente |
+| CC-125 | [FEATURE] | People Directory cross-projeto (genérico, sem auto-lookup de connector) | Pendente |
+| CC-126 | [FEATURE] | Command palette (ir pra projeto/risco/ação, "status de X") | Pendente |
+| CC-127 | [INFRA] | Ponte de ingestão Claude→D1: binding `[[gizmos_api_keys]]` (chave `gzak_`) numa rota de ingestão, pro Claude/cowork popular o portal (interação + scheduled) | Pendente |
+
+> Regras genéricas/estáveis transferíveis do brief (aplicar onde fizer sentido): datas absolutas, plural=plural (não omitir itens), "last updated" por painel, cache-first + 1 Reload por view, business English nos textos. Fora de escopo no portal: connectors vivos, corroboração entre fontes, Deliverables Hub (skills), Routines Console, 8 workstreams fixos/terminologia do Detox.
+
+---
+
 ## Fase 3 — Integrações
 
 Objetivo: camada agnóstica de PM Tool + conectores + Google Suite + Salesforce.
