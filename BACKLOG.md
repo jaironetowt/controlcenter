@@ -154,16 +154,19 @@ Objetivo: deploy do Control Center no `control-center.telus.gizmos.run` usando a
 
 | ID | Tipo | Ticket | Status |
 |----|------|--------|--------|
-| CC-99  | [INFRA] | gizmos CLI — instalar (`gizmos.run/llms.txt` / installer), gerar `GIZMOS_API_KEY`, reservar app name `control-center` | Pendente |
-| CC-100 | [INFRA] | **Conversão de runtime → Next static export** (`output: 'export'` + `generateStaticParams` p/ rotas dinâmicas); remover dependências de SSR/middleware | Pendente (decidido: opção A) |
-| CC-101 | [INFRA] | Backend `worker.ts` + `wrangler.toml` — mover `app/api/*` (route handlers) para o Worker; bindings D1/KV/R2 auto-provisionados | Pendente |
-| CC-102 | [INFRA] | Schema Drizzle (D1/SQLite) como source of truth — tipos SQLite (`text` ids, `integer` timestamps, JSON em `text`); migrations **forward-only** | Pendente |
-| CC-103 | [INFRA] | Remover Supabase — drop `@supabase/supabase-js`, policies RLS, FK `auth.users`; manter Drizzle (+`better-sqlite3` p/ dev local, que casa com D1) | Pendente |
-| CC-104 | [INFRA] | Auth via headers do loader — ler `x-gizmos-sub`/`x-gizmos-role` no worker; **remover** login page + middleware + `src/lib/auth.ts`; `user_settings` chaveado por `x-gizmos-sub` (uso solo: pode ser global) | Pendente |
-| CC-105 | [INFRA] | Reescrever camada de dados dos stores — supabase client → `fetch('/api/*')` servido pelo worker (useProjectsStore, useRisksStore, useActionItemsStore, useDecisionsStore, useStakeholdersStore, useFeaturesStore) | Pendente |
-| CC-106 | [INFRA] | Deploy pipeline — `npm run build` → `gizmos push --app control-center ./out`; migrations D1 aplicadas no deploy; `GIZMOS_API_KEY` em env, nunca no repo | Pendente |
+| CC-99  | [INFRA] | gizmos CLI — instalar (`gizmos.run/llms.txt` / installer), gerar `GIZMOS_API_KEY`, reservar app name `project-management-center` | ✅ Feito |
+| CC-100 | [INFRA] | **Conversão de runtime → Next static export** (`output: 'export'` + `generateStaticParams` p/ rotas dinâmicas); remover dependências de SSR/middleware | ✅ Feito (build verde, 20 rotas) |
+| CC-101 | [INFRA] | Backend `worker.ts` + `wrangler.toml` — mover `app/api/*` para o Worker; bindings D1 auto-provisionados | ✅ Feito (worker SQL cru, zero deps) |
+| CC-102 | [INFRA] | Schema D1/SQLite como source of truth — `migrations/0001_init.sql`, auto-aplicado no deploy. (Drizzle descartado: SQL cru no worker) | ✅ Feito |
+| CC-103 | [INFRA] | Remover Supabase — drop `@supabase/supabase-js`, RLS, login/migrate/setup; também removidos drizzle, better-sqlite3 e `@anthropic-ai/sdk` (sem AI) | ✅ Feito |
+| CC-104 | [INFRA] | Auth via headers do loader — `x-gizmos-sub` no worker; removidos login page, proxy e `src/lib/auth.ts`; `user_settings` chaveado por `x-gizmos-sub` | ✅ Feito |
+| CC-105 | [INFRA] | Reescrever camada de dados dos 6 stores — supabase client → `fetch('/api/*')` via `src/lib/api.ts` | ✅ Feito |
+| CC-106 | [INFRA] | Deploy — `npm run build` → `gizmos push`; migrations D1 auto-aplicadas; key fora do repo | ✅ Feito — live em `project-management-center.telus.gizmos.run` |
 | CC-107 | [POLISH] | Fast version reflection — versionar `persist` do Zustand (`version` + `migrate`); build/version stamp na UI; **atenção**: rollback de código não reverte dado D1 (migrations forward-only) | Pendente |
-| CC-108 | [INFRA] | Migração de dados — Supabase → D1 (export do estado atual, se acessível, + import via worker/script) | Pendente |
+| CC-108 | [INFRA] | Migração de dados — Supabase → D1 (export do estado atual, se acessível, + import via worker/script) | Pendente (DB nova, vazia) |
+| CC-109 | [INFRA] | Validar on-platform (sessão SSO no browser): criar projeto → refresh persiste (worker+D1 round-trip); deep-link/refresh em `/projects/<slug>/*` (SPA-fallback do loader); reativar Jira no worker | Pendente |
+
+> 📌 **Resultado do deploy (2026-06-17)**: app no ar em **https://project-management-center.telus.gizmos.run**. Verificado sem sessão: loader serve a app e o gate SSO da org está ativo (302 → `__auth/bounce`) tanto em `/` quanto em `/api/projects`. Falta validação end-to-end com browser logado (CC-109). Warning do push: gizmos ignora `name`/`main`/`compatibility_date`/`database_name` do wrangler (descobre o worker por convenção) — binding D1 respeitado.
 | CC-109 | [INFRA] | Roteamento p/ static export (impl. de CC-100) — `generateStaticParams` no segmento `projects/[id]` (shell placeholder `_` + `dynamicParams: true`); root `page.tsx` → client redirect (`useRouter().replace('/global')`); auditoria de APIs de servidor (nenhuma além do redirect) | ✅ Feito |
 
 > ⚠️ **Decisões fixadas (2026-06-17) — atualizadas pós leitura da skill oficial**
