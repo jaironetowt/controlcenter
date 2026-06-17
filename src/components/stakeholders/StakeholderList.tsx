@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { IconPencil, IconTrash, IconUserPlus } from '@tabler/icons-react';
 import { useStakeholdersStore, type Stakeholder } from '@/stores/useStakeholdersStore';
 import { useSpaceStore } from '@/stores/useSpaceStore';
+import { ViewState } from '@/components/ui/ViewState';
 import { StakeholderModal } from './StakeholderModal';
 
 // ─── Badge helpers ────────────────────────────────────────────────────────────
@@ -106,6 +107,8 @@ export function StakeholderList({ projectId }: StakeholderListProps) {
   useEffect(() => { setMounted(true); }, []);
 
   const rawStakeholders = useStakeholdersStore((s) => s.stakeholders);
+  const loading = useStakeholdersStore((s) => s.loading);
+  const error = useStakeholdersStore((s) => s.error);
   const deleteStakeholder = useStakeholdersStore((s) => s.deleteStakeholder);
   const canEdit = useSpaceStore((s) => s.me != null && s.selectedSpace === s.me.sub);
 
@@ -149,11 +152,12 @@ export function StakeholderList({ projectId }: StakeholderListProps) {
       </div>
 
       {/* Card grid */}
-      {filtered.length === 0 ? (
-        <p className="text-[13px] text-zinc-400 py-6 text-center">
-          No stakeholders yet. Add your first one above.
-        </p>
-      ) : (
+      <ViewState
+        loading={!mounted || loading}
+        error={error}
+        isEmpty={filtered.length === 0}
+        emptyMessage="Nenhum stakeholder ainda. Adicione o primeiro acima."
+      >
         <div className="grid grid-cols-2 gap-3">
           {filtered.map((sh) => (
             <StakeholderCard
@@ -164,7 +168,7 @@ export function StakeholderList({ projectId }: StakeholderListProps) {
             />
           ))}
         </div>
-      )}
+      </ViewState>
 
       {/* Modal */}
       <StakeholderModal

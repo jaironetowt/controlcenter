@@ -32,6 +32,7 @@ export const usePMToolStore = create<PMToolStore>()(
     }),
     {
       name: 'cc-pm-tool',
+      version: 1,
     },
   ),
 );

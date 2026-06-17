@@ -5,6 +5,7 @@ import { IconPencil, IconTrash, IconCircle, IconCircleHalf2, IconCircleCheck } f
 import { useActionItemsStore, type ActionItem, type ActionStatus } from '@/stores/useActionItemsStore';
 import { useSpaceStore } from '@/stores/useSpaceStore';
 import { PriorityIcon } from '@/components/ui/PriorityIcon';
+import { ViewState } from '@/components/ui/ViewState';
 import { ActionItemModal } from './ActionItemModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -154,6 +155,8 @@ export function ActionItemList({ projectId }: ActionItemListProps) {
   useEffect(() => { setMounted(true); }, []);
 
   const rawItems  = useActionItemsStore((s) => s.items);
+  const loading    = useActionItemsStore((s) => s.loading);
+  const error      = useActionItemsStore((s) => s.error);
   const updateItem = useActionItemsStore((s) => s.updateItem);
   const deleteItem = useActionItemsStore((s) => s.deleteItem);
   const canEdit    = useSpaceStore((s) => s.me != null && s.selectedSpace === s.me.sub);
@@ -224,11 +227,13 @@ export function ActionItemList({ projectId }: ActionItemListProps) {
       </div>
 
       {/* Table */}
-      {filtered.length === 0 ? (
-        <div className="flex items-center justify-center py-16 text-[13px] text-zinc-400">
-          {activeTab === 'All' ? 'No action items yet' : `No items with status "${activeTab}"`}
-        </div>
-      ) : (
+      <ViewState
+        loading={!mounted || loading}
+        error={error}
+        isEmpty={filtered.length === 0}
+        emptyMessage={activeTab === 'All' ? 'Nenhum action item ainda' : `Nenhum item com status "${activeTab}"`}
+        className="py-16"
+      >
         <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden">
           <table className="w-full table-fixed">
             <colgroup>
@@ -262,7 +267,7 @@ export function ActionItemList({ projectId }: ActionItemListProps) {
             </tbody>
           </table>
         </div>
-      )}
+      </ViewState>
 
       {/* Modal */}
       <ActionItemModal

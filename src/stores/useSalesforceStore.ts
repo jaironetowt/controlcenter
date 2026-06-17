@@ -25,6 +25,6 @@ export const useSalesforceStore = create<SalesforceStore>()(
       setCredentials: (creds) => set({ credentials: creds }),
       clearCredentials: () => set({ credentials: null }),
     }),
-    { name: 'cc-salesforce' },
+    { name: 'cc-salesforce', version: 1 },
   ),
 );

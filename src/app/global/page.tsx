@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { IconChevronDown, IconChevronRight, IconArchive } from '@tabler/icons-react';
 import { useProjectsStore } from '@/stores/useProjectsStore';
 import { ProjectCard } from '@/components/projects/ProjectCard';
+import { ViewState } from '@/components/ui/ViewState';
 import { buildSlugMap } from '@/lib/slugify';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -15,6 +16,8 @@ export default function GlobalPage() {
   const [archivedOpen, setArchivedOpen] = useState(false);
 
   const storeProjects = useProjectsStore((s) => s.projects);
+  const loading       = useProjectsStore((s) => s.loading);
+  const error         = useProjectsStore((s) => s.error);
 
   const active   = mounted ? storeProjects.filter((p) => !p.archived) : [];
   const archived = mounted ? storeProjects.filter((p) => p.archived)  : [];
@@ -25,11 +28,19 @@ export default function GlobalPage() {
       <h1 className="text-[20px] font-semibold text-zinc-900 mb-4">All Projects</h1>
 
       {/* Active projects */}
-      <div className="grid grid-cols-3 gap-4">
-        {active.map((project) => (
-          <ProjectCard key={project.id} project={project} slug={slugMap[project.id] ?? project.id} />
-        ))}
-      </div>
+      <ViewState
+        loading={!mounted || loading}
+        error={error}
+        isEmpty={active.length === 0}
+        emptyMessage="Nenhum projeto ainda"
+        className="py-16"
+      >
+        <div className="grid grid-cols-3 gap-4">
+          {active.map((project) => (
+            <ProjectCard key={project.id} project={project} slug={slugMap[project.id] ?? project.id} />
+          ))}
+        </div>
+      </ViewState>
 
       {/* Archived section */}
       {mounted && archived.length > 0 && (

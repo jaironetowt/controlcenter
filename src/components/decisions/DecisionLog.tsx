@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 import { useDecisionsStore, type Decision } from '@/stores/useDecisionsStore';
 import { useSpaceStore } from '@/stores/useSpaceStore';
+import { ViewState } from '@/components/ui/ViewState';
 import { DecisionModal } from './DecisionModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -118,6 +119,8 @@ export function DecisionLog({ projectId }: DecisionLogProps) {
   useEffect(() => { setMounted(true); }, []);
 
   const rawDecisions = useDecisionsStore((s) => s.decisions);
+  const loading = useDecisionsStore((s) => s.loading);
+  const error = useDecisionsStore((s) => s.error);
   const deleteDecision = useDecisionsStore((s) => s.deleteDecision);
   const canEdit = useSpaceStore((s) => s.me != null && s.selectedSpace === s.me.sub);
 
@@ -159,11 +162,13 @@ export function DecisionLog({ projectId }: DecisionLogProps) {
       </div>
 
       {/* List */}
-      {decisions.length === 0 ? (
-        <div className="flex items-center justify-center py-16 text-[13px] text-zinc-400">
-          No decisions recorded yet
-        </div>
-      ) : (
+      <ViewState
+        loading={!mounted || loading}
+        error={error}
+        isEmpty={decisions.length === 0}
+        emptyMessage="Nenhuma decisão registrada ainda"
+        className="py-16"
+      >
         <div className="flex flex-col gap-3">
           {decisions.map((dec) => (
             <DecisionCard
@@ -174,7 +179,7 @@ export function DecisionLog({ projectId }: DecisionLogProps) {
             />
           ))}
         </div>
-      )}
+      </ViewState>
 
       {/* Modal */}
       <DecisionModal

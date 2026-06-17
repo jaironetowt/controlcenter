@@ -9,6 +9,7 @@ import { useActionItemsStore, type ActionItem, type ActionStatus } from '@/store
 import { useProjectsStore, type Project } from '@/stores/useProjectsStore';
 import { ActionItemModal } from '@/components/actions/ActionItemModal';
 import { PriorityIcon } from '@/components/ui/PriorityIcon';
+import { ViewState } from '@/components/ui/ViewState';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -180,6 +181,8 @@ export default function GlobalActionsPage() {
   useEffect(() => { setMounted(true); }, []);
 
   const rawItems   = useActionItemsStore((s) => s.items);
+  const loading    = useActionItemsStore((s) => s.loading);
+  const error      = useActionItemsStore((s) => s.error);
   const updateItem = useActionItemsStore((s) => s.updateItem);
   const deleteItem = useActionItemsStore((s) => s.deleteItem);
   const projects   = useProjectsStore((s) => s.projects);
@@ -246,12 +249,14 @@ export default function GlobalActionsPage() {
 
       {/* Swimlanes */}
       <div className="flex-1 overflow-y-auto px-10 py-6 flex flex-col gap-8">
-        {swimlanes.length === 0 ? (
-          <div className="flex items-center justify-center py-20 text-[13px] text-zinc-400">
-            No action items found
-          </div>
-        ) : (
-          swimlanes.map(({ project, items: projItems }) => (
+        <ViewState
+          loading={!mounted || loading}
+          error={error}
+          isEmpty={swimlanes.length === 0}
+          emptyMessage="Nenhum action item encontrado"
+          className="py-20"
+        >
+          {swimlanes.map(({ project, items: projItems }) => (
             <Swimlane
               key={project.id}
               project={project}
@@ -260,8 +265,8 @@ export default function GlobalActionsPage() {
               onDelete={deleteItem}
               onCycleStatus={(id, next) => updateItem(id, { status: next })}
             />
-          ))
-        )}
+          ))}
+        </ViewState>
       </div>
 
       {editing && (

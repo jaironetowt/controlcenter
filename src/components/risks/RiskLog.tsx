@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 import { useRisksStore, type Risk, type Probability, type Impact, type RiskStatus } from '@/stores/useRisksStore';
 import { useSpaceStore } from '@/stores/useSpaceStore';
+import { ViewState } from '@/components/ui/ViewState';
 import { RiskModal } from './RiskModal';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -154,6 +155,8 @@ export function RiskLog({ projectId }: RiskLogProps) {
   useEffect(() => { setMounted(true); }, []);
 
   const allRisks   = useRisksStore((s) => s.risks);
+  const loading    = useRisksStore((s) => s.loading);
+  const error      = useRisksStore((s) => s.error);
   const projectRisks = mounted ? allRisks.filter((r) => r.projectId === projectId) : [];
   const openRisks    = projectRisks.filter((r) => r.status === 'Open');
   const numMap       = buildNumMap(projectRisks);
@@ -178,11 +181,14 @@ export function RiskLog({ projectId }: RiskLogProps) {
         )}
       </div>
 
-      {openRisks.length === 0 ? (
-        <div className="flex items-center justify-center py-12 text-[13px] text-zinc-400">No open risks</div>
-      ) : (
+      <ViewState
+        loading={!mounted || loading}
+        error={error}
+        isEmpty={openRisks.length === 0}
+        emptyMessage="Nenhum risco aberto ainda"
+      >
         <RiskTable risks={openRisks} numMap={numMap} onEdit={openEditModal} onDelete={deleteRisk} />
-      )}
+      </ViewState>
 
       <RiskModal opened={modalOpen} onClose={closeModal} projectId={projectId} risk={editingRisk} />
     </>
