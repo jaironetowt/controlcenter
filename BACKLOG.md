@@ -207,9 +207,9 @@ Objetivo: endurecer a base antes de feature nova (escolha do Jairo 2026-06-17). 
 
 | ID | Tipo | Ticket | Status |
 |----|------|--------|--------|
-| CC-116 | [BUG] | Error boundary global (`global-error.tsx` + ErrorBoundary nos providers) — um componente quebrado não pode dar white-screen | Pendente |
-| CC-117 | [BUG] | Neutralizar integrações vivas mortas (resíduo da migração): `metrics` chama `/api/pm/jira/*` (removido) e dashboard chama `/api/salesforce/timecards` (removido) → 404 em runtime. Mostrar "Indisponível nesta versão" e não buscar endpoint morto | Pendente |
-| CC-118 | [BUG] | Stores órfãos `usePMToolStore`/`useSalesforceStore`/`ExternalHealthBadge` + componentes de Integrations — limpar ou neutralizar (sem backend no modelo passivo) | Pendente |
+| CC-116 | [BUG] | Error boundary global (`global-error.tsx` + ErrorBoundary nos providers) — um componente quebrado não pode dar white-screen | ✅ Feito |
+| CC-117 | [BUG] | Neutralizar integrações vivas mortas (resíduo da migração): metrics/dashboard/timecards/import-SF não buscam mais `/api/pm/*` nem `/api/salesforce/*`; mostram "Indisponível nesta versão" | ✅ Feito |
+| CC-118 | [BUG] | Integrations/órfãos — deletados PMToolConfig, SalesforceConfig, connectors/jira; IntegrationsPanel vira aviso; stores persist mantidos (sem fetch); ExternalHealthBadge com hydration guard | ✅ Feito |
 | CC-119 | [POLISH] | Guarda de hidratação + versionar `persist` (CC-107) nos stores que ainda usam persist/localStorage; evitar mismatch SSR/CSR | Pendente |
 | CC-120 | [POLISH] | Estados de loading/erro/vazio surfados nas views principais (risks/actions/decisions/stakeholders/projects) a partir de `store.loading`/`store.error` | Pendente |
 | CC-109 | [INFRA] | Validação on-platform (browser logado): criar projeto → refresh persiste; seletor de espaço; deep-link | Pendente (você) |

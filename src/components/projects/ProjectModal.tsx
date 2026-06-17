@@ -10,37 +10,11 @@ import { DateRangeFields, parseDateRange, buildDateRange, monthToLabel } from '@
 
 // ─── Salesforce helpers ───────────────────────────────────────────────────────
 
-function formatSFDate(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-}
-
-async function fetchSalesforceProject(url: string): Promise<{ name: string; dateRange: string; client: string; salesforceId: string }> {
-  const res = await fetch('/api/salesforce/record', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url }),
-  });
-  const data = await res.json() as {
-    record?: Record<string, unknown>;
-    error?: string;
-    message?: string;
-  };
-  if (!res.ok) {
-    if (data.error === 'SF_CLI_NOT_AUTHENTICATED') {
-      throw new Error('SF_CLI_NOT_AUTHENTICATED');
-    }
-    throw new Error(data.error ?? 'Failed to fetch from Salesforce');
-  }
-  const record = data.record ?? {};
-  const salesforceId = String(record['Id'] ?? '');
-  const name   = String(record['Name'] ?? '');
-  const start  = record['pse__Start_Date__c'] ? formatSFDate(String(record['pse__Start_Date__c'])) : '';
-  const end    = record['pse__End_Date__c']   ? formatSFDate(String(record['pse__End_Date__c']))   : '';
-  const dateRange = start && end ? `${start} – ${end}` : start || end;
-  const accountRecord = record['pse__Account__r'] as Record<string, unknown> | null | undefined;
-  const client = accountRecord ? String(accountRecord['Name'] ?? '') : '';
-  return { name, dateRange, client, salesforceId };
+// Passive-portal model: the portal no longer talks to live Salesforce (the
+// /api/salesforce/record route was removed). "Import from Salesforce" is
+// unavailable in this version — Claude manages Salesforce data. Tracked in CC-60.
+async function fetchSalesforceProject(_url: string): Promise<{ name: string; dateRange: string; client: string; salesforceId: string }> {
+  throw new Error('SF_UNAVAILABLE');
 }
 
 // ─── Color palette ────────────────────────────────────────────────────────────
@@ -117,23 +91,8 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
   const [sfImportedName, setSfImportedName] = useState('');
   const [sfImportedDateRange, setSfImportedDateRange] = useState('');
 
-  // Backfill sfName when opening edit modal for an SF-linked project without saved name
-  useEffect(() => {
-    if (opened && isEditMode && project?.salesforceId && !project.sfName) {
-      const url = `https://willowtree.lightning.force.com/lightning/r/pse__Proj__c/${project.salesforceId}/view`;
-      fetch('/api/salesforce/record', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url }),
-      })
-        .then((r) => r.json())
-        .then((data: { record?: Record<string, unknown> }) => {
-          const name = data.record?.['Name'] as string | undefined;
-          if (name) updateProject(project.id, { sfName: name });
-        })
-        .catch(() => undefined);
-    }
-  }, [opened, isEditMode, project?.salesforceId, project?.sfName, project?.id, updateProject]);
+  // Passive-portal model: sfName backfill (which hit the now-deleted
+  // /api/salesforce/record route) was removed. Tracked in CC-60.
 
   // Reset form whenever the modal opens (or the project changes)
   useEffect(() => {
@@ -224,8 +183,8 @@ export function ProjectModal({ opened, onClose, project }: ProjectModalProps) {
       setErrors((prev) => ({ ...prev, name: undefined }));
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error';
-      if (msg === 'SF_CLI_NOT_AUTHENTICATED') {
-        setSfError('Salesforce CLI not authenticated. Run: sf org login web --set-default');
+      if (msg === 'SF_UNAVAILABLE') {
+        setSfError('Import from Salesforce is unavailable in this version — data is managed by Claude.');
       } else {
         setSfError(msg);
       }

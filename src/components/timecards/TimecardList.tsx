@@ -1,186 +1,27 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Pagination } from '@mantine/core';
-import { IconRefresh } from '@tabler/icons-react';
-import { useProjectsStore } from '@/stores/useProjectsStore';
+import { IconStack2 } from '@tabler/icons-react';
 
-const PAGE_SIZE = 30;
-
-interface Timecard {
-  resourceName: string;
-  assignment: string;
-  startDate: string | null;
-  endDate: string | null;
-  actualHours: number | null;
-  estimatedHours: number | null;
-}
+// NOTE: Passive-portal model — the portal no longer talks to live Salesforce.
+// Timecard data is collected and stored by Claude/cowork. The fetch-driven list
+// (which called the now-deleted /api/salesforce/timecards route) was removed; the
+// component is kept so the timecards route doesn't break. Tracked in CC-60.
 
 interface TimecardListProps {
   projectId: string;
   salesforceId: string;
 }
 
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
-}
-
-const DATA_KEY = (id: string) => `tc-data-${id}`;
-const TS_KEY   = (id: string) => `tc-ts-${id}`;
-const THREE_HOURS = 3 * 60 * 60 * 1000;
-
-export function TimecardList({ projectId, salesforceId }: TimecardListProps) {
-  const updateProject = useProjectsStore((s) => s.updateProject);
-  const [timecards, setTimecards] = useState<Timecard[]>([]);
-  const [loading, setLoading]     = useState(() =>
-    typeof window === 'undefined' ? false : !localStorage.getItem(TS_KEY(projectId))
-  );
-  const [error, setError]         = useState('');
-  const [lastFetched, setLastFetched] = useState<Date | null>(null);
-  const [page, setPage] = useState(1);
-
-  const fetchTimecards = useCallback(async (force = false) => {
-    const ts = Number(localStorage.getItem(TS_KEY(projectId)) ?? 0);
-    if (!force && Date.now() - ts < THREE_HOURS) return;
-
-    setLoading(true);
-    setError('');
-    try {
-      const res = await fetch('/api/salesforce/timecards', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ salesforceId }),
-      });
-      const data = await res.json() as { timecards?: Timecard[]; error?: string };
-      if (!res.ok) throw new Error(data.error ?? 'Failed to fetch timecards');
-      const list = (data.timecards ?? []).sort((a, b) => {
-        if (!a.endDate) return 1;
-        if (!b.endDate) return -1;
-        const byDate = a.endDate.localeCompare(b.endDate);
-        if (byDate !== 0) return byDate;
-        return a.resourceName.localeCompare(b.resourceName);
-      });
-      setTimecards(list);
-      setPage(1);
-      setLastFetched(new Date());
-      localStorage.setItem(DATA_KEY(projectId), JSON.stringify(list));
-      localStorage.setItem(TS_KEY(projectId), String(Date.now()));
-      updateProject(projectId, { timecardCount: list.length, timecardCountAt: Date.now() });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setLoading(false);
-    }
-  }, [salesforceId, projectId, updateProject]);
-
-  useEffect(() => {
-    // Load from cache immediately
-    const cached = localStorage.getItem(DATA_KEY(projectId));
-    const ts     = Number(localStorage.getItem(TS_KEY(projectId)) ?? 0);
-    if (cached) {
-      const parsed = (JSON.parse(cached) as Timecard[]).sort((a, b) => {
-        if (!a.endDate) return 1;
-        if (!b.endDate) return -1;
-        const byDate = a.endDate.localeCompare(b.endDate);
-        if (byDate !== 0) return byDate;
-        return a.resourceName.localeCompare(b.resourceName);
-      });
-      setTimecards(parsed);
-      setLastFetched(new Date(ts));
-    }
-    // Fetch only if stale
-    void fetchTimecards();
-  }, [projectId, fetchTimecards]);
-
-  const totalPages = Math.ceil(timecards.length / PAGE_SIZE);
-  const pageSlice  = timecards.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-
+export function TimecardList(_props: TimecardListProps) {
   return (
-    <>
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <span className="text-[14px] font-semibold text-zinc-800">Missing Timecards</span>
-          {timecards.length > 0 && (
-            <span className="ml-2 text-[12px] text-zinc-400">{timecards.length} item{timecards.length !== 1 ? 's' : ''}</span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {lastFetched && (
-            <span className="text-[11px] text-zinc-400">
-              Updated {lastFetched.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          )}
-          <button
-            onClick={() => void fetchTimecards(true)}
-            disabled={loading}
-            className="p-1 text-zinc-400 hover:text-zinc-700 transition-colors rounded disabled:opacity-40"
-            aria-label="Refresh"
-          >
-            <IconRefresh size={14} className={loading ? 'animate-spin' : ''} />
-          </button>
-        </div>
+    <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
+      <IconStack2 size={32} className="text-zinc-300" />
+      <div>
+        <p className="text-[13px] text-zinc-600 font-medium">Indisponível nesta versão</p>
+        <p className="text-[12px] text-zinc-400 mt-1 max-w-sm">
+          Os timecards são gerenciados pelo Claude (portal passivo).
+        </p>
       </div>
-
-      {error && (
-        <div className="text-[12px] text-red-500 py-3">{error}</div>
-      )}
-
-      {!error && timecards.length === 0 && (
-        <div className="flex items-center justify-center py-12 text-[13px] text-zinc-400">
-          {loading ? 'Loading…' : 'No missing timecards'}
-        </div>
-      )}
-
-      {timecards.length > 0 && (
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-zinc-200">
-                <th className="text-left text-[11px] font-medium text-zinc-500 uppercase tracking-wide pb-2 pr-4">Resource</th>
-                <th className="text-left text-[11px] font-medium text-zinc-500 uppercase tracking-wide pb-2 pr-4">Assignment</th>
-                <th className="text-left text-[11px] font-medium text-zinc-500 uppercase tracking-wide pb-2 pr-4">Start Date</th>
-                <th className="text-left text-[11px] font-medium text-zinc-500 uppercase tracking-wide pb-2 pr-4">End Date</th>
-                <th className="text-right text-[11px] font-medium text-zinc-500 uppercase tracking-wide pb-2 pr-4">Est. Hours</th>
-                <th className="text-right text-[11px] font-medium text-zinc-500 uppercase tracking-wide pb-2">Actual Hours</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pageSlice.map((tc, i) => (
-                <tr key={i} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
-                  <td className="py-2.5 pr-4">
-                    <span className="text-[13px] text-zinc-800">{tc.resourceName}</span>
-                  </td>
-                  <td className="py-2.5 pr-4">
-                    <span className="text-[13px] text-zinc-500">{tc.assignment}</span>
-                  </td>
-                  <td className="py-2.5 pr-4">
-                    <span className="text-[13px] text-zinc-600">{tc.startDate ? formatDate(tc.startDate) : '—'}</span>
-                  </td>
-                  <td className="py-2.5 pr-4">
-                    <span className="text-[13px] text-zinc-600">{tc.endDate ? formatDate(tc.endDate) : '—'}</span>
-                  </td>
-                  <td className="py-2.5 pr-4 text-right">
-                    <span className="text-[13px] text-zinc-600">{tc.estimatedHours?.toFixed(2) ?? '—'}</span>
-                  </td>
-                  <td className="py-2.5 text-right">
-                    <span className="text-[13px] text-red-500 font-medium">{tc.actualHours?.toFixed(2) ?? '0.00'}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {totalPages > 1 && (
-        <div className="flex flex-col items-center gap-2 mt-4">
-          <Pagination value={page} onChange={setPage} total={totalPages} size="sm" />
-          <span className="text-[12px] text-zinc-400">
-            {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, timecards.length)} de {timecards.length}
-          </span>
-        </div>
-      )}
-    </>
+    </div>
   );
 }

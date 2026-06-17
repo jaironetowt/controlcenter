@@ -111,27 +111,10 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const spDone         = sprintCache?.issues.filter((i) => doneStatuses.has(i.status.toLowerCase())).reduce((s, i) => s + (i.storyPoints ?? 0), 0) ?? 0;
   const spPct          = spCommitted > 0 ? Math.round((spDone / spCommitted) * 100) : 0;
 
-  const updateProject  = useProjectsStore((s) => s.updateProject);
+  // Passive-portal model: timecard data is managed by Claude (the /api/salesforce/*
+  // routes were removed). We no longer fetch live counts; whatever is cached in the
+  // store is shown as-is. Re-implementation tracked in CC-60.
   const timecardCount  = mounted ? (project?.timecardCount ?? 0) : 0;
-  const timecardCountAt = project?.timecardCountAt ?? 0;
-
-  useEffect(() => {
-    if (!mounted || !project?.salesforceId) return;
-    const stale = Date.now() - timecardCountAt > 3 * 60 * 60 * 1000;
-    if (!stale) return;
-
-    void fetch('/api/salesforce/timecards', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ salesforceId: project.salesforceId }),
-    })
-      .then((r) => r.json())
-      .then((data: { timecards?: unknown[] }) => {
-        const count = data.timecards?.length ?? 0;
-        updateProject(projectId, { timecardCount: count, timecardCountAt: Date.now() });
-      })
-      .catch(() => undefined);
-  }, [mounted, id, project?.salesforceId, timecardCountAt, updateProject]);
 
   return (
     <>

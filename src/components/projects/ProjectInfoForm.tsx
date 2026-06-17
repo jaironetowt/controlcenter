@@ -43,22 +43,9 @@ interface FormErrors {
 export function ProjectInfoForm({ project, onSaved }: ProjectInfoFormProps) {
   const updateProject = useProjectsStore((s) => s.updateProject);
 
-  // Backfill sfName for projects linked to SF but without a saved name
-  useEffect(() => {
-    if (!project.salesforceId || project.sfName) return;
-    const url = `https://willowtree.lightning.force.com/lightning/r/pse__Proj__c/${project.salesforceId}/view`;
-    fetch('/api/salesforce/record', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url }),
-    })
-      .then((r) => r.json())
-      .then((data: { record?: Record<string, unknown> }) => {
-        const name = data.record?.['Name'] as string | undefined;
-        if (name) updateProject(project.id, { sfName: name });
-      })
-      .catch(() => undefined);
-  }, [project.id, project.salesforceId, project.sfName, updateProject]);
+  // Passive-portal model: Salesforce data is managed by Claude. The sfName
+  // backfill that hit the now-deleted /api/salesforce/record route was removed;
+  // whatever name is already stored on the project is used as-is. Tracked in CC-60.
 
   const initDates = parseDateRange(project.dateRange);
   const [form, setForm] = useState<FormState>({
