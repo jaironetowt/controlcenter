@@ -26,6 +26,8 @@ interface ProjectsStore {
   projects: Project[];
   loading: boolean;
   error: string | null;
+  /** Hidrata o estado a partir de linhas já buscadas (sem rede). */
+  hydrate: (rows: DbProject[]) => void;
   fetchProjects: () => Promise<void>;
   addProject: (data: Omit<Project, 'id' | 'archived' | 'createdAt'>) => Promise<void>;
   updateProject: (id: string, updates: Partial<Omit<Project, 'id' | 'createdAt'>>) => Promise<void>;
@@ -80,6 +82,13 @@ export const useProjectsStore = create<ProjectsStore>()((set, get) => ({
   projects: [],
   loading:  false,
   error:    null,
+
+  hydrate: (rows) =>
+    set({
+      projects: rows.map((r) => fromDb(r as unknown as Record<string, unknown>)),
+      loading:  false,
+      error:    null,
+    }),
 
   fetchProjects: async () => {
     set({ loading: true, error: null });

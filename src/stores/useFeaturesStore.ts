@@ -41,6 +41,8 @@ interface FeaturesStore {
   features: FeaturesMap;
   loading: boolean;
   error: string | null;
+  /** Hidrata as features a partir de um payload já buscado (sem rede). */
+  hydrate: (features: Record<string, boolean>) => void;
   fetchFeatures: () => Promise<void>;
   setFeature: (key: FeatureKey, enabled: boolean) => Promise<void>;
 }
@@ -49,6 +51,13 @@ export const useFeaturesStore = create<FeaturesStore>()((set, get) => ({
   features: DEFAULT_FEATURES,
   loading:  false,
   error:    null,
+
+  hydrate: (stored) =>
+    set({
+      features: { ...DEFAULT_FEATURES, ...(stored as Partial<FeaturesMap>) },
+      loading:  false,
+      error:    null,
+    }),
 
   fetchFeatures: async () => {
     set({ loading: true, error: null });

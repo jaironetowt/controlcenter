@@ -20,6 +20,8 @@ interface DecisionsStore {
   decisions: Decision[];
   loading: boolean;
   error: string | null;
+  /** Hidrata o estado a partir de linhas já buscadas (sem rede). */
+  hydrate: (rows: DbDecision[]) => void;
   fetchDecisions: () => Promise<void>;
   addDecision: (data: Omit<Decision, 'id' | 'createdAt'>) => Promise<void>;
   updateDecision: (id: string, updates: Partial<Omit<Decision, 'id' | 'createdAt'>>) => Promise<void>;
@@ -47,6 +49,8 @@ export const useDecisionsStore = create<DecisionsStore>()((set, get) => ({
   decisions: [],
   loading:   false,
   error:     null,
+
+  hydrate: (rows) => set({ decisions: rows.map(fromDb), loading: false, error: null }),
 
   fetchDecisions: async () => {
     set({ loading: true, error: null });

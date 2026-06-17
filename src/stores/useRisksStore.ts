@@ -26,6 +26,8 @@ interface RisksStore {
   risks: Risk[];
   loading: boolean;
   error: string | null;
+  /** Hidrata o estado a partir de linhas já buscadas (sem rede). */
+  hydrate: (rows: DbRisk[]) => void;
   fetchRisks: () => Promise<void>;
   addRisk: (data: Omit<Risk, 'id' | 'closedAt'> & { createdAt?: number }) => Promise<void>;
   updateRisk: (id: string, updates: Partial<Omit<Risk, 'id' | 'createdAt'>>) => Promise<void>;
@@ -55,6 +57,8 @@ export const useRisksStore = create<RisksStore>()((set, get) => ({
   risks:   [],
   loading: false,
   error:   null,
+
+  hydrate: (rows) => set({ risks: rows.map(fromDb), loading: false, error: null }),
 
   fetchRisks: async () => {
     set({ loading: true, error: null });

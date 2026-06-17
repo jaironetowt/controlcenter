@@ -138,6 +138,73 @@ async function handleSpaces(env: Env, caller: Caller): Promise<Response> {
   return json({ me: { sub: caller.sub, email: caller.email }, spaces });
 }
 
+// ─── Bootstrap (single-request initial load) ────────────────────────────────────
+//
+// Collapses the initial-load fan-out (spaces + features + the 5 resources) into
+// ONE request. The cost the client feels is the per-request loader overhead, not
+// the queries — so doing N queries inside one worker invocation is a big win.
+
+async function handleBootstrap(env: Env, caller: Caller, url: URL): Promise<Response> {
+  const space = url.searchParams.get('space') || caller.sub;
+  if (!(await canAccessSpace(env, caller, space))) return forbidden();
+
+  // ── spaces (mirror of handleSpaces) ──
+  const spaces: Array<{ owner_sub: string; owner_email: string; role: string }> = [
+    { owner_sub: caller.sub, owner_email: caller.email, role: 'owner' },
+  ];
+  if (caller.email) {
+    const { results } = await env.DB.prepare(
+      'SELECT owner_sub, owner_email FROM space_shares WHERE viewer_email = ? ORDER BY created_at ASC',
+    )
+      .bind(caller.email)
+      .all<{ owner_sub: string; owner_email: string }>();
+    for (const r of results ?? []) {
+      spaces.push({ owner_sub: r.owner_sub, owner_email: r.owner_email, role: 'viewer' });
+    }
+  }
+
+  // ── features (mirror of handleGetSettings, keyed by caller.sub) ──
+  const settingsRow = await env.DB.prepare(
+    'SELECT features FROM user_settings WHERE user_id = ?',
+  )
+    .bind(caller.sub)
+    .first<{ features: string }>();
+  let features: unknown = {};
+  if (settingsRow?.features) {
+    try {
+      features = JSON.parse(settingsRow.features);
+    } catch {
+      features = {};
+    }
+  }
+
+  // ── the 5 resources, scoped to the (access-checked) space ──
+  const listFor = async (table: string) => {
+    const order = table === 'projects' ? ' ORDER BY created_at ASC' : '';
+    const { results } = await env.DB.prepare(
+      `SELECT * FROM ${ident(table)} WHERE owner_sub = ?${order}`,
+    )
+      .bind(space)
+      .all();
+    return results ?? [];
+  };
+
+  const [projects, risks, action_items, decisions, stakeholders] = await Promise.all([
+    listFor('projects'),
+    listFor('risks'),
+    listFor('action_items'),
+    listFor('decisions'),
+    listFor('stakeholders'),
+  ]);
+
+  return json({
+    me: { sub: caller.sub, email: caller.email },
+    spaces,
+    features,
+    data: { projects, risks, action_items, decisions, stakeholders },
+  });
+}
+
 // ─── CRUD resources (space-aware) ──────────────────────────────────────────────
 
 async function handleList(
@@ -462,6 +529,12 @@ export default {
 
       if (path === '/api/spaces') {
         if (req.method === 'GET') return await handleSpaces(env, caller);
+        return json({ error: 'Method not allowed' }, 405);
+      }
+
+      // ─── bootstrap (single-request initial load) ────────────────────────
+      if (path === '/api/bootstrap') {
+        if (req.method === 'GET') return await handleBootstrap(env, caller, url);
         return json({ error: 'Method not allowed' }, 405);
       }
 

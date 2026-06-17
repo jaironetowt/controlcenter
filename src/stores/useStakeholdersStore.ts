@@ -24,6 +24,8 @@ interface StakeholdersStore {
   stakeholders: Stakeholder[];
   loading: boolean;
   error: string | null;
+  /** Hidrata o estado a partir de linhas já buscadas (sem rede). */
+  hydrate: (rows: DbStakeholder[]) => void;
   fetchStakeholders: () => Promise<void>;
   addStakeholder: (data: Omit<Stakeholder, 'id' | 'createdAt'>) => Promise<void>;
   updateStakeholder: (id: string, updates: Partial<Omit<Stakeholder, 'id' | 'createdAt'>>) => Promise<void>;
@@ -52,6 +54,8 @@ export const useStakeholdersStore = create<StakeholdersStore>()((set, get) => ({
   stakeholders: [],
   loading:      false,
   error:        null,
+
+  hydrate: (rows) => set({ stakeholders: rows.map(fromDb), loading: false, error: null }),
 
   fetchStakeholders: async () => {
     set({ loading: true, error: null });

@@ -2,6 +2,14 @@
 // All rows travel in snake_case exactly as the D1 table columns. The worker
 // runs behind the gizmos loader (SSO already enforced), so no auth wiring here.
 
+import type {
+  DbProject,
+  DbRisk,
+  DbActionItem,
+  DbDecision,
+  DbStakeholder,
+} from '@/lib/types';
+
 type Resource =
   | 'projects'
   | 'risks'
@@ -102,6 +110,31 @@ export async function getMe(): Promise<Me> {
  */
 export async function getSpaces(): Promise<{ me: Me; spaces: SpaceRow[] }> {
   return request<{ me: Me; spaces: SpaceRow[] }>('/api/spaces');
+}
+
+// ─── Bootstrap (single-request initial load) ───────────────────────────────────
+
+export interface BootstrapPayload {
+  me: Me;
+  spaces: SpaceRow[];
+  features: Record<string, boolean>;
+  data: {
+    projects: DbProject[];
+    risks: DbRisk[];
+    action_items: DbActionItem[];
+    decisions: DbDecision[];
+    stakeholders: DbStakeholder[];
+  };
+}
+
+/**
+ * GET /api/bootstrap[?space=<space>] -> the whole initial payload in ONE request:
+ * { me, spaces, features, data:{ projects, risks, action_items, decisions, stakeholders } }.
+ * Rows travel in snake_case, identical to the per-resource endpoints.
+ */
+export async function bootstrap(space?: string): Promise<BootstrapPayload> {
+  const qs = space ? `?space=${encodeURIComponent(space)}` : '';
+  return request<BootstrapPayload>(`/api/bootstrap${qs}`);
 }
 
 // ─── Shares (viewers of the caller's own space) ────────────────────────────────

@@ -23,6 +23,8 @@ interface ActionItemsStore {
   items: ActionItem[];
   loading: boolean;
   error: string | null;
+  /** Hidrata o estado a partir de linhas já buscadas (sem rede). */
+  hydrate: (rows: DbActionItem[]) => void;
   fetchItems: () => Promise<void>;
   addItem: (data: Omit<ActionItem, 'id' | 'createdAt'>) => Promise<void>;
   updateItem: (id: string, updates: Partial<Omit<ActionItem, 'id' | 'createdAt'>>) => Promise<void>;
@@ -50,6 +52,14 @@ export const useActionItemsStore = create<ActionItemsStore>()((set, get) => ({
   items:   [],
   loading: false,
   error:   null,
+
+  hydrate: (rows) =>
+    set({
+      // mesma ordenação desc por created_at usada em fetchItems
+      items: rows.map(fromDb).sort((a, b) => b.createdAt - a.createdAt),
+      loading: false,
+      error:   null,
+    }),
 
   fetchItems: async () => {
     set({ loading: true, error: null });

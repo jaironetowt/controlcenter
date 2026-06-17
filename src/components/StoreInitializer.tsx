@@ -1,42 +1,38 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSpaceStore } from '@/stores/useSpaceStore';
-import { useProjectsStore } from '@/stores/useProjectsStore';
-import { useRisksStore } from '@/stores/useRisksStore';
-import { useActionItemsStore } from '@/stores/useActionItemsStore';
-import { useDecisionsStore } from '@/stores/useDecisionsStore';
-import { useStakeholdersStore } from '@/stores/useStakeholdersStore';
-import { useFeaturesStore } from '@/stores/useFeaturesStore';
 
 /**
- * Componente invisível montado no topo da árvore que dispara o fetch
- * inicial de identidade/espaços e, em seguida, de todos os stores Supabase.
+ * Componente invisível montado no topo da árvore que dispara o load inicial
+ * (identidade + espaços + features + todos os recursos) numa ÚNICA request
+ * via GET /api/bootstrap, e re-carrega ao trocar de espaço.
  * Deve ser incluído dentro do Providers.
  *
- * Fluxo multi-tenant:
- * 1. No mount, carrega me + spaces (define selectedSpace default = me.sub).
- * 2. Sempre que selectedSpace estiver definido (ou mudar), re-busca todos
- *    os resources do espaço selecionado.
+ * Fluxo multi-tenant (1 request por carga):
+ * 1. No mount, bootstrapAll() carrega o espaço próprio (define selectedSpace = me.sub).
+ * 2. Ao trocar de espaço, bootstrapAll(selectedSpace) recarrega tudo em 1 request.
+ *    A PRIMEIRA execução do efeito de troca é pulada (useRef) para evitar
+ *    o double-load no load inicial.
  */
 export function StoreInitializer() {
   const selectedSpace = useSpaceStore((s) => s.selectedSpace);
 
-  // 1. Carrega identidade + espaços uma vez no mount.
+  // 1. Load inicial — UMA request que hidrata todos os stores.
   useEffect(() => {
-    void useSpaceStore.getState().fetchSpaces();
+    void useSpaceStore.getState().bootstrapAll();
   }, []);
 
-  // 2. (Re)busca todos os resources sempre que o espaço selecionado mudar.
+  // 2. Troca de espaço — recarrega tudo em 1 request, pulando a 1ª execução
+  //    (que coincide com o selectedSpace definido pelo bootstrap inicial).
+  const skipFirst = useRef(false);
   useEffect(() => {
     if (!selectedSpace) return;
-
-    void useProjectsStore.getState().fetchProjects();
-    void useRisksStore.getState().fetchRisks();
-    void useActionItemsStore.getState().fetchItems();
-    void useDecisionsStore.getState().fetchDecisions();
-    void useStakeholdersStore.getState().fetchStakeholders();
-    void useFeaturesStore.getState().fetchFeatures();
+    if (!skipFirst.current) {
+      skipFirst.current = true;
+      return;
+    }
+    void useSpaceStore.getState().bootstrapAll(selectedSpace);
   }, [selectedSpace]);
 
   return null;
