@@ -127,6 +127,24 @@ export async function removeShare(email: string): Promise<void> {
   });
 }
 
+// ─── Dev seed ─────────────────────────────────────────────────────────────────
+
+/**
+ * POST /api/dev/seed -> populates the caller's own space with a generic demo
+ * project (idempotent). Returns { ok, projectId? } on a fresh seed, or
+ * { ok, alreadySeeded: true } when the demo project already exists.
+ */
+export async function seedDemo(): Promise<{
+  ok: boolean;
+  projectId?: string;
+  alreadySeeded?: boolean;
+}> {
+  return request<{ ok: boolean; projectId?: string; alreadySeeded?: boolean }>(
+    '/api/dev/seed',
+    { method: 'POST' },
+  );
+}
+
 // ─── User settings ──────────────────────────────────────────────────────────────
 
 /** GET /api/user_settings -> features object. */

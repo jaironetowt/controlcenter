@@ -46,6 +46,7 @@ interface D1PreparedStatement {
 
 interface D1Database {
   prepare(query: string): D1PreparedStatement;
+  batch<T = Record<string, unknown>>(statements: D1PreparedStatement[]): Promise<D1Result<T>[]>;
   first<T = Record<string, unknown>>(query: string, ...params: unknown[]): Promise<T | null>;
   run(query: string, ...params: unknown[]): Promise<unknown>;
   exec(query: string): Promise<unknown>;
@@ -271,6 +272,148 @@ async function handleRemoveShare(env: Env, caller: Caller, email: string): Promi
   return json({ ok: true });
 }
 
+// ─── Dev seed (populate the caller's own space with a demo project) ─────────────
+
+// Idempotent: inserts a generic demo project + children scoped to the caller's
+// space, but only if a project named DEMO_PROJECT_NAME doesn't already exist.
+const DEMO_PROJECT_NAME = 'Projeto Exemplo (Demo)';
+
+async function handleSeed(env: Env, caller: Caller): Promise<Response> {
+  if (!caller.sub) return json({ error: 'Unauthorized' }, 401);
+
+  // Idempotency guard: don't duplicate the demo project.
+  const existing = await env.DB.prepare(
+    'SELECT id FROM projects WHERE owner_sub = ? AND name = ? LIMIT 1',
+  )
+    .bind(caller.sub, DEMO_PROJECT_NAME)
+    .first<{ id: string }>();
+  if (existing) return json({ ok: true, alreadySeeded: true });
+
+  const sub = caller.sub;
+  const now = new Date().toISOString();
+  const projectId = crypto.randomUUID();
+
+  // Relative dates so the demo always has a mix of past and future due dates.
+  const day = (offset: number): string => {
+    const d = new Date();
+    d.setDate(d.getDate() + offset);
+    return d.toISOString().slice(0, 10); // YYYY-MM-DD
+  };
+
+  const statements: D1PreparedStatement[] = [];
+
+  // ── Project ──
+  statements.push(
+    env.DB.prepare(
+      `INSERT INTO projects (id, name, color, client, phase, date_range, archived, created_at, owner_sub)
+       VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`,
+    ).bind(projectId, DEMO_PROJECT_NAME, '#3E77FC', 'Cliente Demo', 'Discovery', 'Jan 2026 – Jun 2026', now, sub),
+  );
+
+  // ── Risks (4 — varied probability/impact/status) ──
+  const risks: Array<[string, string, string, string, string, string]> = [
+    [
+      'Escopo ainda não validado com o cliente',
+      'Os requisitos da fase de Discovery não foram formalmente aprovados, o que pode gerar retrabalho.',
+      'High', 'High', 'Open', 'Ana Souza',
+    ],
+    [
+      'Dependência de API externa de terceiros',
+      'A integração depende de um serviço externo cuja documentação está incompleta.',
+      'Medium', 'High', 'Open', 'Bruno Lima',
+    ],
+    [
+      'Disponibilidade parcial da equipe de design',
+      'A designer está alocada parcialmente em outro projeto durante o próximo sprint.',
+      'Medium', 'Medium', 'Mitigated', 'Carla Mendes',
+    ],
+    [
+      'Curva de aprendizado da nova stack',
+      'A equipe está adotando uma ferramenta nova; risco já endereçado com sessões de onboarding.',
+      'Low', 'Low', 'Closed', 'Diego Alves',
+    ],
+  ];
+  for (const [title, description, probability, impact, status, owner] of risks) {
+    statements.push(
+      env.DB.prepare(
+        `INSERT INTO risks (id, project_id, title, description, probability, impact, status, owner, created_at, owner_sub)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(crypto.randomUUID(), projectId, title, description, probability, impact, status, owner, now, sub),
+    );
+  }
+
+  // ── Action items (5 — varied priority/status/owner, past & future due dates) ──
+  const actions: Array<[string, string, string, string, string]> = [
+    ['Agendar workshop de kickoff com o cliente', 'Ana Souza', day(-5), 'High', 'Done'],
+    ['Mapear jornada atual do usuário', 'Carla Mendes', day(-2), 'High', 'In Progress'],
+    ['Levantar requisitos técnicos da integração', 'Bruno Lima', day(3), 'Medium', 'In Progress'],
+    ['Definir critérios de sucesso do MVP', 'Diego Alves', day(7), 'Medium', 'To Do'],
+    ['Preparar proposta de roadmap para a próxima fase', 'Ana Souza', day(14), 'Low', 'To Do'],
+  ];
+  for (const [title, owner, due, priority, status] of actions) {
+    statements.push(
+      env.DB.prepare(
+        `INSERT INTO action_items (id, project_id, title, owner, due_date, priority, status, created_at, owner_sub)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(crypto.randomUUID(), projectId, title, owner, due, priority, status, now, sub),
+    );
+  }
+
+  // ── Decisions (3) ──
+  const decisions: Array<[string, string, string, string, string]> = [
+    [
+      'Adotar abordagem mobile-first',
+      'A maioria dos usuários acessa pelo celular, segundo dados preliminares do cliente.',
+      'O produto será projetado mobile-first, com adaptação progressiva para desktop.',
+      'Considerou-se desktop-first e responsivo simétrico; descartados pelo perfil de uso.',
+      'Ana Souza',
+    ],
+    [
+      'Priorizar fluxo de onboarding no MVP',
+      'A retenção inicial foi apontada como métrica crítica pelo cliente.',
+      'O onboarding entra no escopo do MVP, antes de funcionalidades avançadas.',
+      'Adiar onboarding para a v2; descartado por impacto direto na retenção.',
+      'Carla Mendes',
+    ],
+    [
+      'Usar autenticação via SSO da organização',
+      'Os usuários já possuem contas corporativas e exigem login único.',
+      'A autenticação será feita via SSO corporativo, sem cadastro próprio.',
+      'Login próprio com e-mail/senha; descartado por atrito e segurança.',
+      'Bruno Lima',
+    ],
+  ];
+  for (const [title, context, decision, alternatives, author] of decisions) {
+    statements.push(
+      env.DB.prepare(
+        `INSERT INTO decisions (id, project_id, title, context, decision, alternatives, author, created_at, owner_sub)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(crypto.randomUUID(), projectId, title, context, decision, alternatives, author, now, sub),
+    );
+  }
+
+  // ── Stakeholders (4 — mix of influence/interest) ──
+  const stakeholders: Array<[string, string, string, string, string, string]> = [
+    ['Eduardo Ramos', 'Patrocinador (Sponsor)', 'Cliente Demo', 'High', 'High', 'Decisor final de orçamento; reuniões quinzenais.'],
+    ['Fernanda Costa', 'Product Owner', 'Cliente Demo', 'High', 'High', 'Principal ponto de contato do dia a dia.'],
+    ['Gustavo Pereira', 'Líder de TI', 'Cliente Demo', 'High', 'Low', 'Aprova integrações e questões de segurança.'],
+    ['Helena Martins', 'Analista de Negócios', 'Cliente Demo', 'Low', 'High', 'Fornece contexto de processo; muito engajada.'],
+  ];
+  for (const [name, role, company, influence, interest, notes] of stakeholders) {
+    statements.push(
+      env.DB.prepare(
+        `INSERT INTO stakeholders (id, project_id, name, role, company, influence, interest, notes, created_at, owner_sub)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(crypto.randomUUID(), projectId, name, role, company, influence, interest, notes, now, sub),
+    );
+  }
+
+  // All inserts in a single batch (transactional in D1).
+  await env.DB.batch(statements);
+
+  return json({ ok: true, projectId });
+}
+
 // ─── User settings (unchanged; keyed by x-gizmos-sub) ───────────────────────────
 
 async function handleGetSettings(env: Env, sub: string): Promise<Response> {
@@ -319,6 +462,12 @@ export default {
 
       if (path === '/api/spaces') {
         if (req.method === 'GET') return await handleSpaces(env, caller);
+        return json({ error: 'Method not allowed' }, 405);
+      }
+
+      // ─── dev seed (must be handled before generic resource routing) ─────
+      if (path === '/api/dev/seed') {
+        if (req.method === 'POST') return await handleSeed(env, caller);
         return json({ error: 'Method not allowed' }, 405);
       }
 

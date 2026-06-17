@@ -212,8 +212,8 @@ Objetivo: endurecer a base antes de feature nova (escolha do Jairo 2026-06-17). 
 | CC-118 | [BUG] | Integrations/órfãos — deletados PMToolConfig, SalesforceConfig, connectors/jira; IntegrationsPanel vira aviso; stores persist mantidos (sem fetch); ExternalHealthBadge com hydration guard | ✅ Feito |
 | CC-119 | [POLISH] | Guarda de hidratação + `version: 1` no persist (usePMToolStore/useSalesforceStore); leitores já guardados | ✅ Feito |
 | CC-120 | [POLISH] | Estados de loading/erro/vazio nas views (componente `ViewState` em risks/actions/decisions/stakeholders/projetos) | ✅ Feito |
-| CC-128 | [POLISH] | **Performance**: `optimizePackageImports` (@tabler/icons-react, @mantine/*) — bundle inchado deixava o load lento | Pendente |
-| CC-129 | [FEATURE] | Seed de projeto genérico com dados mockados (endpoint `/api/dev/seed` + botão em Settings) pra avaliar features | Pendente |
+| CC-128 | [POLISH] | **Performance**: `optimizePackageImports` (@tabler/icons-react, @mantine/*) — bundle inchado deixava o load lento | ✅ Feito |
+| CC-129 | [FEATURE] | Seed de projeto genérico com dados mockados (endpoint `/api/dev/seed` + botão em Settings) pra avaliar features | ✅ Feito |
 | CC-109 | [INFRA] | Validação on-platform (browser logado): criar projeto → refresh persiste; seletor de espaço; deep-link | Pendente (você) |
 
 ---

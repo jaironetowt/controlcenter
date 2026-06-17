@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Text, Stack, Title, Divider } from '@mantine/core';
 import { FeaturesConfig } from '@/components/settings/FeaturesConfig';
 import { SharingConfig } from '@/components/settings/SharingConfig';
+import { SeedDemo } from '@/components/settings/SeedDemo';
 
 // ─── Settings Page ────────────────────────────────────────────────────────────
 
@@ -37,6 +38,16 @@ export default function SettingsPage() {
             Pessoas adicionadas aqui podem VER todo o seu workspace (somente leitura).
           </Text>
           {mounted && <SharingConfig />}
+        </div>
+
+        <Divider />
+
+        <div>
+          <Text fw={600} size="sm" mb="xs">Dados de exemplo</Text>
+          <Text size="xs" c="dimmed" mb="md">
+            Cria um projeto de demonstração no seu espaço pra avaliar as funcionalidades.
+          </Text>
+          {mounted && <SeedDemo />}
         </div>
       </Stack>
     </div>
