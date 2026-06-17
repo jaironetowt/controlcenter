@@ -183,6 +183,24 @@ Objetivo: deploy do Control Center no `control-center.telus.gizmos.run` usando a
 
 ---
 
+## Fase 2.7 — Multi-tenant (workspace por pessoa)
+
+Objetivo: cada usuário tem seu próprio workspace (espaço); pode adicionar outros como **viewer** (leitura) no seu espaço. Decisão 2026-06-17: granularidade = **workspace por pessoa** (compartilha o workspace inteiro, não por projeto); papéis = **owner + viewer** (sem editor por ora). Substitui o modelo de dados global da migração inicial. Refina o antigo CC-40.
+
+> ✅ **Sem OAuth.** Identidade vem dos headers do loader (`x-gizmos-sub` = owner id estável; `x-gizmos-user` = e-mail). Compartilhamento por e-mail (owner convida; ao logar, cruza `x-gizmos-user`). App precisa ir a visibilidade **"organization"** pra colegas alcançarem o worker (requer key válida — passo manual do dono).
+
+| ID | Tipo | Ticket | Status |
+|----|------|--------|--------|
+| CC-110 | [INFRA] | Migration `0002_multitenant.sql` — `owner_sub` em projects/risks/action_items/decisions/stakeholders; tabela `space_shares(owner_sub, viewer_email, role)` | Pendente |
+| CC-111 | [INFRA] | Worker space-aware — CRUD filtra/seta por `owner_sub`; controle de acesso (owner OU viewer do espaço); writes só owner (viewer→403); novos endpoints `/api/spaces` e `/api/shares` | Pendente |
+| CC-112 | [FEATURE] | `useSpaceStore` + `src/lib/api.ts` — usuário atual, espaços acessíveis, espaço selecionado, `canEdit`; helpers de spaces/shares; resource fetch com `?space=` | Pendente |
+| CC-113 | [FEATURE] | Stores + StoreInitializer — fetch por espaço selecionado; recarregar ao trocar de espaço | Pendente |
+| CC-114 | [FEATURE] | UI — seletor de espaço (sidebar), banner read-only ao ver espaço alheio, esconder entradas de criação (FAB/New) quando `!canEdit`, tela de gerenciar viewers (Settings: convidar/remover por e-mail) | Pendente |
+
+> ⚠️ **Notas**: read-only é *enforced no worker* (segurança) + *best-effort na UI* (esconde criação) — edits inline residuais podem aparecer mas o worker rejeita (toast de erro); polish fino fica como follow-up. Visibilidade "organization" e revogação/rotação de key são passos manuais do dono.
+
+---
+
 ## Fase 3 — Integrações
 
 Objetivo: camada agnóstica de PM Tool + conectores + Google Suite + Salesforce.
